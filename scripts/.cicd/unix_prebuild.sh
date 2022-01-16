@@ -55,19 +55,4 @@ fi
 git submodule sync --recursive
 git submodule update --init --recursive
 
-
-# compile google test
-cd ${repositoryRoot}
-cmake -H. -Bbuild/googletest/Release -DCMAKE_BUILD_TYPE=Release
-cd build/googletest/Release
-cmake --build .
-mkdir -p ${repositoryRoot}/sys/$lsbCode/Release/lib
-cp lib/*.a ${repositoryRoot}/sys/$lsbCode/Release/lib/.
-#rm -rf googletest/generated
-cd ${repositoryRoot}
-cmake -H. -Bbuild/googletest/Debug -DCMAKE_BUILD_TYPE=Debug
-cd build/googletest/Debug
-cmake --build .
-mkdir -p ${repositoryRoot}/sys/$lsbCode/Debug/lib
-cp lib/*.a ${repositoryRoot}/sys/$lsbCode/Debug/lib/.
-rm -rf ${repositoryRoot}/contrib/googletest/googletest/generated
+${repositoryRoot}/contrib/cpputils/scripts/.cicd/unix_prebuild.sh
