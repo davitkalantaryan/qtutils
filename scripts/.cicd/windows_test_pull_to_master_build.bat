@@ -18,8 +18,8 @@ rem if not "!ERRORLEVEL!"=="0" (exit /b !ERRORLEVEL!)
 nmake -f windows.Makefile Platform=!Platform! Configuration=!Configuration!
 if not "!ERRORLEVEL!"=="0" (exit /b !ERRORLEVEL!)
 
-rem cd "%repositoryRoot%workspaces\cpputils_vs"
-rem call msbuild "%repositoryRoot%workspaces\cpputils_vs\cpputils.sln" /t:%ActionConfirm% /p:Configuration=%Configuration% /p:Platform=%Platform% -m:2
+rem cd "%repositoryRoot%workspaces\qtutils_all_vs"
+rem call msbuild "%repositoryRoot%workspaces\qtutils_all_vs\qtutils_all.sln" /t:%ActionConfirm% /p:Configuration=%Configuration% /p:Platform=%Platform% -m:2
 rem if not "!ERRORLEVEL!"=="0" (exit /b !ERRORLEVEL!)
 
 rem do we need to compile makefile projects, then init env and do

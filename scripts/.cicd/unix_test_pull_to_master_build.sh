@@ -41,7 +41,7 @@ elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]]; then
 fi
 
 cd ${repositoryRoot}/prj/tests/googletest_mult
-unset CPPUTILS_DEBUG
+unset QTUTILS_DEBUG
 make -f unix.Makefile all
 # to make debug use line below
 make -f unix.Makefile all QTUTILS_DEBUG=1
