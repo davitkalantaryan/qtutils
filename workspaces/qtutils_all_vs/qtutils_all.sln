@@ -27,10 +27,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "any_quick_test", "..\..\prj
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{2B8D31CF-84D2-4A09-95AE-6B023637747B}"
-	ProjectSection(SolutionItems) = preProject
-		..\..\scripts\findfiles = ..\..\scripts\findfiles
-		..\..\scripts\findfiles.bat = ..\..\scripts\findfiles.bat
-	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".cicd", ".cicd", "{45F25F9A-A889-41EA-BF7B-C5C5D93F806A}"
 	ProjectSection(SolutionItems) = preProject
