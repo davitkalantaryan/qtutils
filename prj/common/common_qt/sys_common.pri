@@ -8,7 +8,7 @@
 
 
 isEmpty( qtutilsRepoRoot ) {
-	qtutilsRepoRoot += $${PWD}/../../..
+	qtutilsRepoRoot = $${PWD}/../../..
 }
 
 cpputilsRepoRoot=$${qtutilsRepoRoot}/contrib/cpputils
