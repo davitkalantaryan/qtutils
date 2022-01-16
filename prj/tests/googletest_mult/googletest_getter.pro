@@ -29,7 +29,7 @@ INCLUDEPATH += "$${PWD}/../../../include"
 INCLUDEPATH += "$${PWD}/../../../contrib/googletest/googletest/include"
 
 SOURCES += $$files($${SRC_DIR}/*.cpp,true)
-SOURCES += $$files($${repoRootPath}/src/core/*.cpp,true)
+#SOURCES += $$files($${repoRootPath}/src/core/*.cpp,true)
 
 HEADERS =  $$files($${repoRootPath}/include/*.h,true)
 HEADERS += $$files($${repoRootPath}/include/*.hpp,true)

@@ -21,6 +21,7 @@ OTHER_FILES += $$files($${repositoryRoot}/docs/*.md,true)
 OTHER_FILES += $$files($${repositoryRoot}/docs/*.txt,true)
 OTHER_FILES += $$files($${repositoryRoot}/.github/workflows/*.yml)  # default is recurse=false
 #OTHER_FILES += $$files($${repositoryRoot}/.gitlab/workflows/*.yml)
+OTHER_FILES += $$files($${repositoryRoot}/prj/*.Makefile,true)
 
 OTHER_FILES	+=	\
 	"$${repositoryRoot}/.gitattributes"									\

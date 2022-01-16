@@ -14,7 +14,7 @@ GTEST_SRC_DIR=$(repoRootPath)/src/tests/googletest
 COMMON_SRC_DIR=$(repoRootPath)/src/core
 
 GTEST_SRCS	= $(shell find $(GTEST_SRC_DIR) -name "*.cpp")
-COMMON_SRCS	= $(shell find $(COMMON_SRC_DIR) -name "*.cpp")
+#COMMON_SRCS	= $(shell find $(COMMON_SRC_DIR) -name "*.cpp")
 
 CPPFLAGS += -I$(repoRootPath)/contrib/googletest/googletest/include
 # c=+ 11 is needed for google test
@@ -30,6 +30,7 @@ $(repoRootPath)/sys/$(lsbCode)/$(Configuration)/test/$(targetName): \
 			$(GTEST_SRCS:%=$(repoRootPath)/sys/$(lsbCode)/$(Configuration)/.objects/$(targetName)/%.o)	\
 			$(COMMON_SRCS:%=$(repoRootPath)/sys/$(lsbCode)/$(Configuration)/.objects/$(targetName)/%.o)
 	@mkdir -p $(@D)
+	@echo !!!! $@
 	@$(LINK) $^ $(LIBS) $(LFLAGS) -o $@
 
 .PHONY: clean

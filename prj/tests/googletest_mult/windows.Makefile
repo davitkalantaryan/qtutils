@@ -55,7 +55,7 @@ TargetCategory                  = test
 
 LINKER        			= link
 PDB_FILE_PATH			= $(TargetDirectory)\$(TargetName).pdb
-DEFINES       			= $(DEFINES) /D "_WINDLL" /D "_MBCS" /D "CPPUTILS_USING_STATIC_LIB_OR_OBJECTS"
+DEFINES       			= $(DEFINES) /D "_WINDLL" /D "_MBCS" /D "QTUTILS_USING_STATIC_LIB_OR_OBJECTS"
 INCLUDE_PATHS			= $(INCLUDE_PATHS) /I"$(GoogleTestDir)\googletest\include"
 INCLUDE_PATHS			= $(INCLUDE_PATHS) /I"$(RepoRootDir)\include"
 CFLAGS				= $(CFLAGS) $(INCLUDE_PATHS) $(DEFINES)

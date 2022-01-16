@@ -2,9 +2,9 @@
 
 mkfile_path		=  $(abspath $(lastword $(MAKEFILE_LIST)))
 mkfile_dir		=  $(shell dirname $(mkfile_path))
-repoRootPathCppUtils	:= $(shell curDir=`pwd` && cd $(mkfile_dir)/../../.. && pwd && cd ${curDir})
+repoRootPathQtUtils	:= $(shell curDir=`pwd` && cd $(mkfile_dir)/../../.. && pwd && cd ${curDir})
 ifndef repoRootPath
-	repoRootPath	:= $(repoRootPathCppUtils)
+	repoRootPath	:= $(repoRootPathQtUtils)
 endif
 osSystem		:= $(shell uname)
 ifeq ($(osSystem),Darwin)
@@ -75,15 +75,15 @@ endif
 #EMXX=env CCACHE_CPP2=1 ccache em++
 EMXX=em++
 
-COMMON_FLAGS	+= -I$(repoRootPathCppUtils)/include
+COMMON_FLAGS	+= -I$(repoRootPathQtUtils)/include
 
 CPPFLAGS		+=  $(COMMON_FLAGS)
 
 DEBUG_FLAGS_DEBUG=-O0 -g
 DEBUG_FLAGS_RELEASE=-O3
 
-ifdef CPPUTILS_DEBUG
-	DEBUG_FLAGS=$(DEBUG_FLAGS_DEBUG) -DCPPUTILS_DEBUG
+ifdef QTUTILS_DEBUG
+	DEBUG_FLAGS=$(DEBUG_FLAGS_DEBUG) -DQTUTILS_DEBUG
 	Configuration=Debug
 	nameExtension=d
 else
