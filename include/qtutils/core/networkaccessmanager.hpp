@@ -7,31 +7,31 @@
 
 #pragma once
 
-#include <focust/core/focust_internal_header.h>
+#include <qtutils/qtutils_internal_header.h>
 #include <stdexcept>
-#include <focust/core/disable_utils_warnings.h>
+#include <qtutils/disable_utils_warnings.h>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 //#include <QHttpMultiPart>
 
-namespace focust { namespace network {
+namespace qtutils { namespace network{
 
 
-class FOCUST_DLL_PRIVATE Reply;
-class FOCUST_DLL_PRIVATE ReplyContainer;
-class FOCUST_DLL_PRIVATE ReplyData;
-class FOCUST_DLL_PRIVATE AccessManager;
+class CPPUTILS_DLL_PRIVATE Reply;
+class CPPUTILS_DLL_PRIVATE ReplyContainer;
+class CPPUTILS_DLL_PRIVATE ReplyData;
+class CPPUTILS_DLL_PRIVATE AccessManager;
 
-class FOCUST_DLL_PRIVATE Exception final : public ::std::runtime_error
+class CPPUTILS_DLL_PRIVATE Exception final : public ::std::runtime_error
 {
 public:
-	Exception(network::ReplyData* a_pReplyData,const char* a_cpcWhat);
+	Exception(ReplyData* a_pReplyData,const char* a_cpcWhat);
 public:
-	network::ReplyData*const m_pReplyData;
+	ReplyData*const m_pReplyData;
 };
 
 
-class FOCUST_DLL_PRIVATE AccessManagerRaw final
+class CPPUTILS_DLL_PRIVATE AccessManagerRaw final
 {
 private:
     AccessManagerRaw();
@@ -55,7 +55,7 @@ private:
 };
 
 
-class FOCUST_DLL_PRIVATE AccessManager final
+class CPPUTILS_DLL_PRIVATE AccessManager final
 {
 public:
     AccessManager();
@@ -68,7 +68,7 @@ private:
 };
 
 
-class FOCUST_DLL_PRIVATE ReplyContainer final
+class CPPUTILS_DLL_PRIVATE ReplyContainer final
 {
 public:
     ReplyContainer();
@@ -84,14 +84,14 @@ protected:
 };
 
 
-class FOCUST_DLL_PRIVATE ReplyData
+class CPPUTILS_DLL_PRIVATE ReplyData
 {
 public:
     virtual ~ReplyData();    
 };
 
 
-class FOCUST_DLL_PRIVATE Reply final : public QObject
+class CPPUTILS_DLL_PRIVATE Reply final : public QObject
 {
     Q_OBJECT
 
@@ -99,7 +99,7 @@ private:
     Reply() = delete;
     Reply(const Reply&) = delete;
     Reply(Reply&&) = delete;
-    Reply( QNetworkReply* FOCUST_NO_NULL networkReply, ReplyContainer* a_pParentContainer, ReplyData* a_pData=nullptr);
+    Reply( QNetworkReply* CPPUTILS_NO_NULL networkReply, ReplyContainer* a_pParentContainer, ReplyData* a_pData=nullptr);
 
 public:
     ~Reply() override;
@@ -126,4 +126,4 @@ private:
 };
 
 
-}}  // namespace focust { namespace network {
+}}  // namespace qtutils { namespace network{

@@ -8,18 +8,18 @@
 #pragma once
 
 
-#include <focust/core/focust_internal_header.h>
-#include <focust/core/threadobject.hpp>
-#include <focust/core/disable_utils_warnings.h>
+#include <qtutils/qtutils_internal_header.h>
+#include <qtutils/core/threadobject.hpp>
+#include <qtutils/disable_utils_warnings.h>
 #include <QThread>
 
 // LS stands for Late Start, constructor exits when thread stated
 
-namespace focust{
+namespace qtutils{
 
-class FOCUST_DLL_PRIVATE ThreadLS_p;
+class CPPUTILS_DLL_PRIVATE ThreadLS_p;
 
-class FOCUST_EXPORT ThreadLS final
+class QTUTILS_EXPORT ThreadLS final
 {
 public:
     typedef void (*TypeConstruct)(void*);
@@ -40,4 +40,4 @@ private:
     ThreadLS_p*const        m_thr_data_p;
 };
 
-}  // namespace focust{
+}  // namespace qtutils{

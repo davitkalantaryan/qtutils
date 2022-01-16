@@ -1,18 +1,18 @@
 //
-// file:            monitor_settings.cpp
-// path:			src/core/basic/monitor_settings.cpp
+// file:            qtutils_settings.cpp
+// path:			src/core/qtutils_settings.cpp
 // created on:		2021 Nov 06
 // created by:		Davit Kalantaryan (davit.kalantaryan@gmail.com)
 //
 
 
-#include <focust/core/settings.hpp>
-#ifdef FOCUST_EMSCRIPTEN_IS_USED
+#include <qtutils/core/settings.hpp>
+#ifdef CPPUTILS_EMSCRIPTEN_IS_USED
 #include <cpputils/hashtbl.hpp>
 #include <mutex>
 
 
-namespace focust{
+namespace qtutils{
 
 static ::cpputils::hashtbl::Base<QString,QVariant> s_values;
 static ::std::mutex     s_mutex;
@@ -48,14 +48,14 @@ void Settings::setValue(const QString &a_key, const QVariant &a_value)
 }
 
 
-void Settings::setDefaultFormat( FOCUST_QT_NSP QSettings::Format a_format)
+void Settings::setDefaultFormat( QTUTILS_QT_NSP QSettings::Format a_format)
 {
 	static_cast<void>(a_format);
 }
 
 
-}  // namespace focust{
+}  // namespace qtutils{
 
 
-#endif  // #ifdef FOCUST_EMSCRIPTEN_IS_USED
+#endif  // #ifdef CPPUTILS_EMSCRIPTEN_IS_USED
 

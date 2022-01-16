@@ -7,21 +7,21 @@
 
 #pragma once
 
-#ifndef FOCUST_INCLUDE_RESIZIBLE_WINDOW_HPP
-#define FOCUST_INCLUDE_RESIZIBLE_WINDOW_HPP
+#ifndef QTUTILS_INCLUDE_RESIZIBLE_WINDOW_HPP
+#define QTUTILS_INCLUDE_RESIZIBLE_WINDOW_HPP
 
 
-#include <focust/core/focust_internal_header.h>
-#include <focust/core/flagshelper.h>
+#include <qtutils/qtutils_internal_header.h>
+#include <cpputils/flagshelper.h>
 #include <stdint.h>
-#include <focust/core/disable_utils_warnings.h>
+#include <qtutils/disable_utils_warnings.h>
 #include <QCloseEvent>
 #include <QHideEvent>
 #include <QMoveEvent>
 #include <QResizeEvent>
 #include <QShowEvent>
 
-namespace focust { namespace ui{
+namespace qtutils { namespace ui{
 
 
 template <typename WidgetType>
@@ -61,12 +61,12 @@ protected:
 };
 
 
-}}  // namespace focust { namespace test{
+}}  // namespace qtutils { namespace ui{
 
 
-#ifndef FOCUST_INCLUDE_RESIZIBLE_WINDOW_IMPL_HPP
+#ifndef QTUTILS_INCLUDE_RESIZIBLE_WINDOW_IMPL_HPP
 #include "resizible_window.impl.hpp"
 #endif
 
 
-#endif  // #ifndef FOCUST_INCLUDE_RESIZIBLE_WINDOW_HPP
+#endif  // #ifndef QTUTILS_INCLUDE_RESIZIBLE_WINDOW_HPP

@@ -7,25 +7,25 @@
 
 #pragma once
 
-#ifndef FOCUST_INCLUDE_RESIZIBLE_WINDOW_IMPL_HPP
-#define FOCUST_INCLUDE_RESIZIBLE_WINDOW_IMPL_HPP
+#ifndef QTUTILS_INCLUDE_RESIZIBLE_WINDOW_IMPL_HPP
+#define QTUTILS_INCLUDE_RESIZIBLE_WINDOW_IMPL_HPP
 
 
-#ifndef FOCUST_INCLUDE_RESIZIBLE_WINDOW_HPP
+#ifndef QTUTILS_INCLUDE_RESIZIBLE_WINDOW_HPP
 #include "resizible_window.hpp"
 #endif
 
-#include <focust/core/flagshelper.h>
-#include <focust/core/settings.hpp>
+#include <cpputils/flagshelper.h>
+#include <qtutils/core/settings.hpp>
 
 
-namespace focust { namespace ui{
+namespace qtutils { namespace ui{
 
-#define FOCUST_RSBL_WND_POS_KEY				"/position"
-#define FOCUST_RSBL_WND_SIZE_KEY			"/size"
-#define FOCUST_RSBL_WND_IS_MAXIMIZED_KEY	"/isMaximized"
-#define FOCUST_RSBL_WND_IS_MINIMIZED_KEY	"/isMinimized"
-#define FOCUST_RSBL_WND_TBIND_KEY			"/tabindex"
+#define QTUTILS_RSBL_WND_POS_KEY				"/position"
+#define QTUTILS_RSBL_WND_SIZE_KEY			"/size"
+#define QTUTILS_RSBL_WND_IS_MAXIMIZED_KEY	"/isMaximized"
+#define QTUTILS_RSBL_WND_IS_MINIMIZED_KEY	"/isMinimized"
+#define QTUTILS_RSBL_WND_TBIND_KEY			"/tabindex"
 
 
 template <typename WidgetType>
@@ -58,17 +58,17 @@ inline void ResizibleWindow<WidgetType>::HideCloseEvent()
 {
     if(m_flags.b.hideNotCalled){
         Settings aSettings;
-        aSettings.setValue(m_settingsKey+FOCUST_RSBL_WND_POS_KEY,WidgetType::pos());
+        aSettings.setValue(m_settingsKey+QTUTILS_RSBL_WND_POS_KEY,WidgetType::pos());
         if(WidgetType::isMaximized()){
-            aSettings.setValue(m_settingsKey+FOCUST_RSBL_WND_IS_MAXIMIZED_KEY,true);
+            aSettings.setValue(m_settingsKey+QTUTILS_RSBL_WND_IS_MAXIMIZED_KEY,true);
         }
         else if(WidgetType::isMinimized()){
-            aSettings.setValue(m_settingsKey+FOCUST_RSBL_WND_IS_MINIMIZED_KEY,true);
+            aSettings.setValue(m_settingsKey+QTUTILS_RSBL_WND_IS_MINIMIZED_KEY,true);
         }
         else{
-            aSettings.setValue(m_settingsKey+FOCUST_RSBL_WND_IS_MAXIMIZED_KEY,false);
-            aSettings.setValue(m_settingsKey+FOCUST_RSBL_WND_IS_MINIMIZED_KEY,false);
-            aSettings.setValue(m_settingsKey+FOCUST_RSBL_WND_SIZE_KEY,WidgetType::size());
+            aSettings.setValue(m_settingsKey+QTUTILS_RSBL_WND_IS_MAXIMIZED_KEY,false);
+            aSettings.setValue(m_settingsKey+QTUTILS_RSBL_WND_IS_MINIMIZED_KEY,false);
+            aSettings.setValue(m_settingsKey+QTUTILS_RSBL_WND_SIZE_KEY,WidgetType::size());
         }
         m_flags.b2.hideCalledOrNot =  MONITOR_MAKE_BITS_POSITIVE;
     }
@@ -100,23 +100,23 @@ void ResizibleWindow<WidgetType>::showEvent(QShowEvent* a_event)
 	
 	WidgetType::showEvent(a_event);
 	
-	if(aSettings.contains(m_settingsKey+FOCUST_RSBL_WND_POS_KEY)){
-		const QPoint aPos = aSettings.value(m_settingsKey+FOCUST_RSBL_WND_POS_KEY).toPoint();
+	if(aSettings.contains(m_settingsKey+QTUTILS_RSBL_WND_POS_KEY)){
+		const QPoint aPos = aSettings.value(m_settingsKey+QTUTILS_RSBL_WND_POS_KEY).toPoint();
 		WidgetType::move(aPos);
 	}
 	
-	if(aSettings.contains(m_settingsKey+FOCUST_RSBL_WND_SIZE_KEY)){
-		const QSize aSize = aSettings.value(m_settingsKey+FOCUST_RSBL_WND_SIZE_KEY).toSize();
+	if(aSettings.contains(m_settingsKey+QTUTILS_RSBL_WND_SIZE_KEY)){
+		const QSize aSize = aSettings.value(m_settingsKey+QTUTILS_RSBL_WND_SIZE_KEY).toSize();
 		WidgetType::resize(aSize);
 	}
 	
 	
-	if(aSettings.contains(m_settingsKey+FOCUST_RSBL_WND_IS_MAXIMIZED_KEY)){
-		bIsMaximized = aSettings.value(m_settingsKey+FOCUST_RSBL_WND_IS_MAXIMIZED_KEY).toBool();
+	if(aSettings.contains(m_settingsKey+QTUTILS_RSBL_WND_IS_MAXIMIZED_KEY)){
+		bIsMaximized = aSettings.value(m_settingsKey+QTUTILS_RSBL_WND_IS_MAXIMIZED_KEY).toBool();
 	}
 	
-	if(aSettings.contains(m_settingsKey+FOCUST_RSBL_WND_IS_MINIMIZED_KEY)){
-		bIsMinimized = aSettings.value(m_settingsKey+FOCUST_RSBL_WND_IS_MINIMIZED_KEY).toBool();
+	if(aSettings.contains(m_settingsKey+QTUTILS_RSBL_WND_IS_MINIMIZED_KEY)){
+		bIsMinimized = aSettings.value(m_settingsKey+QTUTILS_RSBL_WND_IS_MINIMIZED_KEY).toBool();
 	}
 	
 	
@@ -131,7 +131,7 @@ void ResizibleWindow<WidgetType>::showEvent(QShowEvent* a_event)
 
 
 
-}}  // namespace monitor { namespace test{
+}}  // namespace qtutils { namespace ui{
 
 
-#endif  // #ifndef FOCUST_INCLUDE_RESIZIBLE_WINDOW_HPP
+#endif  // #ifndef QTUTILS_INCLUDE_RESIZIBLE_WINDOW_IMPL_HPP

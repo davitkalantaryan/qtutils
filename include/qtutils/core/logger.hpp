@@ -8,26 +8,26 @@
 #pragma once
 
 
-#include <focust/core/focust_internal_header.h>
-#include <focust/core/disable_utils_warnings.h>
+#include <qtutils/qtutils_internal_header.h>
+#include <qtutils/disable_utils_warnings.h>
 #include <QDebug>
 #include <QMessageLogger>
 
 
-namespace focust{
+namespace qtutils { 
 
-class FOCUST_DLL_PRIVATE Logger_p;
+class CPPUTILS_DLL_PRIVATE Logger_p;
 
-#define FocustDebugNV       QMessageLogger(__FILE__, __LINE__, __FUNCTION__).debug
-#define FocustDebug()       (FocustDebugNV()<< ::focust::Logger::FileAndLineString(__FILE__,__LINE__) << ": ")
-#define FocustDebugV()      (FileLineAndFunctionString()<< ::focust::Logger::FileLineAndFunctionString(__FILE__,__LINE__,__FUNCTION__) << ": ")
-#define FocustInfo          QMessageLogger(__FILE__, __LINE__, __FUNCTION__).info
-#define FocustWarning       QMessageLogger(__FILE__, __LINE__, __FUNCTION__).warning
-#define FocustCritical      QMessageLogger(__FILE__, __LINE__, __FUNCTION__).critical
-#define FocustFatal         QMessageLogger(__FILE__, __LINE__, __FUNCTION__).fatal
+#define QtUtilsDebugNV       QMessageLogger(__FILE__, __LINE__, __FUNCTION__).debug
+#define QtUtilsDebug()       (QtUtilsDebugNV()<< ::qtutils::Logger::FileAndLineString(__FILE__,__LINE__) << ": ")
+#define QtUtilsDebugV()      (QtUtilsDebugNV()<< ::qtutils::Logger::FileLineAndFunctionString(__FILE__,__LINE__,__FUNCTION__) << ": ")
+#define QtUtilsInfo          QMessageLogger(__FILE__, __LINE__, __FUNCTION__).info
+#define QtUtilsWarning       QMessageLogger(__FILE__, __LINE__, __FUNCTION__).warning
+#define QtUtilsCritical      QMessageLogger(__FILE__, __LINE__, __FUNCTION__).critical
+#define QtUtilsFatal         QMessageLogger(__FILE__, __LINE__, __FUNCTION__).fatal
 
 
-class FOCUST_EXPORT Logger final
+class QTUTILS_EXPORT Logger final
 {
 public:
     Logger();
@@ -46,7 +46,7 @@ private:
 };
 
 
-#define FocustInfoV()    (FocustInfo()<< ::focust::Logger::FileAndLineString(__FILE__,__LINE__) << ": ")
+#define QtUtilsInfoV()    (QtUtilsInfo()<< ::qtutils::Logger::FileAndLineString(__FILE__,__LINE__) << ": ")
 
 
-}  // namespace focust{
+}  // namespace qtutils{

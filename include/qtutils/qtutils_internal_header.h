@@ -19,5 +19,7 @@
     #define QTUTILS_EXPORT CPPUTILS_IMPORT_FROM_DLL
 #endif
 
+#define QTUTILS_QT_NSP  ::
+
 
 #endif  // #ifndef INCLUDE_QTUTILS_INTERNAL_HEADER_H

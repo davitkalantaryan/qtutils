@@ -11,14 +11,14 @@
 #define FOCUST_INCLUDE_PASSWORDBOX_HPP
 
 
-#include <focust/core/focust_internal_header.h>
-#include <focust/core/disable_utils_warnings.h>
+#include <qtutils/qtutils_internal_header.h>
+#include <qtutils/disable_utils_warnings.h>
 #include <QLineEdit>
 
 
-namespace focust { namespace ui{
+namespace qtutils { namespace ui{
 
-class FOCUST_DLL_PRIVATE PasswordBox_p;
+class CPPUTILS_DLL_PRIVATE PasswordBox_p;
 
 class PasswordBox final
 {
@@ -35,7 +35,7 @@ private:
 };
 
 
-}}  // namespace focust { namespace test{
+}}  // namespace qtutils { namespace test{
 
 
 

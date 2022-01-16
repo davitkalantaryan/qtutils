@@ -1,6 +1,6 @@
 //
 // file:            settings.hpp
-// path:			include/monitor/core/settings.hpp
+// path:			include/qtutils/core/settings.hpp
 // created on:		2021 Nov 06
 // created by:		Davit Kalantaryan (davit.kalantaryan@gmail.com)
 //
@@ -9,11 +9,11 @@
 
 //#define FOCUST_EMSCRIPTEN_IS_USED
 
-#include <focust/core/focust_internal_header.h>
-#include <focust/core/disable_utils_warnings.h>
+#include <qtutils/qtutils_internal_header.h>
+#include <qtutils/disable_utils_warnings.h>
 
 
-#ifdef FOCUST_EMSCRIPTEN_IS_USED
+#ifdef CPPUTILS_EMSCRIPTEN_IS_USED
 #include <QString>
 #include <QVariant>
 #include <QSettings>
@@ -21,12 +21,12 @@
 #include <QSettings>
 #endif
 
-namespace focust{
+namespace qtutils{
 
 
-#ifdef FOCUST_EMSCRIPTEN_IS_USED
+#ifdef CPPUTILS_EMSCRIPTEN_IS_USED
 
-class FOCUST_DLL_PRIVATE Settings final
+class CPPUTILS_DLL_PRIVATE Settings final
 {
 public:
     bool contains(const FOCUST_QT_NSP QString &key) const;
@@ -36,8 +36,8 @@ public:
 };
 
 #else
-typedef FOCUST_QT_NSP QSettings Settings;
-#endif  // #ifdef FOCUST_EMSCRIPTEN_IS_USED
+typedef QTUTILS_QT_NSP QSettings Settings;
+#endif  // #ifdef CPPUTILS_EMSCRIPTEN_IS_USED
 
 
-}  // namespace focust{
+}  // namespace qtutils{

@@ -1,14 +1,14 @@
 //
-// file:            focust_networkaccessmanager.cpp
-// path:			src/core/focust_networkaccessmanager.cpp
+// file:            qtutils_networkaccessmanager.cpp
+// path:			src/core/qtutils_networkaccessmanager.cpp
 // created on:		2021 Nov 27
 // created by:		Davit Kalantaryan (davit.kalantaryan@gmail.com)
 //
 
-#include <focust/core/networkaccessmanager.hpp>
+#include <qtutils/core/networkaccessmanager.hpp>
 
 
-namespace focust { namespace network {
+namespace qtutils { namespace network {
 
 
 Exception::Exception(network::ReplyData* a_pReplyData,const char* a_cpcWhat)
@@ -143,7 +143,7 @@ ReplyData::~ReplyData()
 
 /*////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
 
-Reply::Reply( QNetworkReply* FOCUST_NO_NULL a_networkReply, ReplyContainer* a_pParentContainer, ReplyData* a_pData)
+Reply::Reply( QNetworkReply* CPPUTILS_NO_NULL a_networkReply, ReplyContainer* a_pParentContainer, ReplyData* a_pData)
     :
       m_pNetworkReply(a_networkReply),
       m_pParentContainer(a_pParentContainer),
@@ -211,4 +211,4 @@ void Reply::ReplaceData(ReplyData* a_pData)
 }
 
 
-}}  // namespace focust { namespace network {
+}}  // namespace qtutils { namespace network {

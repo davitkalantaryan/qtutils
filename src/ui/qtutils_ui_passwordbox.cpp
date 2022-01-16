@@ -5,17 +5,17 @@
 // created by:		Davit Kalantaryan (davit.kalantaryan@gmail.com)
 //
 
-#include <focust/ui/passwordbox.hpp>
-#include <focust/core/disable_utils_warnings.h>
+#include <qtutils/ui/passwordbox.hpp>
+#include <qtutils/disable_utils_warnings.h>
 #include <QLabel>
 #include <QResizeEvent>
 #include <QMouseEvent>
 
 
-namespace focust { namespace ui{
+namespace qtutils { namespace ui{
 
 
-class FOCUST_DLL_PRIVATE PswWndLabel final : public QLabel
+class CPPUTILS_DLL_PRIVATE PswWndLabel final : public QLabel
 {
 public:
     PswWndLabel(PasswordBox_p* parent);
@@ -25,7 +25,7 @@ private:
 };
 
 
-class FOCUST_DLL_PRIVATE PasswordBox_p final : public QLineEdit
+class CPPUTILS_DLL_PRIVATE PasswordBox_p final : public QLineEdit
 {
 public:
     PasswordBox_p(QWidget* parent);
@@ -131,4 +131,4 @@ void PswWndLabel::mousePressEvent(QMouseEvent* a_event)
 }
 
 
-}}  // namespace focust { namespace ui{
+}}  // namespace qtutils { namespace ui{

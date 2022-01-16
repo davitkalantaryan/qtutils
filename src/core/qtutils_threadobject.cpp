@@ -1,15 +1,15 @@
 //
-// file:            focust_websockscontainer.cpp
-// path:			src/core/focust_websockscontainer.cpp
+// file:            qtutils_websockscontainer.cpp
+// path:			src/core/qtutils_websockscontainer.cpp
 // created on:		2022 Jan 12
 // created by:		Davit Kalantaryan (davit.kalantaryan@gmail.com)
 //
 
 
-#include <focust/core/threadobject.hpp>
+#include <qtutils/core/threadobject.hpp>
 
 
-namespace focust{
+namespace qtutils{
 
 
 QObject* ThreadObject::Sender() const
@@ -23,4 +23,4 @@ ThreadObject::~ThreadObject()
 }
 
 
-}  // namespace focust{
+}  // namespace qtutils{

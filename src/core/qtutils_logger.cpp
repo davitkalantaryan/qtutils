@@ -6,14 +6,14 @@
 //
 
 
-#include <focust/core/logger.hpp>
+#include <qtutils/core/logger.hpp>
 #include <cpputils/inscopecleaner.hpp>
-#include <focust/core/disable_utils_warnings.h>
+#include <qtutils/disable_utils_warnings.h>
 #include <QFileInfo>
 #include <QDateTime>
 
 
-namespace focust{
+namespace qtutils{
 
 static Logger_p* s_pLogger = nullptr;
 
@@ -27,7 +27,7 @@ static void MessageHandlerStaticForNull(QtMsgType, const QMessageLogContext &,co
 
 /*////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
 
-class FOCUST_DLL_PRIVATE Logger_p
+class CPPUTILS_DLL_PRIVATE Logger_p
 {
 public:
     void MessageHandler(QtMsgType a_type, const QMessageLogContext& a_context,const QString& a_message);
@@ -124,4 +124,4 @@ static void MessageHandlerStatic(QtMsgType a_type, const QMessageLogContext& a_c
 }
 
 
-}  // namespace focust{
+}  // namespace qtutils{

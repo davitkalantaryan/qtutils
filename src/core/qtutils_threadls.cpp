@@ -1,23 +1,23 @@
 //
-// file:            focust_threadls.cpp
+// file:            qtutils_threadls.cpp
 // path:			src/core/focust_threadls.cpp
 // created on:		2022 Jan 12
 // created by:		Davit Kalantaryan (davit.kalantaryan@gmail.com)
 //
 
 
-#include <focust/core/threadls.hpp>
+#include <qtutils/core/threadls.hpp>
 #include <cpputils/inscopecleaner.hpp>
 #include <cpputils/unnamedsemaphore.hpp>
 
 
-namespace focust{
+namespace qtutils{
 
 static void StaticConstruct(void*){}
 static void StaticDestruct(void*){}
 
 
-class FOCUST_DLL_PRIVATE ThreadLS_p : public QThread
+class CPPUTILS_DLL_PRIVATE ThreadLS_p : public QThread
 {
 public:
     ThreadLS_p(const ThreadLS::TypeConstruct& a_construct, const ThreadLS::TypeDestruct& a_destruct, void* a_pData);
@@ -103,4 +103,4 @@ void ThreadLS_p::run()
 }
 
 
-}  // namespace focust{
+}  // namespace qtutils{
