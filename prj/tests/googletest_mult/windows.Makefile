@@ -47,7 +47,7 @@ MakeFileName                    = windows.Makefile
 
 RepoRootDir			= $(MakeFileDir)\..\..\..
 SrcBaseDir			= $(MakeFileDir)\..\..\..\src
-GoogleTestDir			= $(RepoRootDir)\contrib\googletest
+GoogleTestDir			= $(RepoRootDir)\contrib\cpputils\contrib\googletest
 
 TargetName			= unittest
 TargetExtension			= exe
@@ -61,7 +61,7 @@ INCLUDE_PATHS			= $(INCLUDE_PATHS) /I"$(RepoRootDir)\include"
 CFLAGS				= $(CFLAGS) $(INCLUDE_PATHS) $(DEFINES)
 CXXFLAGS			= $(CXXFLAGS) $(CFLAGS)
 
-LIBPATHS			= $(LIBPATHS) /LIBPATH:"$(RepoRootDir)\sys\win_$(Platform)\$(Configuration)\lib"
+LIBPATHS			= $(LIBPATHS) /LIBPATH:"$(RepoRootDir)\contrib\cpputils\sys\win_$(Platform)\$(Configuration)\lib"
 LIBS				=
 LIBS				= $(LIBS) "gtest_main$(LibrariesExtension).lib"
 LIBS				= $(LIBS) "gtest$(LibrariesExtension).lib"
