@@ -29,10 +29,10 @@ namespace qtutils{
 class CPPUTILS_DLL_PRIVATE Settings final
 {
 public:
-    bool contains(const FOCUST_QT_NSP QString &key) const;
-    FOCUST_QT_NSP QVariant value(const FOCUST_QT_NSP QString &key, const FOCUST_QT_NSP QVariant &defaultValue = FOCUST_QT_NSP QVariant()) const;
-    void setValue(const FOCUST_QT_NSP QString &key, const FOCUST_QT_NSP QVariant &value);
-	static void setDefaultFormat( FOCUST_QT_NSP QSettings::Format format);
+    bool contains(const QTUTILS_QT_NSP QString &key) const;
+    QTUTILS_QT_NSP QVariant value(const QTUTILS_QT_NSP QString &key, const QTUTILS_QT_NSP QVariant &defaultValue = QTUTILS_QT_NSP QVariant()) const;
+    void setValue(const QTUTILS_QT_NSP QString &key, const QTUTILS_QT_NSP QVariant &value);
+	static void setDefaultFormat( QTUTILS_QT_NSP QSettings::Format format);
 };
 
 #else
