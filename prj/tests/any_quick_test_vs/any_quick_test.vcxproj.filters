@@ -19,101 +19,23 @@
     <Filter Include="files">
       <UniqueIdentifier>{1446a31f-1a1a-4f0e-b3bd-3705ead6d556}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\include\cpputils">
-      <UniqueIdentifier>{c838491c-060e-4887-8580-9804fa0e1816}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\include\cpputils\enums">
-      <UniqueIdentifier>{6fc18e52-e922-4a57-aa06-fb5038b9ab4f}</UniqueIdentifier>
+    <Filter Include="Header Files\include\qtutils">
+      <UniqueIdentifier>{6644e199-56ac-4045-91d4-bc039a3f6d04}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\tests\main_any_quick_test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\core\cpputils_bigint.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\core\cpputils_functional_old.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\core\cpputils_hashtbl.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\core\cpputils_inscopecleaner.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\..\include\cpputils_internal_header.h">
-      <Filter>Header Files\include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\cpputils\bigint.hpp">
-      <Filter>Header Files\include\cpputils</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\cpputils\bigint.impl.hpp">
-      <Filter>Header Files\include\cpputils</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\cpputils\endian.hpp">
-      <Filter>Header Files\include\cpputils</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\cpputils\enums.hpp">
-      <Filter>Header Files\include\cpputils</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\cpputils\functional.hpp">
-      <Filter>Header Files\include\cpputils</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\cpputils\functional_old.hpp">
-      <Filter>Header Files\include\cpputils</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\cpputils\functional_old.impl.hpp">
-      <Filter>Header Files\include\cpputils</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\cpputils\hashtbl.def.hpp">
-      <Filter>Header Files\include\cpputils</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\cpputils\hashtbl.hpp">
-      <Filter>Header Files\include\cpputils</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\cpputils\hashtbl.impl.hpp">
-      <Filter>Header Files\include\cpputils</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\cpputils\inscopecleaner.hpp">
-      <Filter>Header Files\include\cpputils</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\cpputils\macroses.h">
-      <Filter>Header Files\include\cpputils</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\cpputils\sharedptr.hpp">
-      <Filter>Header Files\include\cpputils</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\cpputils\sharedptr.impl.hpp">
-      <Filter>Header Files\include\cpputils</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\cpputils\enums\base.hpp">
-      <Filter>Header Files\include\cpputils\enums</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\cpputils\enums\fast.hpp">
-      <Filter>Header Files\include\cpputils\enums</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\cpputils\enums\fast.impl.hpp">
-      <Filter>Header Files\include\cpputils\enums</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\cpputils\enums\full.hpp">
-      <Filter>Header Files\include\cpputils\enums</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\cpputils\enums\full.impl.hpp">
-      <Filter>Header Files\include\cpputils\enums</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\cpputils\enums\fullslow.hpp">
-      <Filter>Header Files\include\cpputils\enums</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\include\cpputils\enums\fullslow.impl.hpp">
-      <Filter>Header Files\include\cpputils\enums</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\any_quick_test_qt\any_quick_test.pro">
       <Filter>files</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\include\qtutils\qtutils_internal_header.h">
+      <Filter>Header Files\include\qtutils</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

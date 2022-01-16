@@ -44,36 +44,6 @@
     <ClCompile Include="..\..\..\src\tests\googletest\0000_initial.cpp">
       <Filter>Source Files\tests\googletest</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\tests\googletest\0001_hash.cpp">
-      <Filter>Source Files\tests\googletest</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\tests\googletest\0002_bigint.cpp">
-      <Filter>Source Files\tests\googletest</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\tests\googletest\0003_function_old.cpp">
-      <Filter>Source Files\tests\googletest</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\tests\googletest\0004_sharedptr.cpp">
-      <Filter>Source Files\tests\googletest</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\tests\googletest\0005_macroses.cpp">
-      <Filter>Source Files\tests\googletest</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\tests\googletest\0006_enums.cpp">
-      <Filter>Source Files\tests\googletest</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\core\cpputils_bigint.cpp">
-      <Filter>Source Files\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\core\cpputils_functional_old.cpp">
-      <Filter>Source Files\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\core\cpputils_hashtbl.cpp">
-      <Filter>Source Files\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\core\cpputils_inscopecleaner.cpp">
-      <Filter>Source Files\core</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\include\cpputils_internal_header.h">

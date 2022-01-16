@@ -38,7 +38,7 @@
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
     <ProjectGuid>{c0d41e3c-2bf2-40b0-bc52-9686247700e5}</ProjectGuid>
-    <RootNamespace>cpputils</RootNamespace>
+    <RootNamespace>qtutils_all</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -128,41 +128,49 @@
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(ProjectDir)..\..\sys\win_$(PlatformTarget)\$(Configuration)\util\</OutDir>
     <IntDir>$(ProjectDir)..\..\sys\win_$(PlatformTarget)\$(Configuration)\.objects\$(ProjectName)\</IntDir>
+    <CopyCppRuntimeToOutputDir>true</CopyCppRuntimeToOutputDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(ProjectDir)..\..\sys\win_$(PlatformTarget)\$(Configuration)\util\</OutDir>
     <IntDir>$(ProjectDir)..\..\sys\win_$(PlatformTarget)\$(Configuration)\.objects\$(ProjectName)\</IntDir>
+    <CopyCppRuntimeToOutputDir>true</CopyCppRuntimeToOutputDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(ProjectDir)..\..\sys\win_$(PlatformTarget)\$(Configuration)\util\</OutDir>
     <IntDir>$(ProjectDir)..\..\sys\win_$(PlatformTarget)\$(Configuration)\.objects\$(ProjectName)\</IntDir>
+    <CopyCppRuntimeToOutputDir>true</CopyCppRuntimeToOutputDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(ProjectDir)..\..\sys\win_$(PlatformTarget)\$(Configuration)\util\</OutDir>
     <IntDir>$(ProjectDir)..\..\sys\win_$(PlatformTarget)\$(Configuration)\.objects\$(ProjectName)\</IntDir>
+    <CopyCppRuntimeToOutputDir>true</CopyCppRuntimeToOutputDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(ProjectDir)..\..\sys\win_$(PlatformTarget)\$(Configuration)\util\</OutDir>
     <IntDir>$(ProjectDir)..\..\sys\win_$(PlatformTarget)\$(Configuration)\.objects\$(ProjectName)\</IntDir>
+    <CopyCppRuntimeToOutputDir>true</CopyCppRuntimeToOutputDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(ProjectDir)..\..\sys\win_$(PlatformTarget)\$(Configuration)\util\</OutDir>
     <IntDir>$(ProjectDir)..\..\sys\win_$(PlatformTarget)\$(Configuration)\.objects\$(ProjectName)\</IntDir>
+    <CopyCppRuntimeToOutputDir>true</CopyCppRuntimeToOutputDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(ProjectDir)..\..\sys\win_$(PlatformTarget)\$(Configuration)\util\</OutDir>
     <IntDir>$(ProjectDir)..\..\sys\win_$(PlatformTarget)\$(Configuration)\.objects\$(ProjectName)\</IntDir>
+    <CopyCppRuntimeToOutputDir>true</CopyCppRuntimeToOutputDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(ProjectDir)..\..\sys\win_$(PlatformTarget)\$(Configuration)\util\</OutDir>
     <IntDir>$(ProjectDir)..\..\sys\win_$(PlatformTarget)\$(Configuration)\.objects\$(ProjectName)\</IntDir>
+    <CopyCppRuntimeToOutputDir>true</CopyCppRuntimeToOutputDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -277,6 +285,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\src\utils\entry_qtutils_overall.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

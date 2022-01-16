@@ -285,38 +285,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\src\core\cpputils_bigint.cpp" />
-    <ClCompile Include="..\..\..\src\core\cpputils_functional_old.cpp" />
-    <ClCompile Include="..\..\..\src\core\cpputils_hashtbl.cpp" />
-    <ClCompile Include="..\..\..\src\core\cpputils_inscopecleaner.cpp" />
     <ClCompile Include="..\..\..\src\tests\main_any_quick_test.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\include\cpputils\bigint.hpp" />
-    <ClInclude Include="..\..\..\include\cpputils\bigint.impl.hpp" />
-    <ClInclude Include="..\..\..\include\cpputils\endian.hpp" />
-    <ClInclude Include="..\..\..\include\cpputils\enums.hpp" />
-    <ClInclude Include="..\..\..\include\cpputils\enums\base.hpp" />
-    <ClInclude Include="..\..\..\include\cpputils\enums\fast.hpp" />
-    <ClInclude Include="..\..\..\include\cpputils\enums\fast.impl.hpp" />
-    <ClInclude Include="..\..\..\include\cpputils\enums\full.hpp" />
-    <ClInclude Include="..\..\..\include\cpputils\enums\full.impl.hpp" />
-    <ClInclude Include="..\..\..\include\cpputils\enums\fullslow.hpp" />
-    <ClInclude Include="..\..\..\include\cpputils\enums\fullslow.impl.hpp" />
-    <ClInclude Include="..\..\..\include\cpputils\functional.hpp" />
-    <ClInclude Include="..\..\..\include\cpputils\functional_old.hpp" />
-    <ClInclude Include="..\..\..\include\cpputils\functional_old.impl.hpp" />
-    <ClInclude Include="..\..\..\include\cpputils\hashtbl.def.hpp" />
-    <ClInclude Include="..\..\..\include\cpputils\hashtbl.hpp" />
-    <ClInclude Include="..\..\..\include\cpputils\hashtbl.impl.hpp" />
-    <ClInclude Include="..\..\..\include\cpputils\inscopecleaner.hpp" />
-    <ClInclude Include="..\..\..\include\cpputils\macroses.h" />
-    <ClInclude Include="..\..\..\include\cpputils\sharedptr.hpp" />
-    <ClInclude Include="..\..\..\include\cpputils\sharedptr.impl.hpp" />
-    <ClInclude Include="..\..\..\include\cpputils_internal_header.h" />
+    <None Include="..\any_quick_test_qt\any_quick_test.pro" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\any_quick_test_qt\any_quick_test.pro" />
+    <ClInclude Include="..\..\..\include\qtutils\qtutils_internal_header.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

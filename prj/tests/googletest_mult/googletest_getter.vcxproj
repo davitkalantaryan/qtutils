@@ -39,17 +39,7 @@
     <None Include="windows.Makefile" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\src\core\cpputils_bigint.cpp" />
-    <ClCompile Include="..\..\..\src\core\cpputils_functional_old.cpp" />
-    <ClCompile Include="..\..\..\src\core\cpputils_hashtbl.cpp" />
-    <ClCompile Include="..\..\..\src\core\cpputils_inscopecleaner.cpp" />
     <ClCompile Include="..\..\..\src\tests\googletest\0000_initial.cpp" />
-    <ClCompile Include="..\..\..\src\tests\googletest\0001_hash.cpp" />
-    <ClCompile Include="..\..\..\src\tests\googletest\0002_bigint.cpp" />
-    <ClCompile Include="..\..\..\src\tests\googletest\0003_function_old.cpp" />
-    <ClCompile Include="..\..\..\src\tests\googletest\0004_sharedptr.cpp" />
-    <ClCompile Include="..\..\..\src\tests\googletest\0005_macroses.cpp" />
-    <ClCompile Include="..\..\..\src\tests\googletest\0006_enums.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\include\cpputils\bigint.hpp" />
