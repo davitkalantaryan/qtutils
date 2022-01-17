@@ -14,15 +14,16 @@ CONFIG -= qt
 
 LIBS += -pthread
 
-repoRootPath=$${PWD}/../../..
 
-INCLUDEPATH += "$${PWD}/../../../include"
+INCLUDEPATH += "$${qtutilsRepoRoot}/include"
+INCLUDEPATH += "$${cpputilsRepoRoot}/include"
+INCLUDEPATH += "$${cpputilsRepoRoot}/contrib/googletest/googletest/include"
+
 DEFINES += QTGUTILS_USING_STATIC_LIB_OR_OBJECTS
 
-
 SOURCES	+=		\
-	"$${PWD}/../../../src/tests/main_any_quick_test.cpp"
+	"$${qtutilsRepoRoot}/src/tests/main_any_quick_test.cpp"
 
 
-HEADERS += $$files($${repoRootPath}/include/*.h,true)
-HEADERS += $$files($${repoRootPath}/include/*.h,true)
+HEADERS += $$files($${qtutilsRepoRoot}/include/*.h,true)
+HEADERS += $$files($${qtutilsRepoRoot}/include/*.h,true)

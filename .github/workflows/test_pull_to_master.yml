@@ -44,12 +44,12 @@ jobs:
             - name: Preparing 3rd party libraries for windows
               run: .\scripts\.cicd\windows_prebuild.bat
 
-            - name: Compiling for windows
-              run: .\scripts\.cicd\windows_test_pull_to_master_build.bat
+            #- name: Compiling for windows
+              #run: .\scripts\.cicd\windows_test_pull_to_master_build.bat
               #working-directory: blabla
 
-            - name: running unittest for windows
-              run: .\scripts\.cicd\windows_test_pull_to_master_unittest.bat
+            #- name: running unittest for windows
+              #run: .\scripts\.cicd\windows_test_pull_to_master_unittest.bat
 
     # do we need mac ?
     mac:
