@@ -17,7 +17,7 @@
 namespace qtutils{
 
 
-class FOCUST_EXPORT ThreadObject : public QObject
+class QTUTILS_EXPORT ThreadObject : public QObject
 {
 public:
     virtual ~ThreadObject() override;
