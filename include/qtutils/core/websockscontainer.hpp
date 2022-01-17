@@ -1,6 +1,6 @@
 //
 // file:            websockscontainer.hpp
-// path:			include/focust/core/websockscontainer.hpp
+// path:			include/qtutils/core/websockscontainer.hpp
 // created on:		2022 Jan 12
 // created by:		Davit Kalantaryan (davit.kalantaryan@gmail.com)
 //
@@ -8,20 +8,20 @@
 #pragma once
 
 
-#include <focust/core/focust_internal_header.h>
+#include <qtutils/qtutils_internal_header.h>
 #include <stddef.h>
-#include <focust/core/disable_utils_warnings.h>
+#include <qtutils/disable_utils_warnings.h>
 #include <QWebSocket>
 #include <QByteArray>
 
 
 
-namespace focust{
+namespace qtutils{
 
-class FOCUST_DLL_PRIVATE WebSockContainer_p;
+class CPPUTILS_DLL_PRIVATE WebSockContainer_p;
 
 
-class FOCUST_EXPORT WebSockContainer final
+class QTUTILS_EXPORT WebSockContainer final
 {
 public:
     WebSockContainer(size_t maxNumberOfSocketsInOneThread);
@@ -41,4 +41,4 @@ private:
     WebSockContainer_p*const m_pContData;
 };
 
-}  // namespace focust{
+}  // namespace qtutils{
