@@ -31,9 +31,7 @@ public:
 	template<typename... Targs>
     ResizibleWindow(const QString& a_settingsKey, Targs... a_args);
     virtual ~ResizibleWindow() override;
-	
-	void show();
-    
+	    
 protected:
     //void moveEvent(QMoveEvent *event) override;
     //void resizeEvent(QResizeEvent *event) override;

@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/">
+        <file>img/close_button_icon01.png</file>
+	<file>img/show_password.png</file>
+	<file>img/hide_password.png</file>
+    </qresource>
+</RCC>
