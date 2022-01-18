@@ -58,7 +58,14 @@ ClosableWindow<WidgetType>::~ClosableWindow()
 
 
 template <typename WidgetType>
-WidgetType* ClosableWindow<WidgetType>::qChildWidget()const
+const WidgetType* ClosableWindow<WidgetType>::qChildWidget()const
+{
+    return &(m_wdg);
+}
+
+
+template <typename WidgetType>
+WidgetType* ClosableWindow<WidgetType>::qChildWidget()
 {
     return &(m_wdg);
 }

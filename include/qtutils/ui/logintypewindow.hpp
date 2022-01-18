@@ -24,11 +24,13 @@ namespace qtutils { namespace ui{
 
 #if defined(CPPUTILS_EMSCRIPTEN_IS_USED) || defined(QTUTILS_UI_FORCE_WEB_STYLE)
 
+#define QTUTILS_HANDLE_WIDGET()     ( parent() )
 template <typename WidgetType >
 using LoginTypeWindow = WebStyleLoginTypeWindow<WidgetType>;
 
 #else
 
+#define QTUTILS_HANDLE_WIDGET()     ( this )
 template <typename WidgetType >
 using LoginTypeWindow = ResizibleWindow<WidgetType>;
 

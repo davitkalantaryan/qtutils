@@ -32,7 +32,8 @@ public:
     ClosableWindow(const QString& a_settingsKey, Targs... a_args);
     virtual ~ClosableWindow();
 
-    WidgetType* qChildWidget()const;
+    const WidgetType* qChildWidget()const;
+    WidgetType* qChildWidget();
     void AddAction(QAction* a_pAction);
 	
 private:
