@@ -92,10 +92,10 @@ void WebSockContainer::RemoveWebSocket(QWebSocket* a_pSocket)
 {
     QMetaObject::invokeMethod(m_pContData->m_pObject,[this, a_pSocket](){
         WebSocketN* pNewSock = static_cast<WebSocketN*>(a_pSocket->parent());
-        a_pSocket->close();
         ::std::lock_guard<::std::mutex> aGuard(m_pContData->m_mutexSocks);
         m_pContData->m_socks.erase(pNewSock->m_iter);
-        pNewSock->deleteLater();
+        //a_pSocket->close();
+        //pNewSock->deleteLater();
     });
 }
 
