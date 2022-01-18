@@ -47,13 +47,6 @@ ResizibleWindow<WidgetType>::~ResizibleWindow()
 
 
 template <typename WidgetType>
-void ResizibleWindow<WidgetType>::show()
-{
-	WidgetType::show();
-}
-
-
-template <typename WidgetType>
 inline void ResizibleWindow<WidgetType>::HideCloseEvent()
 {
     if(m_flags.b.hideNotCalled){

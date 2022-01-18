@@ -23,7 +23,7 @@ template <typename WidgetType>
 class WebStyleLoginTypeWindow : public ::qtutils::ui::ResizibleWindow<QWidget>{
 public:
     template<typename... Targs>
-	WebStyleLoginTypeWindow(const QString& Targs... a_args);
+	WebStyleLoginTypeWindow(const QString& a_settingsKey, Targs... a_args);
     virtual ~WebStyleLoginTypeWindow() override;
 	
 protected:

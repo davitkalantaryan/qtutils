@@ -1,44 +1,56 @@
 //
-// file:            webstylelogintypewindow.hpp
-// path:			include/qtutils/ui/webstylelogintypewindow.hpp
+// file:            closablewindow.hpp
+// path:			include/qtutils/ui/closablewindow.hpp
 // created on:		2022 Jan 18
 // created by:		Davit Kalantaryan (davit.kalantaryan@gmail.com)
 //
 
 #pragma once
 
-#ifndef QTUTILS_INCLUDE_WEBSTYLELOGINTYPEWINDOW_HPP
-#define QTUTILS_INCLUDE_WEBSTYLELOGINTYPEWINDOW_HPP
+#ifndef QTUTILS_INCLUDE_CLOSABLEWINDOW_HPP
+#define QTUTILS_INCLUDE_CLOSABLEWINDOW_HPP
 
 
 #include <qtutils/qtutils_internal_header.h>
 #include <qtutils/ui/resizible_window.hpp>
 #include <qtutils/disable_utils_warnings.h>
 #include <QWidget>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QToolBar>
+#include <QAction>
 
 
 namespace qtutils { namespace ui{
 
-template <typename WidgetType>
-class WebStyleLoginTypeWindow : public ::qtutils::ui::ResizibleWindow<QWidget>{
+
+template <typename WidgetType >
+class ClosableWindow : public ::qtutils::ui::ResizibleWindow<QWidget>
+{
 public:
     template<typename... Targs>
-	WebStyleLoginTypeWindow(Targs... a_args);
-    virtual ~WebStyleLoginTypeWindow() override;
+    ClosableWindow(const QString& a_settingsKey, Targs... a_args);
+    virtual ~ClosableWindow();
+
+    WidgetType* qChildWidget()const;
+    void AddAction(QAction* a_pAction);
 	
-protected:
-	void resizeEvent(QResizeEvent *event) override;
-	
-protected:
-	WidgetType		m_ltWnd;
+private:
+    QVBoxLayout				m_overallLayout;
+    QVBoxLayout				m_menuAndToolbarLayout;
+    QHBoxLayout             m_bottomLayout;
+    QToolBar                m_toolBar;
+    WidgetType              m_wdg;
+    QAction					m_actionClose;
+    
 };
 
 }}  // namespace qtutils { namespace ui{
 
 
-#ifndef QTUTILS_INCLUDE_WEBSTYLELOGINTYPEWINDOW_IMPL_HPP
-#include "webstylelogintypewindow.impl.hpp"
+#ifndef QTUTILS_INCLUDE_CLOSABLEWINDOW_IMPL_HPP
+#include "closablewindow.impl.hpp"
 #endif
 
 
-#endif  // #ifndef QTUTILS_INCLUDE_WEBSTYLELOGINTYPEWINDOW_HPP
+#endif  // #ifndef QTUTILS_INCLUDE_CLOSABLEWINDOW_HPP
