@@ -13,6 +13,7 @@
 
 #include <qtutils/qtutils_internal_header.h>
 #include <qtutils/ui/resizible_window.hpp>
+#include <type_traits>
 #include <qtutils/disable_utils_warnings.h>
 #include <QWidget>
 
@@ -20,7 +21,9 @@
 namespace qtutils { namespace ui{
 
 template <typename WidgetType>
-class WebStyleLoginTypeWindow : public ::qtutils::ui::ResizibleWindow<QWidget>{
+class WebStyleLoginTypeWindow : public ::qtutils::ui::ResizibleWindow<QWidget>
+{
+    static_assert( ::std::is_base_of<QWidget,WidgetType>() );
 public:
     template<typename... Targs>
 	WebStyleLoginTypeWindow(const QString& a_settingsKey, Targs... a_args);

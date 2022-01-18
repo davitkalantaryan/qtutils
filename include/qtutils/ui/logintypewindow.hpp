@@ -24,7 +24,7 @@ namespace qtutils { namespace ui{
 
 #if defined(CPPUTILS_EMSCRIPTEN_IS_USED) || defined(QTUTILS_UI_FORCE_WEB_STYLE)
 
-#define QTUTILS_HANDLE_WIDGET()     ( parent() )
+#define QTUTILS_HANDLE_WIDGET()     static_cast<QWidget*>(parent())
 template <typename WidgetType >
 using LoginTypeWindow = WebStyleLoginTypeWindow<WidgetType>;
 
