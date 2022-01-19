@@ -18,6 +18,9 @@
 #include <qtutils/ui/global_functions.hpp>
 #include <qtutils/disable_utils_warnings.h>
 #include <QApplication>
+#ifdef QTUTILS_MAKE_DEBUG
+#include <QDebug>
+#endif
 
 
 namespace qtutils { namespace ui{
@@ -29,8 +32,11 @@ WebDialog<WidgetType>::WebDialog(Targs... a_args)
 	:
 	  WidgetType(a_args...)
 {
-    m_con1=QObject::connect(qApp,&QApplication::focusChanged,[this](QWidget*,QWidget* a_now){
-        if(!isSameWidgetOrChild(this,a_now)){
+    m_con1=QObject::connect(qApp,&QApplication::focusChanged,[this](QWidget*,QWidget* a_now){    
+#ifdef QTUTILS_MAKE_DEBUG
+        qDebug()<<"a_not:"<<a_now;
+#endif
+        if(a_now && (!isSameWidgetOrChild(this,a_now))){
             WidgetType::deleteLater();
         }
     });
