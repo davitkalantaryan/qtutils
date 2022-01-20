@@ -33,22 +33,22 @@ AccessManagerRaw::~AccessManagerRaw()
 }
 
 
-Reply* AccessManagerRaw::post(ReplyContainer* a_pContainer, const QNetworkRequest& a_request, const QByteArray& a_data,  ReplyData* a_pData)
+Reply* AccessManagerRaw::post(ReplyContainer* a_pContainer, const QNetworkRequest& a_request, const QByteArray& a_data,  ReplyData* a_pData, int a_timeoutMs)
 {
     QNetworkReply* pNetworkReply = m_pQtManager->post(a_request,a_data);
     if(pNetworkReply){
-		return new Reply(pNetworkReply,a_pContainer,a_pData);
+		return new Reply(pNetworkReply,a_pContainer,a_pData, a_timeoutMs);
     }
     //return nullptr;
 	throw Exception(a_pData,"Unable to create Network Reply object");
 }
 
 
-Reply* AccessManagerRaw::get(ReplyContainer* a_pContainer, const QNetworkRequest& a_request, ReplyData* a_pData)
+Reply* AccessManagerRaw::get(ReplyContainer* a_pContainer, const QNetworkRequest& a_request, ReplyData* a_pData, int a_timeoutMs)
 {
     QNetworkReply* pNetworkReply = m_pQtManager->get(a_request);
     if(pNetworkReply){
-		return new Reply(pNetworkReply,a_pContainer,a_pData);
+		return new Reply(pNetworkReply,a_pContainer,a_pData, a_timeoutMs);
     }
     //return nullptr;
 	throw Exception(a_pData,"Unable to create Network Reply object");
@@ -143,14 +143,16 @@ ReplyData::~ReplyData()
 
 /*////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
 
-Reply::Reply( QNetworkReply* CPPUTILS_NO_NULL a_networkReply, ReplyContainer* a_pParentContainer, ReplyData* a_pData)
+Reply::Reply( QNetworkReply* CPPUTILS_NO_NULL a_networkReply, ReplyContainer* a_pParentContainer, ReplyData* a_pData, int a_timeoutTimer)
     :
       m_pNetworkReply(a_networkReply),
       m_pParentContainer(a_pParentContainer),
       m_pData(a_pData)
 {
+    m_bHasTimeout = 0;
+    
     if(a_pParentContainer){
-        a_pParentContainer->AddNewNetworkReply(this);;
+        a_pParentContainer->AddNewNetworkReply(this);
     }
     else{
         m_prev=(nullptr);
@@ -163,8 +165,19 @@ Reply::Reply( QNetworkReply* CPPUTILS_NO_NULL a_networkReply, ReplyContainer* a_
 	});
 
     m_connFinished = ::QObject::connect(m_pNetworkReply,&QNetworkReply::finished,this,[this](){
+        if(m_timeoutTimer.isActive()){
+            m_timeoutTimer.stop();
+        }
         emit finished();
     });
+    
+    if(a_timeoutTimer>=0){
+        QObject::connect(&m_timeoutTimer,&QTimer::timeout,this,[this](){
+            Abort();
+            emit finished();
+        });
+        m_timeoutTimer.start(a_timeoutTimer);
+    }
 }
 
 
@@ -188,6 +201,12 @@ QNetworkReply* Reply::operator->()const
 }
 
 
+bool Reply::hasTimeout()const
+{
+    return m_bHasTimeout;
+}
+
+
 void Reply::Abort()
 {
     if(m_connFinished){
@@ -208,6 +227,49 @@ ReplyData* Reply::data()const
 void Reply::ReplaceData(ReplyData* a_pData)
 {
     m_pData = a_pData;
+}
+
+
+/*////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
+
+QTUTILS_EXPORT void PrepareJsonHeaders(QNetworkRequest* a_pRequet, const QString& a_agent)
+{
+    a_pRequet->setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+    a_pRequet->setRawHeader("Client-Device", QSysInfo::machineHostName().toUtf8() );
+
+#ifdef CPPUTILS_EMSCRIPTEN_IS_USED
+    static_cast<void>(a_agent);  // each browser has its own agent
+#else
+    a_pRequet->setHeader(QNetworkRequest::UserAgentHeader, a_agent);  // each browser has its own agent
+
+    {
+        QSslConfiguration conf = a_pRequet->sslConfiguration();
+        conf.setPeerVerifyMode(QSslSocket::VerifyNone);
+        a_pRequet->setSslConfiguration(conf);
+    }
+#endif
+}
+
+
+QTUTILS_EXPORT void PrepareJsonHeadersWithAuth(QNetworkRequest* a_pRequet, const QString& a_authToken,const QString& a_agent)
+{
+    ::std::string authString = ::std::string("Bearer ") + a_authToken.toStdString();
+    a_pRequet->setRawHeader("Authorization",authString.c_str());
+    PrepareJsonHeaders(a_pRequet, a_agent);
+}
+
+
+QTUTILS_EXPORT void ErrorByteArray(const QNetworkReply::NetworkError&,const ::qtutils::network::Reply& a_replyHandlerIn, QByteArray* CPPUTILS_IN_OUT a_pData)
+{
+    QByteArray& responseByteArray = *a_pData;
+    if(responseByteArray.isEmpty()){
+        if(a_replyHandlerIn.hasTimeout()){
+            responseByteArray = "timeout";
+        }
+        else{
+            responseByteArray = a_replyHandlerIn->errorString().toLocal8Bit();
+        }
+    }
 }
 
 

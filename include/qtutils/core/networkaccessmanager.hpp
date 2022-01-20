@@ -10,6 +10,7 @@
 #include <qtutils/qtutils_internal_header.h>
 #include <stdexcept>
 #include <qtutils/disable_utils_warnings.h>
+#include <QTimer>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 //#include <QHttpMultiPart>
@@ -31,15 +32,15 @@ public:
 };
 
 
-class CPPUTILS_DLL_PRIVATE AccessManagerRaw final
+class QTUTILS_EXPORT AccessManagerRaw final
 {
 private:
     AccessManagerRaw();
     ~AccessManagerRaw();
     
 public:
-    Reply* post(ReplyContainer* a_pContainer, const QNetworkRequest &request, const QByteArray &data,  ReplyData* a_pData);
-    Reply* get(ReplyContainer* a_pContainer, const QNetworkRequest &request, ReplyData* a_pData);
+    Reply* post(ReplyContainer* a_pContainer, const QNetworkRequest &request, const QByteArray &data,  ReplyData* a_pData, int a_timeoutMs);
+    Reply* get(ReplyContainer* a_pContainer, const QNetworkRequest &request, ReplyData* a_pData, int a_timeoutMs);
     //Reply* post(ReplyContainer* a_pContainer, const Request &request, HttpMultiPart *multiPart,ReplyData* a_pData);
     //Reply* deleteResource(ReplyContainer* a_pContainer, const Request &request, ReplyData* a_pData);
     //Reply* get(ReplyContainer* a_pContainer,const Request &request, ReplyData* a_pData);
@@ -55,7 +56,7 @@ private:
 };
 
 
-class CPPUTILS_DLL_PRIVATE AccessManager final
+class QTUTILS_EXPORT AccessManager final
 {
 public:
     AccessManager();
@@ -68,7 +69,7 @@ private:
 };
 
 
-class CPPUTILS_DLL_PRIVATE ReplyContainer final
+class QTUTILS_EXPORT ReplyContainer final
 {
 public:
     ReplyContainer();
@@ -84,14 +85,14 @@ protected:
 };
 
 
-class CPPUTILS_DLL_PRIVATE ReplyData
+class QTUTILS_EXPORT ReplyData
 {
 public:
     virtual ~ReplyData();    
 };
 
 
-class CPPUTILS_DLL_PRIVATE Reply final : public QObject
+class QTUTILS_EXPORT Reply final : public QObject
 {
     Q_OBJECT
 
@@ -99,7 +100,7 @@ private:
     Reply() = delete;
     Reply(const Reply&) = delete;
     Reply(Reply&&) = delete;
-    Reply( QNetworkReply* CPPUTILS_NO_NULL networkReply, ReplyContainer* a_pParentContainer, ReplyData* a_pData=nullptr);
+    Reply( QNetworkReply* CPPUTILS_NO_NULL networkReply, ReplyContainer* a_pParentContainer, ReplyData* a_pData=nullptr, int a_timeoutMs=-1);
 
 public:
     ~Reply() override;
@@ -108,6 +109,7 @@ public:
     QNetworkReply* operator->()const;
     ReplyData* data()const;
     void ReplaceData(ReplyData* a_pData); // this will be used to replace by null to prevent delete
+    bool hasTimeout()const;
     
 private:
 signals:
@@ -115,15 +117,22 @@ signals:
 
 private:
     Reply                   *m_prev, *m_next;
+    QTimer                  m_timeoutTimer;
     QNetworkReply*/*const*/	m_pNetworkReply;
     ReplyContainer*/*const*/m_pParentContainer;
     ReplyData*              m_pData;
     QMetaObject::Connection	m_connFinished;
     QMetaObject::Connection	m_connDestroy;
+    bool                    m_bHasTimeout;
     
     friend class ReplyContainer;
     friend class AccessManagerRaw;
 };
+
+
+QTUTILS_EXPORT void PrepareJsonHeaders(QNetworkRequest* a_pRequet, const QString& a_agent);
+QTUTILS_EXPORT void PrepareJsonHeadersWithAuth(QNetworkRequest* a_pRequet, const QString& a_authToken, const QString& a_agent);
+QTUTILS_EXPORT void ErrorByteArray(const QNetworkReply::NetworkError&,const ::qtutils::network::Reply& a_replyHandlerIn, QByteArray* CPPUTILS_IN_OUT a_pData);
 
 
 }}  // namespace qtutils { namespace network{
