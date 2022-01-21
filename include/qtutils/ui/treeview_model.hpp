@@ -16,6 +16,7 @@
 #include <stdint.h>
 #include <qtutils/disable_utils_warnings.h>
 #include <QAbstractItemModel>
+#include <QIcon>
 
 
 namespace qtutils { namespace ui{ namespace treeview{
@@ -64,7 +65,7 @@ namespace model{
 
 class CPPUTILS_DLL_PRIVATE Node_p;
 
-class QTUTILS_EXPORT Node
+class QTUTILS_EXPORT Node : public QObject
 {
 public:
     virtual ~Node();
@@ -132,6 +133,21 @@ typedef NodeRootT<Node>  NodeRoot;
 
 typedef NodeDummyT<NodeChild>               NodeDummy;
 typedef NodeDummyT<NodeRootT<NodeChild> >   NodeDummyRoot;
+
+
+class QTUTILS_EXPORT NodeIcon final : public NodeChild
+{
+    //Q_OBJECT
+public:
+    NodeIcon(const Node* pParent, int row, int column, uint64_t a_nIteration, const QIcon& a_icon);
+//protected:
+//signal:
+//    void IconClickedSignal();
+private:
+    QVariant data(int role = Qt::DisplayRole) const override;
+private:
+    const QIcon     m_icon;
+};
 
 
 } // namespace model{

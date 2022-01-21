@@ -366,6 +366,28 @@ QVariant NodeFieldName::data(int a_role) const
 }
 
 
+/*////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
+
+NodeIcon::NodeIcon(const Node* a_pParent, int a_row, int a_column, uint64_t a_nIteration, const QIcon& a_icon)
+    :
+      NodeChild(a_pParent,a_row,a_column,a_nIteration),
+      m_icon(a_icon)
+{
+}
+
+
+QVariant NodeIcon::data(int a_role) const
+{
+    switch(a_role){
+    case Qt::DecorationRole:
+        return m_icon;
+    default:
+        break;
+    }
+    return QTUTILS_TV_MODEL_DEFAULT_DATA();
+}
+
+
 }  // namespace model {
 
 
