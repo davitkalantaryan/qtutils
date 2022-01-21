@@ -11,22 +11,22 @@
 
 #include <qtutils/qtutils_internal_header.h>
 #include <qtutils/disable_utils_warnings.h>
-
+#include <QSettings>
 
 #ifdef CPPUTILS_EMSCRIPTEN_IS_USED
 #include <QString>
 #include <QVariant>
-#include <QSettings>
-#else
-#include <QSettings>
 #endif
 
 namespace qtutils{
 
+QTUTILS_EXPORT void InitializeSettings(QTUTILS_QT_NSP QSettings::Format format);
+QTUTILS_EXPORT void CleanupSettings(void);
+
 
 #ifdef CPPUTILS_EMSCRIPTEN_IS_USED
 
-class CPPUTILS_DLL_PRIVATE Settings final
+class QTUTILS_EXPORT Settings final
 {
 public:
     bool contains(const QTUTILS_QT_NSP QString &key) const;
