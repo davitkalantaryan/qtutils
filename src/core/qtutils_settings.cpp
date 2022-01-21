@@ -151,5 +151,23 @@ QTUTILS_EXPORT void CleanupSettings(void)
 }  // namespace qtutils{
 
 
+#else
+
+namespace qtutils{
+
+QTUTILS_EXPORT void InitializeSettings(QTUTILS_QT_NSP QSettings::Format a_format)
+{
+    QSettings::setDefaultFormat(a_format);
+}
+
+
+QTUTILS_EXPORT void CleanupSettings(void)
+{
+    //
+}
+
+}  // namespace qtutils{
+
+
 #endif  // #ifdef CPPUTILS_EMSCRIPTEN_IS_USED
 
