@@ -34,9 +34,21 @@ template<typename ParentType>
 const ParentType* Node::parent()const
 {
     static_assert( ::std::is_base_of<Node,ParentType>() );
-    const ParentType* pParent = CPPUTILS_SAFE_CAST(const ParentType*,parentRaw());
-    assert(pParent);
+    //const ParentType* pParent = CPPUTILS_SAFE_CAST(const ParentType*,parentRaw());
+    //assert(pParent);
+    const ParentType* pParent = dynamic_cast<const ParentType*>(parentRaw());
     return pParent;
+}
+
+
+template<typename RootType>
+const RootType* Node::root()const
+{
+    static_assert( ::std::is_base_of<Node,RootType>() );
+    //const RootType* pRoot = CPPUTILS_SAFE_CAST(const RootType*,rootRaw());
+    //assert(pRoot);
+    const RootType* pRoot = dynamic_cast<const RootType*>(rootRaw());
+    return pRoot;
 }
 
 

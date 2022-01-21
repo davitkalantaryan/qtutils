@@ -78,6 +78,12 @@ uint64_t Model::iteration()const
 }
 
 
+model::Node* Model::node(const QModelIndex& a_index)const
+{
+    return static_cast<model::Node*>(a_index.internalPointer());
+}
+
+
 Model_p* Model::newPrivateData(Model* a_pParent)
 {
     return new Model_p(a_pParent);
@@ -294,9 +300,26 @@ bool Node::isPossibleToDelete(uint64_t a_nIteration)const
 }
 
 
+int Node::type() const
+{
+    return -1;
+}
+
+
 const Node* Node::parentRaw()const
 {
     return m_node_data_p->m_key.m_pParent;
+}
+
+
+const Node* Node::rootRaw()const
+{
+    const Node *pTmp=this->parentRaw(), *pRet = this;
+    while(pTmp){
+        pRet = pTmp;
+        pTmp = pRet->parentRaw();
+    }
+    return pRet;
 }
 
 

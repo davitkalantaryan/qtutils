@@ -37,6 +37,7 @@ public:
     virtual ~Model() override;
     
     uint64_t iteration()const;
+    model::Node* node(const QModelIndex &index)const;
     
 private:
     virtual int rootRowCount()const = 0;
@@ -65,7 +66,7 @@ namespace model{
 
 class CPPUTILS_DLL_PRIVATE Node_p;
 
-class QTUTILS_EXPORT Node : public QObject
+class QTUTILS_EXPORT Node
 {
 public:
     virtual ~Node();
@@ -77,16 +78,20 @@ public:
     virtual int columnCount()const =0;
     virtual const Node* createChild(int a_row, int a_col)const = 0;
     virtual bool isPossibleToDelete(uint64_t a_nIteration)const;
+    virtual int  type() const;
     int row()const;
     int column()const;
     const Node* parentRaw()const;
+    const Node* rootRaw()const;
     template<typename ParentType>
     const ParentType* parent()const;
+    template<typename RootType>
+    const RootType* root()const;
 private:
     Node_p*const    m_node_data_p;
 public:
     const uint64_t  m_nIteration;
-private:
+
     friend class ::qtutils::ui::treeview::Model;
 };
 
@@ -102,11 +107,11 @@ private:
 };
 
 
-class QTUTILS_EXPORT NodeFieldName final : public NodeChild
+class QTUTILS_EXPORT NodeFieldName : public NodeChild
 {
 public:
     NodeFieldName(const Node* a_pParentNode, int a_row, int a_col, uint64_t a_nIteration, const QString& a_fieldName);
-private:
+protected:
     QVariant data(int role = Qt::DisplayRole) const override;
 public:
     const QString m_fieldName;
@@ -119,7 +124,7 @@ class QTUTILS_EXPORT NodeDummyT : public NodeType
     static_assert( ::std::is_base_of<Node,NodeType>() );
 public:
     using NodeType::NodeType;
-private:
+protected:
     QVariant data(int role = Qt::DisplayRole) const override final;
 };
 
@@ -135,17 +140,13 @@ typedef NodeDummyT<NodeChild>               NodeDummy;
 typedef NodeDummyT<NodeRootT<NodeChild> >   NodeDummyRoot;
 
 
-class QTUTILS_EXPORT NodeIcon final : public NodeChild
+class QTUTILS_EXPORT NodeIcon : public NodeChild
 {
-    //Q_OBJECT
 public:
     NodeIcon(const Node* pParent, int row, int column, uint64_t a_nIteration, const QIcon& a_icon);
-//protected:
-//signal:
-//    void IconClickedSignal();
-private:
+protected:
     QVariant data(int role = Qt::DisplayRole) const override;
-private:
+public:
     const QIcon     m_icon;
 };
 
