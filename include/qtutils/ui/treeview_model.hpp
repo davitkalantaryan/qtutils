@@ -101,6 +101,17 @@ private:
 };
 
 
+class QTUTILS_EXPORT NodeFieldName final : public NodeChild
+{
+public:
+    NodeFieldName(const Node* a_pParentNode, int a_row, int a_col, uint64_t a_nIteration, const QString& a_fieldName);
+private:
+    QVariant data(int role = Qt::DisplayRole) const override;
+public:
+    const QString m_fieldName;
+};
+
+
 template <typename NodeType>
 class QTUTILS_EXPORT NodeDummyT : public NodeType
 {

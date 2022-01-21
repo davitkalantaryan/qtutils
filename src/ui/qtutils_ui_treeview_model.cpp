@@ -344,6 +344,28 @@ const Node* NodeChild::createChild(int a_row, int a_col)const
 }
 
 
+/*////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
+
+NodeFieldName::NodeFieldName(const Node* a_pParentNode, int a_row, int a_col, uint64_t a_nIteration, const QString& a_fieldName)
+    :
+      NodeChild(a_pParentNode,a_row,a_col,a_nIteration),
+      m_fieldName(a_fieldName)
+{
+}
+
+
+QVariant NodeFieldName::data(int a_role) const
+{
+    switch(a_role){
+    case Qt::DisplayRole:
+        return m_fieldName;
+    default:
+        break;
+    }
+    return QTUTILS_TV_MODEL_DEFAULT_DATA();
+}
+
+
 }  // namespace model {
 
 
