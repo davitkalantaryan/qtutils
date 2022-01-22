@@ -48,6 +48,13 @@ ResizibleWindow<WidgetType>::~ResizibleWindow()
 
 
 template <typename WidgetType>
+const QString& ResizibleWindow<WidgetType>::settingsKey()const
+{
+    return m_settingsKey;
+}
+
+
+template <typename WidgetType>
 inline void ResizibleWindow<WidgetType>::HideCloseEvent()
 {
     if(m_flags.b.hideNotCalled){
