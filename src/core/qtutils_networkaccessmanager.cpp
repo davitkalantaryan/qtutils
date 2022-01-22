@@ -268,8 +268,11 @@ QTUTILS_EXPORT void ErrorByteArray(const QNetworkReply::NetworkError&,const ::qt
         }
         else{
             responseByteArray = a_replyHandlerIn->errorString().toLocal8Bit();
+            if(responseByteArray.isEmpty()){
+                responseByteArray = "unknown";
+            }
         }
-    }
+    } // if(responseByteArray.isEmpty()){
 }
 
 

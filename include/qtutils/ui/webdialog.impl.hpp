@@ -41,7 +41,12 @@ WebDialog<WidgetType>::WebDialog(Targs... a_args)
         }
     });
     
-    m_con2=QObject::connect(this,&QDialog::finished,this,[this](){
+    m_con2=QObject::connect(this,&QDialog::finished,this,[this](int a_result){
+#ifdef QTUTILS_MAKE_DEBUG
+        qDebug()<<a_result;
+#else
+        static_cast<void>(a_result);
+#endif
         WidgetType::deleteLater();
     });
 }
