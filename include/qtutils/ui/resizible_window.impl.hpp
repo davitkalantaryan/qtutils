@@ -34,9 +34,9 @@ template<typename... Targs>
 ResizibleWindow<WidgetType>::ResizibleWindow(Targs... a_args)
 	:
 	  WidgetType(a_args...),
-	  m_settingsKey(typeid(this).name())
+	  m_settingsKey(typeid(WidgetType).name())
 {
-    m_flags.all = MONITOR_INIT_BITS;
+    m_flags.all = CPPUTILS_INIT_BITS;
 }
 
 
@@ -44,6 +44,16 @@ template <typename WidgetType>
 ResizibleWindow<WidgetType>::~ResizibleWindow()
 {
     HideCloseEvent();
+}
+
+template <typename WidgetType>
+bool ResizibleWindow<WidgetType>::event(QEvent* a_event)
+{
+    if(m_flags.b.settingsKeyNotInited){
+        m_settingsKey = typeid(*this).name();
+        m_flags.b2.settingsKeyInitedOrNot = CPPUTILS_MAKE_BITS_POSITIVE;
+    }
+    return WidgetType::event(a_event);
 }
 
 
@@ -71,7 +81,7 @@ inline void ResizibleWindow<WidgetType>::HideCloseEvent()
             aSettings.setValue(m_settingsKey+QTUTILS_RSBL_WND_IS_MINIMIZED_KEY,false);
             aSettings.setValue(m_settingsKey+QTUTILS_RSBL_WND_SIZE_KEY,WidgetType::size());
         }
-        m_flags.b2.hideCalledOrNot =  MONITOR_MAKE_BITS_POSITIVE;
+        m_flags.b2.hideCalledOrNot =  CPPUTILS_MAKE_BITS_POSITIVE;
     }
 }
 
