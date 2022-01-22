@@ -29,7 +29,7 @@ class ResizibleWindow : public WidgetType
 {    
 public:
 	template<typename... Targs>
-    ResizibleWindow(const QString& a_settingsKey, Targs... a_args);
+    ResizibleWindow(Targs... a_args);
     virtual ~ResizibleWindow() override;
 	    
 protected:

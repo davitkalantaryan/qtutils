@@ -22,12 +22,11 @@ namespace qtutils { namespace ui{
 
 template <typename WidgetType>
 template<typename... Targs>
-WebStyleLoginTypeWindow<WidgetType>::WebStyleLoginTypeWindow(const QString& a_settingsKey,Targs... a_args)
+WebStyleLoginTypeWindow<WidgetType>::WebStyleLoginTypeWindow(Targs... a_args)
 	:
-      ::qtutils::ui::ResizibleWindow<QWidget>(a_settingsKey),
 	  m_ltWnd(a_args...)
 {
-    QWidget* pParent = dynamic_cast<QWidget*>(m_ltWnd.parent());
+    QWidget* pParent = m_ltWnd.parentWidget();
     m_ltWnd.setParent(this);
     ::qtutils::ui::ResizibleWindow<QWidget>::setParent(pParent);
 }

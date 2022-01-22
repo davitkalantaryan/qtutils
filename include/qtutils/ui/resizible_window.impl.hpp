@@ -17,6 +17,7 @@
 
 #include <cpputils/flagshelper.h>
 #include <qtutils/core/settings.hpp>
+#include <typeinfo>
 
 
 namespace qtutils { namespace ui{
@@ -30,10 +31,10 @@ namespace qtutils { namespace ui{
 
 template <typename WidgetType>
 template<typename... Targs>
-ResizibleWindow<WidgetType>::ResizibleWindow(const QString& a_settingsKey, Targs... a_args)
+ResizibleWindow<WidgetType>::ResizibleWindow(Targs... a_args)
 	:
 	  WidgetType(a_args...),
-	  m_settingsKey(a_settingsKey)
+	  m_settingsKey(typeid(this).name())
 {
     m_flags.all = MONITOR_INIT_BITS;
 }
