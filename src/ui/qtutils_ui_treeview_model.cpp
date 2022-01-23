@@ -96,6 +96,12 @@ const model::Node* Model::replaceNode(const model::Node* a_pInitialNode)const
 }
 
 
+void Model::removeOldNode(const model::Node* a_pOldNode)const
+{
+    delete a_pOldNode;
+}
+
+
 int Model::columnCount(const QModelIndex& a_index) const
 {
     if(a_index.isValid()){
@@ -201,7 +207,9 @@ inline const model::Node* Model_p::checkNodeAndReplaceIfNeeded(const model::Node
 {
     //if(a_pInitData&&(a_pInitData->m_nIteration!=m_nIteration)){
     if(a_pInitNode->m_nIteration!=m_nIteration){
-        a_pInitNode = m_pParent->replaceNode(a_pInitNode);
+        const model::Node* pNewNode = m_pParent->replaceNode(a_pInitNode);
+        m_pParent->removeOldNode(a_pInitNode);
+        a_pInitNode = pNewNode;
     }
     return a_pInitNode;
 }

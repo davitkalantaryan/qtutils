@@ -54,6 +54,7 @@ protected:
     virtual QModelIndex	index(int row, int column, const QModelIndex &parent = QModelIndex()) const override;
     virtual QModelIndex	parent(const QModelIndex &index) const override;
     virtual const model::Node* replaceNode(const model::Node* a_pInitialNode)const;
+    virtual void removeOldNode(const model::Node* a_pOldNode)const;
     
 private:
     Model_p*const   m_model_data_p;
