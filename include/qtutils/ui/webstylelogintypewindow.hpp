@@ -28,6 +28,7 @@ public:
     template<typename... Targs>
 	WebStyleLoginTypeWindow(Targs... a_args);
     virtual ~WebStyleLoginTypeWindow() override;
+    WidgetType* childWdg();
 	
 protected:
 	void resizeEvent(QResizeEvent *event) override;

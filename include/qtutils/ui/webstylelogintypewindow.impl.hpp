@@ -38,6 +38,13 @@ WebStyleLoginTypeWindow<WidgetType>::~WebStyleLoginTypeWindow()
 }
 
 
+template <typename WidgetType>
+WidgetType* WebStyleLoginTypeWindow<WidgetType>::childWdg()
+{
+    return &m_ltWnd;
+}
+
+
 #define QTUTILS_WS_LT_UPPER_MARGIN	25
 
 template <typename WidgetType>
