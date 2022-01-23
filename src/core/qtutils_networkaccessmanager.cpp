@@ -6,6 +6,9 @@
 //
 
 #include <qtutils/core/networkaccessmanager.hpp>
+#include <qtutils/disable_utils_warnings.h>
+#include <QJsonDocument>
+#include <QJsonObject>
 
 
 namespace qtutils { namespace network {
@@ -41,6 +44,14 @@ Reply* AccessManagerRaw::post(ReplyContainer* a_pContainer, const QNetworkReques
     }
     //return nullptr;
 	throw Exception(a_pData,"Unable to create Network Reply object");
+}
+
+
+Reply* AccessManagerRaw::post(ReplyContainer* a_pContainer, const QNetworkRequest& a_request, const QVariantMap& a_data,  ReplyData* a_pData, int a_timeoutMs)
+{
+    const QJsonDocument dataJsonDoc = QJsonDocument(QJsonObject::fromVariantMap(a_data));
+    QByteArray dataBA = dataJsonDoc.toJson(QJsonDocument::Compact);
+    return post(a_pContainer,a_request,dataBA,a_pData,a_timeoutMs);
 }
 
 

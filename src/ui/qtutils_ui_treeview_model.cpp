@@ -32,6 +32,7 @@ public:
     Node_p(const Key& a_key);
 public:
     const Key   m_key;
+    Model_p*    m_pParent;
 };
 
 }  // namespace model{
@@ -61,6 +62,8 @@ private:
 public:
     uint64_t            m_nIteration;
     mutable HashNodes   m_nodes;
+    
+    friend class model::Node;
 };
 
 
@@ -199,7 +202,9 @@ inline const model::Node* Model_p::getNode(const QModelIndex& a_index)const
 {
     const model::Node* pNode = static_cast<model::Node*>(a_index.internalPointer());
     assert(pNode);
-    return checkNodeAndReplaceIfNeeded(pNode);
+    pNode = checkNodeAndReplaceIfNeeded(pNode);
+    pNode->m_node_data_p->m_pParent = const_cast<Model_p*>(this);
+    return pNode;
 }
 
 
@@ -331,6 +336,12 @@ const Node* Node::rootRaw()const
 }
 
 
+Model* Node::parentModel()const
+{
+    return m_node_data_p->m_pParent->m_pParent;
+}
+
+
 int Node::row()const
 {
     return m_node_data_p->m_key.m_row;
@@ -347,7 +358,8 @@ int Node::column() const
 
 Node_p::Node_p(const Key& a_key)
     :
-      m_key(a_key)
+      m_key(a_key),
+      m_pParent(nullptr)
 {
 }
 
