@@ -25,20 +25,20 @@ namespace qtutils { namespace ui{
 
 
 template <typename WidgetType>
-class ResizibleWindow : public WidgetType
+class ResizibleWindowRaw : public WidgetType
 {    
 public:
 	template<typename... Targs>
-    ResizibleWindow(Targs... a_args);
-    virtual ~ResizibleWindow() override;
+    ResizibleWindowRaw(Targs... a_args);
+    virtual ~ResizibleWindowRaw() override;
     
     virtual void Init();
     const QString& settingsKey()const;
 	    
 protected:
-    void showEvent(QShowEvent *event) override;
-	void hideEvent(QHideEvent *event) override; 
-	void closeEvent(QCloseEvent *event) override;
+    virtual void showEvent(QShowEvent *event) override;
+	virtual void hideEvent(QHideEvent *event) override; 
+	virtual void closeEvent(QCloseEvent *event) override;
 	
 private:
 	inline void HideCloseEvent();
@@ -57,6 +57,19 @@ protected:
             uint64_t  reserved01 : 62;
         }b2;
     }m_flags;
+};
+
+
+template <typename WidgetType>
+class ResizibleWindow : public ResizibleWindowRaw<WidgetType>
+{
+public:
+    template<typename... Targs>
+    ResizibleWindow(Targs... a_args);
+    virtual ~ResizibleWindow() override;
+    
+protected:
+    virtual void showEvent(QShowEvent *event) override;
 };
 
 

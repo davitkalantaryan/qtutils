@@ -28,7 +28,7 @@ WebStyleLoginTypeWindow<WidgetType>::WebStyleLoginTypeWindow(Targs... a_args)
 {
     QWidget* pParent = m_ltWnd.parentWidget();
     m_ltWnd.setParent(this);
-    ::qtutils::ui::ResizibleWindow<QWidget>::setParent(pParent);
+    ::qtutils::ui::ResizibleWindowRaw<QWidget>::setParent(pParent);
 }
 
 
@@ -47,10 +47,31 @@ WidgetType* WebStyleLoginTypeWindow<WidgetType>::childWdg()
 
 #define QTUTILS_WS_LT_UPPER_MARGIN	25
 
+
+template <typename WidgetType>
+void WebStyleLoginTypeWindow<WidgetType>::Init()
+{
+    ::qtutils::ui::ResizibleWindowRaw<QWidget>::Init();
+    MakeSizeHint();
+}
+
+
+template <typename WidgetType>
+void WebStyleLoginTypeWindow<WidgetType>::MakeSizeHint()
+{
+    //m_ltWnd.setFixedSize()
+    const QSize childSizeHint = m_ltWnd.sizeHint();
+    //::qtutils::ui::ResizibleWindowRaw<QWidget>::setMinimumHeight(childSizeHint.height()+2*QTUTILS_WS_LT_UPPER_MARGIN);
+    //::qtutils::ui::ResizibleWindowRaw<QWidget>::setMinimumWidth(childSizeHint.width()+2);
+    ::qtutils::ui::ResizibleWindowRaw<QWidget>::setMinimumSize(childSizeHint);
+    m_ltWnd.setFixedSize(childSizeHint);
+}
+
+
 template <typename WidgetType>
 void WebStyleLoginTypeWindow<WidgetType>::resizeEvent(QResizeEvent* a_event)
 {
-	::qtutils::ui::ResizibleWindow<QWidget>::resizeEvent(a_event);
+	::qtutils::ui::ResizibleWindowRaw<QWidget>::resizeEvent(a_event);
 	
 	int nMoveX=0,nMoveY=0;
     const QSize ltwSizeHint = m_ltWnd.sizeHint();
