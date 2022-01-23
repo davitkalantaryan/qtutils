@@ -29,7 +29,7 @@ class ClosableWindow : public ::qtutils::ui::ResizibleWindow<QWidget>
 {
 public:
     template<typename... Targs>
-    ClosableWindow(const QString& a_settingsKey, Targs... a_args);
+    ClosableWindow(Targs... a_args);
     virtual ~ClosableWindow();
 
     const WidgetType* qChildWidget()const;

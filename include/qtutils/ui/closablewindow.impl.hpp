@@ -26,13 +26,12 @@ namespace qtutils { namespace ui{
 
 template <typename WidgetType>
 template<typename... Targs>
-ClosableWindow<WidgetType>::ClosableWindow(const QString& a_settingsKey,Targs... a_args)
+ClosableWindow<WidgetType>::ClosableWindow(Targs... a_args)
     :
-      ::qtutils::ui::ResizibleWindow<QWidget>(a_settingsKey),
       m_wdg(a_args...),
       m_actionClose(QIcon(":/img/close_button_icon01.png"),"&Close")
 {
-    QWidget* pParent = dynamic_cast<QWidget*>(m_wdg.parent());
+    QWidget* pParent = m_wdg.parentWidget();
     setParent(pParent);
     m_wdg.setParent(nullptr);
     

@@ -29,8 +29,10 @@ class ResizibleWindow : public WidgetType
 {    
 public:
 	template<typename... Targs>
-    ResizibleWindow(const QString& a_settingsKey, Targs... a_args);
+    ResizibleWindow(Targs... a_args);
     virtual ~ResizibleWindow() override;
+    
+    const QString& settingsKey()const;
 	    
 protected:
     //void moveEvent(QMoveEvent *event) override;
@@ -38,22 +40,26 @@ protected:
     void showEvent(QShowEvent *event) override;
 	void hideEvent(QHideEvent *event) override; 
 	void closeEvent(QCloseEvent *event) override;
+    bool event(QEvent* event) override;
 	
 private:
 	inline void HideCloseEvent();
     
 protected:
-	const QString		m_settingsKey;
+	QString		m_settingsKey;
     union{
         uint64_t all;
         struct{
             uint64_t  hideCalled : 1;
             uint64_t  hideNotCalled : 1;
-            uint64_t  reserved01 : 62;
+            uint64_t  settingsKeyInited : 1;
+            uint64_t  settingsKeyNotInited : 1;
+            uint64_t  reserved01 : 60;
         }b;
         struct{
             uint64_t  hideCalledOrNot : 2;
-            uint64_t  reserved01 : 62;
+            uint64_t  settingsKeyInitedOrNot : 2;
+            uint64_t  reserved01 : 60;
         }b2;
     }m_flags;
 };
