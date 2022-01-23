@@ -7,17 +7,20 @@
 
 #pragma once
 
-#ifndef QTUTILS_INCLUDE_RESIZIBLE_WINDOW_IMPL_HPP
-#define QTUTILS_INCLUDE_RESIZIBLE_WINDOW_IMPL_HPP
+#ifndef QTUTILS_INCLUDE_RESIZIBLEWINDOW_IMPL_HPP
+#define QTUTILS_INCLUDE_RESIZIBLEWINDOW_IMPL_HPP
 
 
-#ifndef QTUTILS_INCLUDE_RESIZIBLE_WINDOW_HPP
-#include "resizible_window.hpp"
+#ifndef QTUTILS_INCLUDE_RESIZIBLEWINDOW_HPP
+#include "resiziblewindow.hpp"
 #endif
 
 #include <cpputils/flagshelper.h>
 #include <qtutils/core/settings.hpp>
 #include <typeinfo>
+#ifdef QTUTILS_MAKE_DEBUG
+#include <qtutils/core/logger.hpp>
+#endif
 
 
 namespace qtutils { namespace ui{
@@ -33,8 +36,7 @@ template <typename WidgetType>
 template<typename... Targs>
 ResizibleWindow<WidgetType>::ResizibleWindow(Targs... a_args)
 	:
-	  WidgetType(a_args...),
-	  m_settingsKey(typeid(WidgetType).name())
+	  WidgetType(a_args...)
 {
     m_flags.all = CPPUTILS_INIT_BITS;
 }
@@ -46,14 +48,11 @@ ResizibleWindow<WidgetType>::~ResizibleWindow()
     HideCloseEvent();
 }
 
+
 template <typename WidgetType>
-bool ResizibleWindow<WidgetType>::event(QEvent* a_event)
+void ResizibleWindow<WidgetType>::Init()
 {
-    if(m_flags.b.settingsKeyNotInited){
-        m_settingsKey = typeid(*this).name();
-        m_flags.b2.settingsKeyInitedOrNot = CPPUTILS_MAKE_BITS_POSITIVE;
-    }
-    return WidgetType::event(a_event);
+    m_settingsKey = typeid(*this).name();
 }
 
 
@@ -141,8 +140,10 @@ void ResizibleWindow<WidgetType>::showEvent(QShowEvent* a_event)
 }
 
 
+/*////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
+
 
 }}  // namespace qtutils { namespace ui{
 
 
-#endif  // #ifndef QTUTILS_INCLUDE_RESIZIBLE_WINDOW_IMPL_HPP
+#endif  // #ifndef QTUTILS_INCLUDE_RESIZIBLEWINDOW_IMPL_HPP

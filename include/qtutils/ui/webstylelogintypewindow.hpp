@@ -12,7 +12,7 @@
 
 
 #include <qtutils/qtutils_internal_header.h>
-#include <qtutils/ui/resizible_window.hpp>
+#include <qtutils/ui/resiziblewindow.hpp>
 #include <type_traits>
 #include <qtutils/disable_utils_warnings.h>
 #include <QWidget>

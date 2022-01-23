@@ -12,11 +12,11 @@
 
 
 #include <qtutils/qtutils_internal_header.h>
-#include <qtutils/ui/resizible_window.hpp>
+#include <qtutils/ui/resiziblewindow.hpp>
 #if defined(CPPUTILS_EMSCRIPTEN_IS_USED) || defined(QTUTILS_UI_FORCE_WEB_STYLE)
 #include <qtutils/ui/webstylelogintypewindow.hpp>
 #else
-#include <qtutils/ui/resizible_window.hpp>
+#include <qtutils/ui/resiziblewindow.hpp>
 #endif
 
 

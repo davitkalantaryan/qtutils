@@ -7,8 +7,8 @@
 
 #pragma once
 
-#ifndef QTUTILS_INCLUDE_RESIZIBLE_WINDOW_HPP
-#define QTUTILS_INCLUDE_RESIZIBLE_WINDOW_HPP
+#ifndef QTUTILS_INCLUDE_RESIZIBLEWINDOW_HPP
+#define QTUTILS_INCLUDE_RESIZIBLEWINDOW_HPP
 
 
 #include <qtutils/qtutils_internal_header.h>
@@ -32,15 +32,13 @@ public:
     ResizibleWindow(Targs... a_args);
     virtual ~ResizibleWindow() override;
     
+    virtual void Init();
     const QString& settingsKey()const;
 	    
 protected:
-    //void moveEvent(QMoveEvent *event) override;
-    //void resizeEvent(QResizeEvent *event) override;
     void showEvent(QShowEvent *event) override;
 	void hideEvent(QHideEvent *event) override; 
 	void closeEvent(QCloseEvent *event) override;
-    bool event(QEvent* event) override;
 	
 private:
 	inline void HideCloseEvent();
@@ -52,14 +50,11 @@ protected:
         struct{
             uint64_t  hideCalled : 1;
             uint64_t  hideNotCalled : 1;
-            uint64_t  settingsKeyInited : 1;
-            uint64_t  settingsKeyNotInited : 1;
-            uint64_t  reserved01 : 60;
+            uint64_t  reserved01 : 62;
         }b;
         struct{
             uint64_t  hideCalledOrNot : 2;
-            uint64_t  settingsKeyInitedOrNot : 2;
-            uint64_t  reserved01 : 60;
+            uint64_t  reserved01 : 62;
         }b2;
     }m_flags;
 };
@@ -68,9 +63,9 @@ protected:
 }}  // namespace qtutils { namespace ui{
 
 
-#ifndef QTUTILS_INCLUDE_RESIZIBLE_WINDOW_IMPL_HPP
-#include "resizible_window.impl.hpp"
+#ifndef QTUTILS_INCLUDE_RESIZIBLEWINDOW_IMPL_HPP
+#include "resiziblewindow.impl.hpp"
 #endif
 
 
-#endif  // #ifndef QTUTILS_INCLUDE_RESIZIBLE_WINDOW_HPP
+#endif  // #ifndef QTUTILS_INCLUDE_RESIZIBLEWINDOW_HPP
