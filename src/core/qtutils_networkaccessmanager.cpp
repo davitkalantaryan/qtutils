@@ -171,7 +171,7 @@ Reply::Reply( QNetworkReply* CPPUTILS_NO_NULL a_networkReply, ReplyContainer* a_
       m_pParentContainer(a_pParentContainer),
       m_pData(a_pData)
 {
-    m_bHasTimeout = 0;
+    m_bHasTimeout = false;
     
     if(a_pParentContainer){
         a_pParentContainer->AddNewNetworkReply(this);
@@ -195,6 +195,7 @@ Reply::Reply( QNetworkReply* CPPUTILS_NO_NULL a_networkReply, ReplyContainer* a_
     
     if(a_timeoutTimer>=0){
         QObject::connect(&m_timeoutTimer,&QTimer::timeout,this,[this](){
+            m_bHasTimeout = true;
             Abort();
             emit finished();
         });
