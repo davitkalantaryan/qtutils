@@ -13,6 +13,7 @@
 #include <QTimer>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
+#include <QVariantMap>
 //#include <QHttpMultiPart>
 
 namespace qtutils { namespace network{
@@ -40,6 +41,7 @@ private:
     
 public:
     Reply* post(ReplyContainer* a_pContainer, const QNetworkRequest &request, const QByteArray &data,  ReplyData* a_pData, int a_timeoutMs);
+    Reply* post(ReplyContainer* a_pContainer, const QNetworkRequest &request, const QVariantMap&data,  ReplyData* a_pData, int a_timeoutMs);
     Reply* get(ReplyContainer* a_pContainer, const QNetworkRequest &request, ReplyData* a_pData, int a_timeoutMs);
     Reply* deleteResource(ReplyContainer* a_pContainer, const QNetworkRequest &request, ReplyData* a_pData, int a_timeoutMs);
     //Reply* post(ReplyContainer* a_pContainer, const Request &request, HttpMultiPart *multiPart,ReplyData* a_pData);

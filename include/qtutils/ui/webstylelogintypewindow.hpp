@@ -12,7 +12,7 @@
 
 
 #include <qtutils/qtutils_internal_header.h>
-#include <qtutils/ui/resizible_window.hpp>
+#include <qtutils/ui/resiziblewindow.hpp>
 #include <type_traits>
 #include <qtutils/disable_utils_warnings.h>
 #include <QWidget>
@@ -21,7 +21,7 @@
 namespace qtutils { namespace ui{
 
 template <typename WidgetType>
-class WebStyleLoginTypeWindow : public ::qtutils::ui::ResizibleWindow<QWidget>
+class WebStyleLoginTypeWindow : public ::qtutils::ui::ResizibleWindowRaw<QWidget>
 {
     static_assert( ::std::is_base_of<QWidget,WidgetType>() );
 public:
@@ -29,6 +29,9 @@ public:
 	WebStyleLoginTypeWindow(Targs... a_args);
     virtual ~WebStyleLoginTypeWindow() override;
     WidgetType* childWdg();
+    
+    virtual void Init() override;
+    void MakeSizeHint();
 	
 protected:
 	void resizeEvent(QResizeEvent *event) override;

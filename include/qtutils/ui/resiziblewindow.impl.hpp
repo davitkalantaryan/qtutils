@@ -7,17 +7,20 @@
 
 #pragma once
 
-#ifndef QTUTILS_INCLUDE_RESIZIBLE_WINDOW_IMPL_HPP
-#define QTUTILS_INCLUDE_RESIZIBLE_WINDOW_IMPL_HPP
+#ifndef QTUTILS_INCLUDE_RESIZIBLEWINDOW_IMPL_HPP
+#define QTUTILS_INCLUDE_RESIZIBLEWINDOW_IMPL_HPP
 
 
-#ifndef QTUTILS_INCLUDE_RESIZIBLE_WINDOW_HPP
-#include "resizible_window.hpp"
+#ifndef QTUTILS_INCLUDE_RESIZIBLEWINDOW_HPP
+#include "resiziblewindow.hpp"
 #endif
 
 #include <cpputils/flagshelper.h>
 #include <qtutils/core/settings.hpp>
 #include <typeinfo>
+#ifdef QTUTILS_MAKE_DEBUG
+#include <qtutils/core/logger.hpp>
+#endif
 
 
 namespace qtutils { namespace ui{
@@ -31,41 +34,37 @@ namespace qtutils { namespace ui{
 
 template <typename WidgetType>
 template<typename... Targs>
-ResizibleWindow<WidgetType>::ResizibleWindow(Targs... a_args)
+ResizibleWindowRaw<WidgetType>::ResizibleWindowRaw(Targs... a_args)
 	:
-	  WidgetType(a_args...),
-	  m_settingsKey(typeid(WidgetType).name())
+	  WidgetType(a_args...)
 {
     m_flags.all = CPPUTILS_INIT_BITS;
 }
 
 
 template <typename WidgetType>
-ResizibleWindow<WidgetType>::~ResizibleWindow()
+ResizibleWindowRaw<WidgetType>::~ResizibleWindowRaw()
 {
     HideCloseEvent();
 }
 
+
 template <typename WidgetType>
-bool ResizibleWindow<WidgetType>::event(QEvent* a_event)
+void ResizibleWindowRaw<WidgetType>::Init()
 {
-    if(m_flags.b.settingsKeyNotInited){
-        m_settingsKey = typeid(*this).name();
-        m_flags.b2.settingsKeyInitedOrNot = CPPUTILS_MAKE_BITS_POSITIVE;
-    }
-    return WidgetType::event(a_event);
+    m_settingsKey = typeid(*this).name();
 }
 
 
 template <typename WidgetType>
-const QString& ResizibleWindow<WidgetType>::settingsKey()const
+const QString& ResizibleWindowRaw<WidgetType>::settingsKey()const
 {
     return m_settingsKey;
 }
 
 
 template <typename WidgetType>
-inline void ResizibleWindow<WidgetType>::HideCloseEvent()
+inline void ResizibleWindowRaw<WidgetType>::HideCloseEvent()
 {
     if(m_flags.b.hideNotCalled){
         Settings aSettings;
@@ -87,7 +86,7 @@ inline void ResizibleWindow<WidgetType>::HideCloseEvent()
 
 
 template <typename WidgetType>
-void ResizibleWindow<WidgetType>::hideEvent(QHideEvent* a_event)
+void ResizibleWindowRaw<WidgetType>::hideEvent(QHideEvent* a_event)
 {
 	HideCloseEvent();
 	WidgetType::hideEvent(a_event);
@@ -95,7 +94,7 @@ void ResizibleWindow<WidgetType>::hideEvent(QHideEvent* a_event)
 
 
 template <typename WidgetType>
-void ResizibleWindow<WidgetType>::closeEvent(QCloseEvent* a_event)
+void ResizibleWindowRaw<WidgetType>::closeEvent(QCloseEvent* a_event)
 {
 	HideCloseEvent();
 	WidgetType::closeEvent(a_event);
@@ -103,7 +102,7 @@ void ResizibleWindow<WidgetType>::closeEvent(QCloseEvent* a_event)
 
 
 template <typename WidgetType>
-void ResizibleWindow<WidgetType>::showEvent(QShowEvent* a_event)
+void ResizibleWindowRaw<WidgetType>::showEvent(QShowEvent* a_event)
 {
 	Settings aSettings;
 	bool bIsMaximized = false;
@@ -115,13 +114,7 @@ void ResizibleWindow<WidgetType>::showEvent(QShowEvent* a_event)
 		const QPoint aPos = aSettings.value(m_settingsKey+QTUTILS_RSBL_WND_POS_KEY).toPoint();
 		WidgetType::move(aPos);
 	}
-	
-	if(aSettings.contains(m_settingsKey+QTUTILS_RSBL_WND_SIZE_KEY)){
-		const QSize aSize = aSettings.value(m_settingsKey+QTUTILS_RSBL_WND_SIZE_KEY).toSize();
-		WidgetType::resize(aSize);
-	}
-	
-	
+		
 	if(aSettings.contains(m_settingsKey+QTUTILS_RSBL_WND_IS_MAXIMIZED_KEY)){
 		bIsMaximized = aSettings.value(m_settingsKey+QTUTILS_RSBL_WND_IS_MAXIMIZED_KEY).toBool();
 	}
@@ -141,8 +134,37 @@ void ResizibleWindow<WidgetType>::showEvent(QShowEvent* a_event)
 }
 
 
+/*////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
+
+template <typename WidgetType>
+template<typename... Targs>
+ResizibleWindow<WidgetType>::ResizibleWindow(Targs... a_args)
+	:
+	  ResizibleWindowRaw<WidgetType>(a_args...)
+{
+}
+
+
+template <typename WidgetType>
+ResizibleWindow<WidgetType>::~ResizibleWindow()
+{
+}
+
+
+template <typename WidgetType>
+void ResizibleWindow<WidgetType>::showEvent(QShowEvent* a_event)
+{
+	Settings aSettings;	
+	ResizibleWindowRaw<WidgetType>::showEvent(a_event);
+	
+	if(aSettings.contains(ResizibleWindowRaw<WidgetType>::m_settingsKey+QTUTILS_RSBL_WND_SIZE_KEY)){
+		const QSize aSize = aSettings.value(ResizibleWindowRaw<WidgetType>::m_settingsKey+QTUTILS_RSBL_WND_SIZE_KEY).toSize();
+		ResizibleWindowRaw<WidgetType>::resize(aSize);
+	}
+}
+
 
 }}  // namespace qtutils { namespace ui{
 
 
-#endif  // #ifndef QTUTILS_INCLUDE_RESIZIBLE_WINDOW_IMPL_HPP
+#endif  // #ifndef QTUTILS_INCLUDE_RESIZIBLEWINDOW_IMPL_HPP

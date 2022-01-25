@@ -19,7 +19,7 @@
 #include <qtutils/disable_utils_warnings.h>
 #include <QApplication>
 #ifdef QTUTILS_MAKE_DEBUG
-#include <QDebug>
+#include <qtutils/core/logger.hpp>
 #endif
 
 
@@ -34,7 +34,7 @@ WebDialog<WidgetType>::WebDialog(Targs... a_args)
 {
     m_con1=QObject::connect(qApp,&QApplication::focusChanged,[this](QWidget*,QWidget* a_now){    
 #ifdef QTUTILS_MAKE_DEBUG
-        qDebug()<<"a_not:"<<a_now;
+        QtUtilsDebug()<<"a_not:"<<a_now;
 #endif
         if(a_now && (!isSameWidgetOrChild(this,a_now))){
             WidgetType::deleteLater();

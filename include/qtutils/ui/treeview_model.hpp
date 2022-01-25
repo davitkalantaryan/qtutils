@@ -42,20 +42,22 @@ public:
 private:
     virtual int rootRowCount()const = 0;
     virtual int rootColumnCount()const = 0;
-    virtual const model::Node* createRootNode(int row, int column)const =0;  // 
+    virtual const model::Node* createRootNode(int row, int column)const =0;  //
+    
+protected:
+    virtual const model::Node* replaceNode(const model::Node* a_pInitialNode)const;
+    virtual void removeOldNode(const model::Node* a_pOldNode)const;
     
 private:
     static Model_p* newPrivateData(Model* a_pParent);
     
 protected:
-    virtual int	        rowCount(const QModelIndex &parent = QModelIndex()) const override;
-    virtual int	        columnCount(const QModelIndex &parent = QModelIndex()) const override;
-    virtual QVariant    data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
-    virtual QModelIndex	index(int row, int column, const QModelIndex &parent = QModelIndex()) const override;
-    virtual QModelIndex	parent(const QModelIndex &index) const override;
-    virtual const model::Node* replaceNode(const model::Node* a_pInitialNode)const;
-    virtual void removeOldNode(const model::Node* a_pOldNode)const;
-    
+    int	        rowCount(const QModelIndex &parent = QModelIndex()) const override final;
+    int	        columnCount(const QModelIndex &parent = QModelIndex()) const override final;
+    QVariant    data(const QModelIndex &index, int role = Qt::DisplayRole) const override final;
+    QModelIndex	index(int row, int column, const QModelIndex &parent = QModelIndex()) const override final;
+    QModelIndex	parent(const QModelIndex &index) const override final;
+        
 private:
     Model_p*const   m_model_data_p;
     friend class Model_p;
@@ -74,12 +76,16 @@ public:
     Node(const Node* pParent, int row, int column, uint64_t a_nIteration);
     Node(const Node&)=delete;
     const Node& operator=(const Node&)=delete;
+    
     virtual QVariant data(int role = Qt::DisplayRole) const = 0;
     virtual int rowCount()const =0;
     virtual int columnCount()const =0;
     virtual const Node* createChild(int a_row, int a_col)const = 0;
+    
     virtual bool isPossibleToDelete(uint64_t a_nIteration)const;
     virtual int  type() const;
+    
+    Model* parentModel()const;
     int row()const;
     int column()const;
     const Node* parentRaw()const;
@@ -94,6 +100,7 @@ public:
     const uint64_t  m_nIteration;
 
     friend class ::qtutils::ui::treeview::Model;
+    friend class ::qtutils::ui::treeview::Model_p;
 };
 
 
