@@ -22,32 +22,29 @@ public:
 
 private:
     void mousePressEvent(QMouseEvent *event) override;
+private:
+    PasswordBox_p*const m_pParent;
 };
 
 
-class CPPUTILS_DLL_PRIVATE PasswordBox_p final : public QLineEdit
+class CPPUTILS_DLL_PRIVATE PasswordBox_p final
 {
 public:
-    PasswordBox_p(QWidget* parent);
+    PasswordBox_p(PasswordBox* a_pParent);
 
     void EyeIconClicked();
 
 private:
-    void resizeEvent(QResizeEvent *event) override;
+    void resizeEvent(QResizeEvent *event) ;
 
 public:
-    PswWndLabel  eyeLabel;
-    bool        isPswVisible;
+    PasswordBox*const   m_pParent;    
+    PswWndLabel         eyeLabel;
+    bool                isPswVisible;
 };
 
 
 /*////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
-
-PasswordBox::PasswordBox(QWidget* a_parent)
-    :
-      m_pass_data_p(new PasswordBox_p(a_parent))
-{
-}
 
 
 PasswordBox::~PasswordBox()
@@ -56,26 +53,7 @@ PasswordBox::~PasswordBox()
 }
 
 
-QLineEdit* PasswordBox::lineEdit()const
-{
-    return m_pass_data_p;
-}
-
-
-/*////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
-
-PasswordBox_p::PasswordBox_p(QWidget* a_parent)
-    :
-      QLineEdit(a_parent),
-      eyeLabel(this),
-      isPswVisible(true)
-{
-    this->eyeLabel.setScaledContents(true);
-    EyeIconClicked();
-}
-
-
-void PasswordBox_p::resizeEvent(QResizeEvent* a_event)
+void PasswordBox::resizeEvent(QResizeEvent* a_event)
 {
     int eyeSizeLn;
     QLineEdit::resizeEvent(a_event);
@@ -87,8 +65,27 @@ void PasswordBox_p::resizeEvent(QResizeEvent* a_event)
     else{
         eyeSizeLn = newHeight-2;
     }
-    this->eyeLabel.resize(eyeSizeLn,eyeSizeLn);
-    this->eyeLabel.move(newSize.width()-eyeSizeLn-1,1);
+    m_pass_data_p->eyeLabel.resize(eyeSizeLn,eyeSizeLn);
+    m_pass_data_p->eyeLabel.move(newSize.width()-eyeSizeLn-1,1);
+}
+
+
+PasswordBox_p* PasswordBox::CreatePasswordBox_p(PasswordBox* a_pThis)
+{
+    return new PasswordBox_p(a_pThis);
+}
+
+
+/*////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
+
+PasswordBox_p::PasswordBox_p(PasswordBox* a_pParent)
+    :
+      m_pParent(a_pParent),
+      eyeLabel(this),
+      isPswVisible(true)
+{
+    this->eyeLabel.setScaledContents(true);
+    EyeIconClicked();
 }
 
 
@@ -97,13 +94,13 @@ void PasswordBox_p::EyeIconClicked()
     if(this->isPswVisible){
         this->eyeLabel.setToolTip("Show password");
         this->eyeLabel.setPixmap( QPixmap( ":/img/show_password.png" ) );
-        setEchoMode(QLineEdit::Password);
+        m_pParent->setEchoMode(QLineEdit::Password);
         this->isPswVisible = false;
     }
     else{
         this->eyeLabel.setToolTip("Hide password");
         this->eyeLabel.setPixmap( QPixmap( ":/img/hide_password.png" ) );
-        setEchoMode(QLineEdit::Normal);
+        m_pParent->setEchoMode(QLineEdit::Normal);
         this->isPswVisible = true;
     }
 }
@@ -113,7 +110,8 @@ void PasswordBox_p::EyeIconClicked()
 
 PswWndLabel::PswWndLabel(PasswordBox_p* a_parent)
     :
-      QLabel(a_parent)
+      QLabel(a_parent->m_pParent),
+      m_pParent(a_parent)
 {
 }
 
@@ -123,7 +121,7 @@ void PswWndLabel::mousePressEvent(QMouseEvent* a_event)
     QLabel::mousePressEvent(a_event);
     switch(a_event->button()){
     case Qt::LeftButton:
-        static_cast<PasswordBox_p*>(parent())->EyeIconClicked();
+        m_pParent->EyeIconClicked();
         break;
     default:
         break;

@@ -1,14 +1,14 @@
 //
 // file:            passwordbox.hpp
-// path:			include/focust/ui/passwordbox.hpp
+// path:			include/qtutils/ui/passwordbox.hpp
 // created on:		2022 Jan 12
 // created by:		Davit Kalantaryan (davit.kalantaryan@gmail.com)
 //
 
 #pragma once
 
-#ifndef FOCUST_INCLUDE_PASSWORDBOX_HPP
-#define FOCUST_INCLUDE_PASSWORDBOX_HPP
+#ifndef QTUTILS_INCLUDE_QTUTILS_UI_PASSWORDBOX_HPP
+#define QTUTILS_INCLUDE_QTUTILS_UI_PASSWORDBOX_HPP
 
 
 #include <qtutils/qtutils_internal_header.h>
@@ -20,16 +20,19 @@ namespace qtutils { namespace ui{
 
 class CPPUTILS_DLL_PRIVATE PasswordBox_p;
 
-class PasswordBox final
+class PasswordBox QTUTILS_EXPORT : public QLineEdit
 {
 public:
-    PasswordBox(QWidget* parent=nullptr);
-    ~PasswordBox();
-    PasswordBox(const PasswordBox&)=delete;
-    PasswordBox(PasswordBox&&)=delete;
-    PasswordBox& operator=(const PasswordBox&)=delete;
-    PasswordBox& operator=(PasswordBox&&)=delete;
-    QLineEdit* lineEdit()const;
+    template<typename... Targs>
+    PasswordBox(Targs... a_args);
+    virtual ~PasswordBox() override;
+    
+protected:
+    void resizeEvent(QResizeEvent *event) override;
+    
+private:
+    static PasswordBox_p* CreatePasswordBox_p(PasswordBox*);
+    
 private:
     PasswordBox_p*const m_pass_data_p;
 };
@@ -38,7 +41,10 @@ private:
 }}  // namespace qtutils { namespace test{
 
 
+#ifndef QTUTILS_INCLUDE_QTUTILS_UI_PASSWORDBOX_IMPL_HPP
+#include "passwordbox.impl.hpp"
+#endif
 
 
 
-#endif  // #ifndef FOCUST_INCLUDE_PASSWORDBOX_HPP
+#endif  // #ifndef QTUTILS_INCLUDE_QTUTILS_UI_PASSWORDBOX_HPP
