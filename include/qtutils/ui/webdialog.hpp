@@ -22,7 +22,7 @@ namespace qtutils { namespace ui{
 template <typename WidgetType>
 class WebDialog : public WidgetType
 {
-    static_assert( ::std::is_base_of<QDialog,WidgetType>() );
+    static_assert( ::std::is_base_of<QDialog,WidgetType>(), "WidgetType should be child of QDialog" );
 public:
     template<typename... Targs>
 	WebDialog(Targs... a_args);

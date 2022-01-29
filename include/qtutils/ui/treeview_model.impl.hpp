@@ -33,7 +33,7 @@ namespace model {
 template<typename ParentType>
 const ParentType* Node::parent()const
 {
-    static_assert( ::std::is_base_of<Node,ParentType>() );
+    static_assert( ::std::is_base_of<Node,ParentType>(), "ParentType should be child of Node" );
     //const ParentType* pParent = CPPUTILS_SAFE_CAST(const ParentType*,parentRaw());
     //assert(pParent);
     const ParentType* pParent = dynamic_cast<const ParentType*>(parentRaw());
