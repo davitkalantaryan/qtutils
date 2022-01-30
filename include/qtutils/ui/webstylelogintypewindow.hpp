@@ -23,7 +23,7 @@ namespace qtutils { namespace ui{
 template <typename WidgetType>
 class WebStyleLoginTypeWindow : public ::qtutils::ui::ResizibleWindowRaw<QWidget>
 {
-    static_assert( ::std::is_base_of<QWidget,WidgetType>() );
+    static_assert( ::std::is_base_of<QWidget,WidgetType>(), "WidgetType should be child of QWidget" );
 public:
     template<typename... Targs>
 	WebStyleLoginTypeWindow(Targs... a_args);
