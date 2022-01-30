@@ -13,7 +13,7 @@
 #include <qtutils/disable_utils_warnings.h>
 #include <QSettings>
 
-#ifdef CPPUTILS_EMSCRIPTEN_IS_USED
+#if defined(CPPUTILS_EMSCRIPTEN_IS_USED) || defined(QTUTILS_CORE_FORCE_NEW_SETTINGS)
 #include <QString>
 #include <QVariant>
 #endif
@@ -24,7 +24,7 @@ QTUTILS_EXPORT void InitializeSettings(QTUTILS_QT_NSP QSettings::Format format);
 QTUTILS_EXPORT void CleanupSettings(void);
 
 
-#ifdef CPPUTILS_EMSCRIPTEN_IS_USED
+#if defined(CPPUTILS_EMSCRIPTEN_IS_USED) || defined(QTUTILS_CORE_FORCE_NEW_SETTINGS)
 
 class QTUTILS_EXPORT Settings final
 {
@@ -37,7 +37,7 @@ public:
 
 #else
 typedef QTUTILS_QT_NSP QSettings Settings;
-#endif  // #ifdef CPPUTILS_EMSCRIPTEN_IS_USED
+#endif  // #if defined(CPPUTILS_EMSCRIPTEN_IS_USED) || defined(QTUTILS_CORE_FORCE_NEW_SETTINGS)
 
 
 }  // namespace qtutils{

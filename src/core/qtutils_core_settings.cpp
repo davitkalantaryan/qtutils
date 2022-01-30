@@ -7,7 +7,7 @@
 
 
 #include <qtutils/core/settings.hpp>
-#ifdef CPPUTILS_EMSCRIPTEN_IS_USED
+#if defined(CPPUTILS_EMSCRIPTEN_IS_USED) || defined(QTUTILS_CORE_FORCE_NEW_SETTINGS)
 #include <cpputils/hashtbl.hpp>
 #include <mutex>
 #include <qtutils/disable_utils_warnings.h>
@@ -169,5 +169,5 @@ QTUTILS_EXPORT void CleanupSettings(void)
 }  // namespace qtutils{
 
 
-#endif  // #ifdef CPPUTILS_EMSCRIPTEN_IS_USED
+#endif  // #if defined(CPPUTILS_EMSCRIPTEN_IS_USED) || defined(QTUTILS_CORE_FORCE_NEW_SETTINGS)
 
