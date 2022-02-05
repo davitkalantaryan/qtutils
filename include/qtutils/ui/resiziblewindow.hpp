@@ -32,17 +32,17 @@ public:
     ResizibleWindowRaw(Targs... a_args);
     virtual ~ResizibleWindowRaw() override;
     
-    virtual void Init();
     const QString& settingsKey()const;
+	void InitAndShow();
+	virtual void Init(); 
 	    
 protected:
-    virtual void showEvent(QShowEvent *event) override;
-	virtual void hideEvent(QHideEvent *event) override; 
 	virtual void closeEvent(QCloseEvent *event) override;
 	
 private:
 	inline void HideCloseEvent();
-    
+	void show();  // we disable show call
+	
 protected:
 	QString		m_settingsKey;
     union{
@@ -50,11 +50,14 @@ protected:
         struct{
             uint64_t  hideCalled : 1;
             uint64_t  hideNotCalled : 1;
-            uint64_t  reserved01 : 62;
+			uint64_t  initCalled : 1;
+            uint64_t  initNotCalled : 1;
+            uint64_t  reserved01 : 60;
         }b;
         struct{
             uint64_t  hideCalledOrNot : 2;
-            uint64_t  reserved01 : 62;
+			uint64_t  initCalledOrNot : 2;
+            uint64_t  reserved01 : 60;
         }b2;
     }m_flags;
 };

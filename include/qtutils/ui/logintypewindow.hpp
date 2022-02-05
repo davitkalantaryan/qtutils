@@ -39,8 +39,9 @@ class LoginTypeWindow : public ResizibleWindowRaw<WidgetType>
 public:
     using ResizibleWindowRaw<WidgetType>::ResizibleWindowRaw;
     virtual ~LoginTypeWindow() override;
-    virtual void Init() override;
     void MakeSizeHint();
+protected:
+	virtual void Init() override;
 };
 
 #endif

@@ -26,7 +26,6 @@ LoginTypeWindow<WidgetType>::~LoginTypeWindow()
 template <typename WidgetType>
 void LoginTypeWindow<WidgetType>::Init()
 {
-    ResizibleWindowRaw<WidgetType>::Init();
     MakeSizeHint();
 }
 
