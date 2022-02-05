@@ -34,7 +34,7 @@ public:
     
     const QString& settingsKey()const;
 	void InitAndShow();
-	virtual void Init(); 
+	void Init2(); 
 	    
 protected:
 	virtual void closeEvent(QCloseEvent *event) override;
@@ -42,22 +42,26 @@ protected:
 private:
 	inline void HideCloseEvent();
 	void show();  // we disable show call
+	virtual void InitRaw();
 	
 protected:
+	static uint64_t	sn_numberOfInstances;
 	QString		m_settingsKey;
     union{
         uint64_t all;
         struct{
+			uint64_t  instanceNumber : 16;
             uint64_t  hideCalled : 1;
             uint64_t  hideNotCalled : 1;
 			uint64_t  initCalled : 1;
             uint64_t  initNotCalled : 1;
-            uint64_t  reserved01 : 60;
+            uint64_t  reserved01 : 44;
         }b;
         struct{
+			uint64_t  instanceNumber : 16;
             uint64_t  hideCalledOrNot : 2;
 			uint64_t  initCalledOrNot : 2;
-            uint64_t  reserved01 : 60;
+            uint64_t  reserved01 : 44;
         }b2;
     }m_flags;
 };

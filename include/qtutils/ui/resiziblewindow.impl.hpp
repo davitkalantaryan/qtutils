@@ -33,12 +33,17 @@ namespace qtutils { namespace ui{
 
 
 template <typename WidgetType>
+uint64_t ResizibleWindowRaw<WidgetType>::sn_numberOfInstances = 0;
+
+
+template <typename WidgetType>
 template<typename... Targs>
 ResizibleWindowRaw<WidgetType>::ResizibleWindowRaw(Targs... a_args)
 	:
 	  WidgetType(a_args...)
 {
     m_flags.all = CPPUTILS_INIT_BITS;
+	m_flags.b.instanceNumber = (sn_numberOfInstances++);
 }
 
 
@@ -50,9 +55,20 @@ ResizibleWindowRaw<WidgetType>::~ResizibleWindowRaw()
 
 
 template <typename WidgetType>
-void ResizibleWindowRaw<WidgetType>::Init()
+void ResizibleWindowRaw<WidgetType>::Init2()
 {
-	m_settingsKey = typeid(*this).name();
+	if(m_flags.b.initNotCalled){
+		m_settingsKey = typeid(*this).name()+QString::number(m_flags.b.instanceNumber);
+		m_settingsKey = typeid(*this).name();
+		this->InitRaw();
+	}
+}
+
+
+template <typename WidgetType>
+void ResizibleWindowRaw<WidgetType>::InitRaw()
+{
+	m_settingsKey = typeid(*this).name()+QString::number(m_flags.b.instanceNumber);
 }
 
 
@@ -64,8 +80,12 @@ void ResizibleWindowRaw<WidgetType>::show()
 template <typename WidgetType>
 void ResizibleWindowRaw<WidgetType>::InitAndShow()
 {
-	m_settingsKey = typeid(*this).name();
-	this->Init();
+	m_settingsKey = typeid(*this).name()+QString::number(m_flags.b.instanceNumber);
+	
+	if(m_flags.b.initNotCalled){
+		this->InitRaw();
+		m_flags.b2.initCalledOrNot = CPPUTILS_MAKE_BITS_POSITIVE;
+	}
 	
 	Settings aSettings;
 	bool bIsMaximized = false;
@@ -94,8 +114,6 @@ void ResizibleWindowRaw<WidgetType>::InitAndShow()
 	else{
 		WidgetType::show();
 	}
-	
-	m_flags.b2.initCalledOrNot = CPPUTILS_MAKE_BITS_POSITIVE;
 }
 
 

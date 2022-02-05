@@ -41,7 +41,7 @@ public:
     virtual ~LoginTypeWindow() override;
     void MakeSizeHint();
 protected:
-	virtual void Init() override;
+	virtual void InitRaw() override;
 };
 
 #endif
