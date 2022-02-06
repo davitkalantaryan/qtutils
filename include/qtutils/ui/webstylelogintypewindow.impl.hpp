@@ -51,7 +51,6 @@ WidgetType* WebStyleLoginTypeWindow<WidgetType>::childWdg()
 template <typename WidgetType>
 void WebStyleLoginTypeWindow<WidgetType>::InitRaw()
 {
-    ::qtutils::ui::ResizibleWindowRaw<QWidget>::Init();
     MakeSizeHint();
 }
 
