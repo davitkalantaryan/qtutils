@@ -30,7 +30,7 @@ public:
     virtual ~WebStyleLoginTypeWindow() override;
     WidgetType* childWdg();
     
-    virtual void Init() override;
+    virtual void InitRaw() override;
     void MakeSizeHint();
 	
 protected:
