@@ -58,8 +58,8 @@ template <typename WidgetType>
 void ResizibleWindowRaw<WidgetType>::Init2()
 {
 	if(m_flags.b.initNotCalled){
+		m_flags.b2.initCalledOrNot = CPPUTILS_MAKE_BITS_POSITIVE;
 		m_settingsKey = typeid(*this).name()+QString::number(m_flags.b.instanceNumber);
-		m_settingsKey = typeid(*this).name();
 		this->InitRaw();
 	}
 }
@@ -83,8 +83,8 @@ void ResizibleWindowRaw<WidgetType>::InitAndShow()
 	m_settingsKey = typeid(*this).name()+QString::number(m_flags.b.instanceNumber);
 	
 	if(m_flags.b.initNotCalled){
-		this->InitRaw();
 		m_flags.b2.initCalledOrNot = CPPUTILS_MAKE_BITS_POSITIVE;
+		this->InitRaw();
 	}
 	
 	Settings aSettings;
