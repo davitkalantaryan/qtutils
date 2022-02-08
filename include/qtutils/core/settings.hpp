@@ -7,13 +7,13 @@
 
 #pragma once
 
-//#define FOCUST_EMSCRIPTEN_IS_USED
+#define QTUTILS_CORE_FORCE_NEW_SETTINGS
 
 #include <qtutils/qtutils_internal_header.h>
 #include <qtutils/disable_utils_warnings.h>
 #include <QSettings>
 
-#if defined(CPPUTILS_EMSCRIPTEN_IS_USED) || defined(QTUTILS_CORE_FORCE_NEW_SETTINGS)
+#if defined(CPPUTILS_POSSIBLE_NO_PERS_FILE) || defined(QTUTILS_CORE_FORCE_NEW_SETTINGS)
 #include <QString>
 #include <QVariant>
 #endif
@@ -24,7 +24,7 @@ QTUTILS_EXPORT void InitializeSettings(QTUTILS_QT_NSP QSettings::Format format);
 QTUTILS_EXPORT void CleanupSettings(void);
 
 
-#if defined(CPPUTILS_EMSCRIPTEN_IS_USED) || defined(QTUTILS_CORE_FORCE_NEW_SETTINGS)
+#if defined(CPPUTILS_POSSIBLE_NO_PERS_FILE) || defined(QTUTILS_CORE_FORCE_NEW_SETTINGS)
 
 class QTUTILS_EXPORT Settings final
 {
