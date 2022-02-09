@@ -7,7 +7,7 @@
 
 #pragma once
 
-#define QTUTILS_CORE_FORCE_NEW_SETTINGS
+//#define QTUTILS_CORE_FORCE_NEW_SETTINGS
 
 #include <qtutils/qtutils_internal_header.h>
 #include <qtutils/disable_utils_warnings.h>
@@ -20,7 +20,7 @@
 
 namespace qtutils{
 
-QTUTILS_EXPORT void InitializeSettings(void);
+QTUTILS_EXPORT void InitializeSettings(const QString& mountDirectory);
 QTUTILS_EXPORT void CleanupSettings(void);
 
 

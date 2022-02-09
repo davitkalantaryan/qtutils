@@ -19,15 +19,11 @@
 #include <QFile>
 #include <QVariantMap>
 #include <QDataStream>
+#include <QFileInfo>
+#include <QDir>
 
 
 namespace qtutils{
-
-#define FOCUST_INDEXDB_MOUNT_POINT  "/focust_idbfs"
-
-
-static bool WriteFuncStatic(QIODevice& device, const QSettings::SettingsMap&map);
-static bool ReadFuncStatic(QIODevice& device, QSettings::SettingsMap &map);
 
 
 class CPPUTILS_DLL_PRIVATE Settings_p final
@@ -39,39 +35,61 @@ public:
 
 /*////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
 
+static ::std::mutex s_mapMutex;
+static QString      s_defaultFilePath;
+static bool         s_bIsSynchron = false;
+static QSettings::SettingsMap*  s_pMap = nullptr;
+
+static void qtutils_fs_sync_static(void*);
+
 
 Settings::Settings()
     :
       m_set_data(new Settings_p())
 {
-    const QString settingsFilePath =     FOCUST_INDEXDB_MOUNT_POINT "/" +QCoreApplication::applicationName()+".ini";
-    QFile aFile(settingsFilePath);
+    ::std::lock_guard<::std::mutex> aGuard(s_mapMutex);
 
-    if(!aFile.open(QIODevice::ReadOnly)){
-        QtUtilsCritical()<<"unable to open settings file for read: "<<settingsFilePath;
-        return;
+    if(s_bIsSynchron){
+        //QtUtilsDebug()<<"s_defaultFilePath:"<<s_defaultFilePath;
+        QFile aFile(s_defaultFilePath);
+
+        if(!aFile.open(QIODevice::ReadOnly)){
+            QtUtilsCritical()<<"unable to open settings file for read: "<<s_defaultFilePath;
+            return;
+        }
+
+        QDataStream out(&aFile);
+
+        out>>(m_set_data->m_rawSettings);
     }
-
-    QDataStream out(&aFile);
-
-    out>>(m_set_data->m_rawSettings);
+    else{
+        m_set_data->m_rawSettings = *s_pMap;
+    }
 }
 
 
 Settings::~Settings()
 {
-    const QString settingsFilePath =     FOCUST_INDEXDB_MOUNT_POINT "/" +QCoreApplication::applicationName()+".ini";
-    QFile aFile(settingsFilePath);
+    ::std::lock_guard<::std::mutex> aGuard(s_mapMutex);
 
-    if(!aFile.open(QIODevice::WriteOnly|QIODevice::Truncate)){
-        QtUtilsCritical()<<"unable to open settings file for write: "<<settingsFilePath;
-        return;
+    if(s_bIsSynchron){
+        QFile aFile(s_defaultFilePath);
+
+        if(!aFile.open(QIODevice::WriteOnly|QIODevice::Truncate)){
+            QtUtilsCritical()<<"unable to open settings file for write: "<<s_defaultFilePath;
+            delete m_set_data;
+            return;
+        }
+
+        QDataStream out(&aFile);
+
+        out<<(m_set_data->m_rawSettings);
+        ::cpputils::emscripten::fs_sync();
+    }
+    else{
+        s_pMap->insert(m_set_data->m_rawSettings);
     }
 
-    QDataStream out(&aFile);
-
-    out<<(m_set_data->m_rawSettings);
-    ::cpputils::emscripten::fs_sync();
     delete m_set_data;
 }
 
@@ -98,61 +116,69 @@ void Settings::setDefaultFormat( QTUTILS_QT_NSP QSettings::Format)
 }
 
 
-QTUTILS_EXPORT void InitializeSettings(void)
+QTUTILS_EXPORT void InitializeSettings(const QString& a_mountDirectory)
 {
-    ::cpputils::emscripten::mount_idbfs_file_system(FOCUST_INDEXDB_MOUNT_POINT);
-    QSettings::Format  aFormat = QSettings::registerFormat("ini",&ReadFuncStatic,&WriteFuncStatic);
-    if(aFormat==QSettings::InvalidFormat){
-        QtUtilsCritical()<<"Unable to regsiter settings format";
+    s_pMap = new QSettings::SettingsMap();
+
+    if(QDir(a_mountDirectory).exists()){
+        QtUtilsDebug()<<"Directory " + a_mountDirectory + " already mounted";
+    }
+    else{
+        QtUtilsDebug()<<"Mounting idbfs file system in the directory: " + a_mountDirectory;
+        ::cpputils::emscripten::mount_idbfs_file_system(a_mountDirectory.toUtf8(),&qtutils_fs_sync_static,nullptr);
     }
 
-    const QString settingsFilePath =     FOCUST_INDEXDB_MOUNT_POINT "/" +QCoreApplication::applicationName()+".ini";
+    const QString fileName = QCoreApplication::applicationName()+".ini";
+    const QString directoryPath =  QFileInfo(a_mountDirectory,QCoreApplication::organizationName()).filePath();
+    if(QDir(directoryPath).exists()){
+        QtUtilsDebug()<<"Directory " + directoryPath + " already created";
+    }
+    else{
+        QtUtilsDebug()<<"Creating the directory: " + directoryPath;
+        QDir(a_mountDirectory).mkdir(directoryPath);
+    }
+    s_defaultFilePath  = QFileInfo(directoryPath,fileName).filePath();
 
-    QSettings::setPath(QSettings::IniFormat,QSettings::SystemScope,settingsFilePath);
-    QSettings::setPath(QSettings::IniFormat,QSettings::UserScope,settingsFilePath);
+    QtUtilsDebug()<<"s_defaultFilePath:"<<s_defaultFilePath;
+
+    QSettings::setPath(QSettings::IniFormat,QSettings::SystemScope,s_defaultFilePath);
+    QSettings::setPath(QSettings::IniFormat,QSettings::UserScope,s_defaultFilePath);
     QSettings::setDefaultFormat(QSettings::IniFormat);
+
+    // open once the file
+    QFile aFile(s_defaultFilePath);
+    if(!aFile.open(QIODevice::ReadWrite)){
+        QtUtilsCritical()<<"unable to open settings file for initing: "<<s_defaultFilePath;
+        return;
+    }
 }
 
 
 QTUTILS_EXPORT void CleanupSettings(void)
 {
+    delete s_pMap;
+    s_pMap = nullptr;
 }
 
 
-/*////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
 
-static bool WriteFuncStatic(QIODevice&, const QSettings::SettingsMap& a_map)
+static void qtutils_fs_sync_static(void*)
 {
-    const QString settingsFilePath =     FOCUST_INDEXDB_MOUNT_POINT "/" +QCoreApplication::applicationName()+".ini";
-    QFile aFile(settingsFilePath);
+    QtUtilsDebug()<<"!!!!!!! FS sync called";
+    ::std::lock_guard<::std::mutex> aGuard(s_mapMutex);
+    if(s_bIsSynchron){return;}
+    s_bIsSynchron = true;
+    QFile aFile(s_defaultFilePath);
 
     if(!aFile.open(QIODevice::WriteOnly|QIODevice::Truncate)){
-        QtUtilsCritical()<<"unable to open settings file for write: "<<settingsFilePath;
-        return false;
+        QtUtilsCritical()<<"unable to open settings file for write: "<<s_defaultFilePath;
+        return;
     }
 
     QDataStream out(&aFile);
 
-    out<<a_map;
-    return true;
-}
-
-
-static bool ReadFuncStatic(QIODevice&, QSettings::SettingsMap& a_map)
-{
-    const QString settingsFilePath =     FOCUST_INDEXDB_MOUNT_POINT "/" +QCoreApplication::applicationName()+".ini";
-    QFile aFile(settingsFilePath);
-
-    if(!aFile.open(QIODevice::ReadOnly)){
-        QtUtilsCritical()<<"unable to open settings file for read: "<<settingsFilePath;
-        return false;
-    }
-
-    QDataStream out(&aFile);
-
-    out>>a_map;
+    out<<(*s_pMap);
     ::cpputils::emscripten::fs_sync();
-    return true;
 }
 
 
@@ -164,7 +190,7 @@ static bool ReadFuncStatic(QIODevice&, QSettings::SettingsMap& a_map)
 
 namespace qtutils{
 
-QTUTILS_EXPORT void InitializeSettings(void)
+QTUTILS_EXPORT void InitializeSettings(const QString&)
 {
 }
 
