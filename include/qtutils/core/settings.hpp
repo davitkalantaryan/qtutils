@@ -20,19 +20,25 @@
 
 namespace qtutils{
 
-QTUTILS_EXPORT void InitializeSettings(QTUTILS_QT_NSP QSettings::Format format);
+QTUTILS_EXPORT void InitializeSettings(void);
 QTUTILS_EXPORT void CleanupSettings(void);
 
 
 #if defined(CPPUTILS_POSSIBLE_NO_PERS_FILE) || defined(QTUTILS_CORE_FORCE_NEW_SETTINGS)
 
+class CPPUTILS_DLL_PRIVATE Settings_p;
+
 class QTUTILS_EXPORT Settings final
 {
 public:
+    Settings();
+    ~Settings();
     bool contains(const QTUTILS_QT_NSP QString &key) const;
     QTUTILS_QT_NSP QVariant value(const QTUTILS_QT_NSP QString &key, const QTUTILS_QT_NSP QVariant &defaultValue = QTUTILS_QT_NSP QVariant()) const;
     void setValue(const QTUTILS_QT_NSP QString &key, const QTUTILS_QT_NSP QVariant &value);
 	static void setDefaultFormat( QTUTILS_QT_NSP QSettings::Format format);
+private:
+    Settings_p*const m_set_data;
 };
 
 #else
