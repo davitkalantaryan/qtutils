@@ -33,12 +33,17 @@ namespace qtutils { namespace ui{
 
 
 template <typename WidgetType>
+uint64_t ResizibleWindowRaw<WidgetType>::sn_numberOfInstances = 0;
+
+
+template <typename WidgetType>
 template<typename... Targs>
 ResizibleWindowRaw<WidgetType>::ResizibleWindowRaw(Targs... a_args)
 	:
 	  WidgetType(a_args...)
 {
     m_flags.all = CPPUTILS_INIT_BITS;
+	m_flags.b.instanceNumber = (sn_numberOfInstances++);
 }
 
 
@@ -50,9 +55,65 @@ ResizibleWindowRaw<WidgetType>::~ResizibleWindowRaw()
 
 
 template <typename WidgetType>
-void ResizibleWindowRaw<WidgetType>::Init()
+void ResizibleWindowRaw<WidgetType>::Init2()
 {
-    m_settingsKey = typeid(*this).name();
+	if(m_flags.b.initNotCalled){
+		m_flags.b2.initCalledOrNot = CPPUTILS_MAKE_BITS_POSITIVE;
+		m_settingsKey = typeid(*this).name()+QString::number(m_flags.b.instanceNumber);
+		this->InitRaw();
+	}
+}
+
+
+template <typename WidgetType>
+void ResizibleWindowRaw<WidgetType>::InitRaw()
+{
+	m_settingsKey = typeid(*this).name()+QString::number(m_flags.b.instanceNumber);
+}
+
+
+template <typename WidgetType>
+void ResizibleWindowRaw<WidgetType>::show()
+{
+}
+
+template <typename WidgetType>
+void ResizibleWindowRaw<WidgetType>::InitAndShow()
+{
+	m_settingsKey = typeid(*this).name()+QString::number(m_flags.b.instanceNumber);
+	
+	if(m_flags.b.initNotCalled){
+		m_flags.b2.initCalledOrNot = CPPUTILS_MAKE_BITS_POSITIVE;
+		this->InitRaw();
+	}
+	
+	Settings aSettings;
+	bool bIsMaximized = false;
+	bool bIsMinimized = false;
+		
+	if(aSettings.contains(m_settingsKey+QTUTILS_RSBL_WND_POS_KEY)){
+		const QPoint aPos = aSettings.value(m_settingsKey+QTUTILS_RSBL_WND_POS_KEY).toPoint();
+		WidgetType::move(aPos);
+	}
+		
+	if(aSettings.contains(m_settingsKey+QTUTILS_RSBL_WND_IS_MAXIMIZED_KEY)){
+		bIsMaximized = aSettings.value(m_settingsKey+QTUTILS_RSBL_WND_IS_MAXIMIZED_KEY).toBool();
+	}
+	
+	if(aSettings.contains(m_settingsKey+QTUTILS_RSBL_WND_IS_MINIMIZED_KEY)){
+		bIsMinimized = aSettings.value(m_settingsKey+QTUTILS_RSBL_WND_IS_MINIMIZED_KEY).toBool();
+	}
+	
+	
+	if(bIsMaximized){
+		WidgetType::showMaximized();
+	}
+	else if(bIsMinimized){
+		WidgetType::showMinimized();
+	}
+	else{
+		WidgetType::show();
+	}
 }
 
 
@@ -86,51 +147,10 @@ inline void ResizibleWindowRaw<WidgetType>::HideCloseEvent()
 
 
 template <typename WidgetType>
-void ResizibleWindowRaw<WidgetType>::hideEvent(QHideEvent* a_event)
-{
-	HideCloseEvent();
-	WidgetType::hideEvent(a_event);
-}
-
-
-template <typename WidgetType>
 void ResizibleWindowRaw<WidgetType>::closeEvent(QCloseEvent* a_event)
 {
 	HideCloseEvent();
 	WidgetType::closeEvent(a_event);
-}
-
-
-template <typename WidgetType>
-void ResizibleWindowRaw<WidgetType>::showEvent(QShowEvent* a_event)
-{
-	Settings aSettings;
-	bool bIsMaximized = false;
-	bool bIsMinimized = false;
-	
-	WidgetType::showEvent(a_event);
-	
-	if(aSettings.contains(m_settingsKey+QTUTILS_RSBL_WND_POS_KEY)){
-		const QPoint aPos = aSettings.value(m_settingsKey+QTUTILS_RSBL_WND_POS_KEY).toPoint();
-		WidgetType::move(aPos);
-	}
-		
-	if(aSettings.contains(m_settingsKey+QTUTILS_RSBL_WND_IS_MAXIMIZED_KEY)){
-		bIsMaximized = aSettings.value(m_settingsKey+QTUTILS_RSBL_WND_IS_MAXIMIZED_KEY).toBool();
-	}
-	
-	if(aSettings.contains(m_settingsKey+QTUTILS_RSBL_WND_IS_MINIMIZED_KEY)){
-		bIsMinimized = aSettings.value(m_settingsKey+QTUTILS_RSBL_WND_IS_MINIMIZED_KEY).toBool();
-	}
-	
-	
-	if(bIsMaximized){
-		WidgetType::showMaximized();
-	}
-	else if(bIsMinimized){
-		WidgetType::showMinimized();
-	}
-		
 }
 
 

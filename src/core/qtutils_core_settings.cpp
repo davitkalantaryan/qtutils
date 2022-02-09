@@ -7,145 +7,180 @@
 
 
 #include <qtutils/core/settings.hpp>
-#if defined(CPPUTILS_EMSCRIPTEN_IS_USED) || defined(QTUTILS_CORE_FORCE_NEW_SETTINGS)
+#if defined(CPPUTILS_POSSIBLE_NO_PERS_FILE) || defined(QTUTILS_CORE_FORCE_NEW_SETTINGS)
+#include <qtutils/core/logger.hpp>
 #include <cpputils/hashtbl.hpp>
 #include <mutex>
 #include <qtutils/disable_utils_warnings.h>
+#include <cpputils/emscripten.hpp>
 #include <QMetaObject>
 #include <QThread>
+#include <QCoreApplication>
+#include <QFile>
+#include <QVariantMap>
+#include <QDataStream>
+#include <QFileInfo>
+#include <QDir>
 
 
 namespace qtutils{
 
-static ::cpputils::hashtbl::Base<QString,QVariant>  s_values;
-static ::std::mutex                                 s_mutex;
-static QSettings*                                   s_pSettings = nullptr;
 
-
-static inline void EmptyAllPairsFromMapNoLock(void)
+class CPPUTILS_DLL_PRIVATE Settings_p final
 {
-    ::cpputils::hashtbl::Base<QString,QVariant>::const_iterator iterTmp, iter=s_values.begin();
-    while(iter!=::cpputils::hashtbl::Base<QString,QVariant>::s_endIter){
-        s_pSettings->setValue(iter->first,iter->second);
-        iterTmp = iter;
-        ++iterTmp;
-        s_values.RemoveEntry(iter);
-        iter = iterTmp;
+public:
+    QSettings::SettingsMap     m_rawSettings;
+};
+
+
+/*////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
+
+static ::std::mutex s_mapMutex;
+static QString      s_defaultFilePath;
+static bool         s_bIsSynchron = false;
+static QSettings::SettingsMap*  s_pMap = nullptr;
+
+static void qtutils_fs_sync_static(void*);
+
+
+Settings::Settings()
+    :
+      m_set_data(new Settings_p())
+{
+    ::std::lock_guard<::std::mutex> aGuard(s_mapMutex);
+
+    if(s_bIsSynchron){
+        //QtUtilsDebug()<<"s_defaultFilePath:"<<s_defaultFilePath;
+        QFile aFile(s_defaultFilePath);
+
+        if(!aFile.open(QIODevice::ReadOnly)){
+            QtUtilsCritical()<<"unable to open settings file for read: "<<s_defaultFilePath;
+            return;
+        }
+
+        QDataStream out(&aFile);
+
+        out>>(m_set_data->m_rawSettings);
+    }
+    else{
+        m_set_data->m_rawSettings = *s_pMap;
     }
 }
 
 
-bool Settings::contains(const QString & a_key)const
+Settings::~Settings()
 {
-    ::std::lock_guard< ::std::mutex> aGualrd(s_mutex);
-    
-    if(s_pSettings){
-        bool bSettingsOk = false;
-        bool bContains = false;
-        const Qt::ConnectionType callCon = QThread::currentThread()==s_pSettings->thread()?Qt::AutoConnection:Qt::BlockingQueuedConnection;
-        QMetaObject::invokeMethod(s_pSettings,[a_key,&bSettingsOk,&bContains](){
-            if (s_pSettings->status() == QSettings::NoError) {
-                bSettingsOk = true;
-                EmptyAllPairsFromMapNoLock();
-                bContains = s_pSettings->contains(a_key);
-            }
-        },callCon);
-        if(bSettingsOk){
-            return bContains;
+    ::std::lock_guard<::std::mutex> aGuard(s_mapMutex);
+
+    if(s_bIsSynchron){
+        QFile aFile(s_defaultFilePath);
+
+        if(!aFile.open(QIODevice::WriteOnly|QIODevice::Truncate)){
+            QtUtilsCritical()<<"unable to open settings file for write: "<<s_defaultFilePath;
+            delete m_set_data;
+            return;
         }
+
+        QDataStream out(&aFile);
+
+        out<<(m_set_data->m_rawSettings);
+        ::cpputils::emscripten::fs_sync();
     }
-    
-    ::cpputils::hashtbl::Base<QString,QVariant>::const_iterator iter;
-    iter = s_values.FindEntry(a_key);
-    return iter?true:false;
+    else{
+        s_pMap->insert(m_set_data->m_rawSettings);
+    }
+
+    delete m_set_data;
+}
+
+
+bool Settings::contains(const QString& a_key)const
+{
+    return m_set_data->m_rawSettings.contains(a_key);
 }
 
 QVariant Settings::value(const QString & a_key, const QVariant & a_defaultValue) const
 {
-    ::std::lock_guard< ::std::mutex> aGualrd(s_mutex);
-    
-    if(s_pSettings){
-        bool bSettingsOk = false;
-        QVariant retValue;
-        const Qt::ConnectionType callCon = QThread::currentThread()==s_pSettings->thread()?Qt::AutoConnection:Qt::BlockingQueuedConnection;
-        QMetaObject::invokeMethod(s_pSettings,[a_key,a_defaultValue,&bSettingsOk,&retValue](){
-            if (s_pSettings->status() == QSettings::NoError) {
-                bSettingsOk = true;
-                EmptyAllPairsFromMapNoLock();
-                retValue = s_pSettings->value(a_key,a_defaultValue);
-            }
-        },callCon);
-        if(bSettingsOk){
-            return retValue;
-        }
-    }
-    
-    ::cpputils::hashtbl::Base<QString,QVariant>::const_iterator iter;
-    iter = s_values.FindEntry(a_key);
-    if(iter){
-        return iter->second;
-    }
-    return a_defaultValue;
+    return m_set_data->m_rawSettings.value(a_key,a_defaultValue);
 }
 
 void Settings::setValue(const QString &a_key, const QVariant &a_value)
 {
-    ::std::lock_guard< ::std::mutex> aGualrd(s_mutex);
-    
-    if(s_pSettings){
-        bool bSettingsOk = false;
-        const Qt::ConnectionType callCon = QThread::currentThread()==s_pSettings->thread()?Qt::AutoConnection:Qt::BlockingQueuedConnection;
-        QMetaObject::invokeMethod(s_pSettings,[a_key,a_value,&bSettingsOk](){
-            if (s_pSettings->status() == QSettings::NoError) {
-                bSettingsOk = true;
-                EmptyAllPairsFromMapNoLock();
-                s_pSettings->setValue(a_key,a_value);
-            }
-        },callCon);
-        if(bSettingsOk){
-            return;
-        }
-    }
-    
-    s_values.AddOrReplaceEntry(a_key,a_value);
+    m_set_data->m_rawSettings.insert(a_key,a_value);
 }
 
 
-void Settings::setDefaultFormat( QTUTILS_QT_NSP QSettings::Format a_format)
+void Settings::setDefaultFormat( QTUTILS_QT_NSP QSettings::Format)
 {
-    ::std::lock_guard< ::std::mutex> aGualrd(s_mutex);
-    if(s_pSettings){
-        const Qt::ConnectionType callCon = QThread::currentThread()==s_pSettings->thread()?Qt::AutoConnection:Qt::BlockingQueuedConnection;
-        QMetaObject::invokeMethod(s_pSettings,[](){
-            if (s_pSettings->status() == QSettings::NoError) {
-                EmptyAllPairsFromMapNoLock();
-            }
-            delete s_pSettings;
-            s_pSettings = nullptr;
-        },callCon);
-    }
-	QSettings::setDefaultFormat(a_format);
-    s_pSettings = new QSettings();
+    QSettings::setDefaultFormat(QSettings::IniFormat);
 }
 
 
-QTUTILS_EXPORT void InitializeSettings(QTUTILS_QT_NSP QSettings::Format a_format)
+QTUTILS_EXPORT void InitializeSettings(const QString& a_mountDirectory)
 {
-    Settings::setDefaultFormat(a_format);
+    s_pMap = new QSettings::SettingsMap();
+
+    if(QDir(a_mountDirectory).exists()){
+        QtUtilsDebug()<<"Directory " + a_mountDirectory + " already mounted";
+    }
+    else{
+        QtUtilsDebug()<<"Mounting idbfs file system in the directory: " + a_mountDirectory;
+        ::cpputils::emscripten::mount_idbfs_file_system(a_mountDirectory.toUtf8(),&qtutils_fs_sync_static,nullptr);
+    }
+
+    const QString fileName = QCoreApplication::applicationName()+".ini";
+    const QString directoryPath =  QFileInfo(a_mountDirectory,QCoreApplication::organizationName()).filePath();
+    if(QDir(directoryPath).exists()){
+        QtUtilsDebug()<<"Directory " + directoryPath + " already created";
+    }
+    else{
+        QtUtilsDebug()<<"Creating the directory: " + directoryPath;
+        QDir(a_mountDirectory).mkdir(directoryPath);
+    }
+    s_defaultFilePath  = QFileInfo(directoryPath,fileName).filePath();
+
+    QtUtilsDebug()<<"s_defaultFilePath:"<<s_defaultFilePath;
+
+    QSettings::setPath(QSettings::IniFormat,QSettings::SystemScope,s_defaultFilePath);
+    QSettings::setPath(QSettings::IniFormat,QSettings::UserScope,s_defaultFilePath);
+    QSettings::setDefaultFormat(QSettings::IniFormat);
+
+    // open once the file
+    QFile aFile(s_defaultFilePath);
+    if(!aFile.open(QIODevice::ReadWrite)){
+        QtUtilsCritical()<<"unable to open settings file for initing: "<<s_defaultFilePath;
+        return;
+    }
 }
 
 
 QTUTILS_EXPORT void CleanupSettings(void)
 {
-    ::std::lock_guard< ::std::mutex> aGualrd(s_mutex);
-    if(s_pSettings){
-        const Qt::ConnectionType callCon = QThread::currentThread()==s_pSettings->thread()?Qt::AutoConnection:Qt::BlockingQueuedConnection;
-        QMetaObject::invokeMethod(s_pSettings,[](){
-            delete s_pSettings;
-            s_pSettings = nullptr;
-        },callCon);
-    }
+    delete s_pMap;
+    s_pMap = nullptr;
 }
+
+
+
+static void qtutils_fs_sync_static(void*)
+{
+    QtUtilsDebug()<<"!!!!!!! FS sync called";
+    ::std::lock_guard<::std::mutex> aGuard(s_mapMutex);
+    if(s_bIsSynchron){return;}
+    s_bIsSynchron = true;
+    QFile aFile(s_defaultFilePath);
+
+    if(!aFile.open(QIODevice::WriteOnly|QIODevice::Truncate)){
+        QtUtilsCritical()<<"unable to open settings file for write: "<<s_defaultFilePath;
+        return;
+    }
+
+    QDataStream out(&aFile);
+
+    out<<(*s_pMap);
+    ::cpputils::emscripten::fs_sync();
+}
+
 
 
 }  // namespace qtutils{
@@ -155,9 +190,8 @@ QTUTILS_EXPORT void CleanupSettings(void)
 
 namespace qtutils{
 
-QTUTILS_EXPORT void InitializeSettings(QTUTILS_QT_NSP QSettings::Format a_format)
+QTUTILS_EXPORT void InitializeSettings(const QString&)
 {
-    QSettings::setDefaultFormat(a_format);
 }
 
 
@@ -169,5 +203,5 @@ QTUTILS_EXPORT void CleanupSettings(void)
 }  // namespace qtutils{
 
 
-#endif  // #if defined(CPPUTILS_EMSCRIPTEN_IS_USED) || defined(QTUTILS_CORE_FORCE_NEW_SETTINGS)
+#endif  // #if defined(CPPUTILS_POSSIBLE_NO_PERS_FILE) || defined(QTUTILS_CORE_FORCE_NEW_SETTINGS)
 
