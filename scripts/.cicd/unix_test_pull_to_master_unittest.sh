@@ -1,7 +1,7 @@
 #!/bin/bash
+# script to run test stuff
 
-# script to prepare developer host, to work with the code on this repo
-
+# in mac short directory calculation based on n'readlink' or 'realpath' will not work
 scriptDirectory=`dirname "${0}"`
 scriptFileName=`basename "${0}"`
 cd "${scriptDirectory}"
