@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# example:  _unix_compile_qt_as_wasm.sh password_hasher2 prj/utils/password_hasher_qt src/resources/img/focust_logo.svg src/resources/img/focust_logo.png
+# example:  _unix_compile_qt_as_wasm.sh prj/utils/password_hasher_qt src/resources/img/focust_logo.svg src/resources/img/focust_logo.png password_hasher2
 #
 # set following environment variables
 # 1. QT_ROOT_DIR   example => $ export QT_ROOT_DIR=~/qt_compiled/5.15.2
@@ -22,15 +22,28 @@ trap 'last_command=$current_command; current_command=$BASH_COMMAND' DEBUG
 # echo an error message before exiting
 #trap 'echo "\"${last_command}\" command finished with exit code $?."' EXIT
 
-if [ $# -lt 2 ]; then
-        echo "at least target name and qt pro file should be specified"
+if [ $# -lt 3 ]; then
+        echo "at least 3 arguments should be provided"
 	exit 1
 fi
-targetName=$1
-qtProjectileDir=$2
-svgFilePath=$3
-pngFilePath=$4
+qtProjectileDir=$1
+svgFilePath=$2
+pngFilePath=$3
 svgFileName=`basename "${svgFilePath}"`
+pngFileName=`basename "${pngFilePath}"`
+if [ $# -gt 3 ]; then
+	targetName=$4
+        APP_NAME_OPTION="QTUTILS_MODIFIED_APP_NAME=${4}"
+else
+	qtProFilePath=`find ${qtProjectileDir} -name "*.pro"`
+	targetNameRaw=`basename "${qtProFilePath}"`
+	targetName=${targetNameRaw%.*}  # remove suffix starting with "."
+	APP_NAME_OPTION=
+fi
+echo targetName=${targetName}
+echo APP_NAME_OPTION=${APP_NAME_OPTION}
+
+#exit 0
 
 
 # in mac short directory calculation based on n'readlink' or 'realpath' will not work
@@ -68,7 +81,7 @@ fi
 
 cd ${currentDirectory}
 cd "$qtProjectileDir"
-"$QT_ROOT_DIR/wasm_32/bin/qmake" CONFIG+=release CONFIG-=debug QTUTILS_MODIFIED_APP_NAME=${targetName}
+"$QT_ROOT_DIR/wasm_32/bin/qmake" CONFIG+=release CONFIG-=debug ${APP_NAME_OPTION}
 
 
 make -f Makefile.${targetName}.wasm.Release
@@ -85,7 +98,7 @@ dateVar=`date`
 cd "${repositoryRoot}/sys/wasm/Release/bin/${targetName}"
 sed -i "s/Qt for WebAssembly/ prepared by Qt webassembly compiled on ${dateVar}/g" ${targetName}.html
 sed -i 's/qtlogo.svg/${svgFileName}/g' ${targetName}.html
-sed -i 's/<head>/<head>\n    <link rel="icon" href="focust_logo.png">/' ${targetName}.html
+sed -i 's/<head>/<head>\n    <link rel="icon" href="${pngFileName}">/' ${targetName}.html
 rm qtlogo.svg
 cd ${currentDirectory}
 cp "$svgFilePath" ${repositoryRoot}/sys/wasm/Release/bin/${targetName}/.
