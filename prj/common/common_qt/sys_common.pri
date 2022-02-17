@@ -14,3 +14,5 @@ isEmpty( qtutilsRepoRoot ) {
 cpputilsRepoRoot=$${qtutilsRepoRoot}/contrib/cpputils
 
 include("$${cpputilsRepoRoot}/prj/common/common_qt/sys_common.pri")
+
+!isEmpty(QTUTILS_MODIFIED_APP_NAME) : TARGET = $${QTUTILS_MODIFIED_APP_NAME}
