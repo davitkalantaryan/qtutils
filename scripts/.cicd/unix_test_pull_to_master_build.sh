@@ -1,15 +1,7 @@
 #!/bin/bash
+# script to compile test stuff
 
-# script to prepare developer host, to work with the code on this repo
-
-#scriptFileFullPath=`readlink -f ${0}`
-#scriptDirectory=`dirname ${scriptFileFullPath}`
-#cd ${scriptDirectory}/../..
-#repositoryRoot=`pwd`
-
-# in mac os above short calculation will not work
-# also realpath utilit is missing in mac
-
+# in mac short directory calculation based on n'readlink' or 'realpath' will not work
 scriptDirectory=`dirname "${0}"`
 scriptFileName=`basename "${0}"`
 cd "${scriptDirectory}"
