@@ -97,8 +97,8 @@ dateVar=`date`
 # we can do rebranding (see https://www.qt.io/blog/2018/11/19/getting-started-qt-webassembly)
 cd "${repositoryRoot}/sys/wasm/Release/bin/${targetName}"
 sed -i "s/Qt for WebAssembly/ prepared by Qt webassembly compiled on ${dateVar}/g" ${targetName}.html
-sed -i 's/qtlogo.svg/${svgFileName}/g' ${targetName}.html
-sed -i 's/<head>/<head>\n    <link rel="icon" href="${pngFileName}">/' ${targetName}.html
+sed -i "s/qtlogo.svg/${svgFileName}/g" ${targetName}.html
+sed -i "s/<head>/<head>\n    <link rel=\"icon\" href=\"${pngFileName}\">/" ${targetName}.html
 rm qtlogo.svg
 cd ${currentDirectory}
 cp "$svgFilePath" ${repositoryRoot}/sys/wasm/Release/bin/${targetName}/.
