@@ -127,7 +127,8 @@ const QString& ResizibleWindowRaw<WidgetType>::settingsKey()const
 template <typename WidgetType>
 inline void ResizibleWindowRaw<WidgetType>::HideCloseEvent()
 {
-    if(m_flags.b.hideNotCalled){
+    //if(m_flags.b.hideNotCalled)
+	{
         Settings aSettings;
         aSettings.setValue(m_settingsKey+QTUTILS_RSBL_WND_POS_KEY,WidgetType::pos());
         if(WidgetType::isMaximized()){
@@ -151,6 +152,14 @@ void ResizibleWindowRaw<WidgetType>::closeEvent(QCloseEvent* a_event)
 {
 	HideCloseEvent();
 	WidgetType::closeEvent(a_event);
+}
+
+
+template <typename WidgetType>
+void ResizibleWindowRaw<WidgetType>::hideEvent(QHideEvent* a_event)
+{
+	HideCloseEvent();
+	WidgetType::hideEvent(a_event);
 }
 
 
