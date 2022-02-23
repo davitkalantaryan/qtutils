@@ -3,6 +3,11 @@
 TEMPLATE = subdirs
 #CONFIG += ordered
 
+QT += widgets
+QT += network
+QT += sql
+QT += dbus
+
 repositoryRoot = $${PWD}/../..
 
 include ( "$${repositoryRoot}/prj/common/common_qt/sys_common.pri" )
