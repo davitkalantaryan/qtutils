@@ -7,6 +7,9 @@
 
 
 #include <qtutils/core/threadls.hpp>
+
+#ifndef QTUTILS_NOT_USE_THREADLS
+
 #include <cpputils/inscopecleaner.hpp>
 #include <cpputils/unnamedsemaphore.hpp>
 
@@ -17,12 +20,11 @@ static void StaticConstruct(void*){}
 static void StaticDestruct(void*){}
 
 
-class CPPUTILS_DLL_PRIVATE ThreadLS_p : public QThread
+class CPPUTILS_DLL_PRIVATE ThreadLS_p final : public QThread
 {
 public:
     ThreadLS_p(const ThreadLS::TypeConstruct& a_construct, const ThreadLS::TypeDestruct& a_destruct, void* a_pData);
 public:
-    ThreadObject*               m_pSockThreadObj;
     cpputils::UnnamedSemaphore* m_pSema;
 private:
     const ThreadLS::TypeConstruct     m_construct;
@@ -37,8 +39,16 @@ private:
 
 ThreadLS::ThreadLS()
     :
-      ThreadLS(nullptr,nullptr,nullptr)
+      m_thr_data_p(nullptr)
 {
+}
+
+
+ThreadLS::ThreadLS(ThreadLS&& a_mM)
+	:
+	  m_thr_data_p(a_mM.m_thr_data_p)
+{
+	a_mM.m_thr_data_p = nullptr;
 }
 
 
@@ -55,15 +65,20 @@ ThreadLS::ThreadLS(const TypeConstruct& a_construct, const TypeDestruct& a_destr
 
 ThreadLS::~ThreadLS()
 {
-    m_thr_data_p->quit();
-    m_thr_data_p->wait();
-    delete m_thr_data_p;
+	if(m_thr_data_p){
+		m_thr_data_p->quit();
+		m_thr_data_p->wait();
+		delete m_thr_data_p;
+	}
 }
 
 
-ThreadObject* ThreadLS::thrObj()const
+ThreadLS& ThreadLS::operator=(ThreadLS&& a_mM)
 {
-    return m_thr_data_p->m_pSockThreadObj;
+	ThreadLS_p* this_thr_data_p = m_thr_data_p;
+	m_thr_data_p = a_mM.m_thr_data_p;
+	a_mM.m_thr_data_p = this_thr_data_p;
+	return *this;
 }
 
 
@@ -78,7 +93,6 @@ QThread* ThreadLS::qThread()const
 
 ThreadLS_p::ThreadLS_p(const ThreadLS::TypeConstruct& a_construct, const ThreadLS::TypeDestruct& a_destruct, void* a_pData)
     :
-      m_pSockThreadObj(nullptr),
       m_pSema(new ::cpputils::UnnamedSemaphore()),
       m_construct(a_construct?a_construct:(&StaticConstruct)),
       m_destruct(a_destruct?a_destruct:(&StaticDestruct)),
@@ -91,11 +105,8 @@ void ThreadLS_p::run()
 {   
     cpputils::InScopeCleaner aCleaner([this](void*){
         m_destruct(m_userData);
-        delete m_pSockThreadObj;
-        m_pSockThreadObj = nullptr;
     });
 
-    m_pSockThreadObj = new ThreadObject();
     m_construct(m_userData);
     m_pSema->Post();
 
@@ -104,3 +115,6 @@ void ThreadLS_p::run()
 
 
 }  // namespace qtutils{
+
+
+#endif  // #ifndef QTUTILS_NOT_USE_THREADLS
