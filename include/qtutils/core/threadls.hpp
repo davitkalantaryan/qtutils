@@ -7,9 +7,11 @@
 
 #pragma once
 
-
 #include <qtutils/qtutils_internal_header.h>
-#include <qtutils/core/threadobject.hpp>
+
+#ifndef QTUTILS_NOT_USE_THREADLS
+
+#include <functional>
 #include <qtutils/disable_utils_warnings.h>
 #include <QThread>
 
@@ -22,22 +24,27 @@ class CPPUTILS_DLL_PRIVATE ThreadLS_p;
 class QTUTILS_EXPORT ThreadLS final
 {
 public:
-    typedef void (*TypeConstruct)(void*);
-    typedef void (*TypeDestruct)(void*);
+    //typedef void (*TypeConstruct)(void*);
+    //typedef void (*TypeDestruct)(void*);
+	typedef ::std::function<void(void*)>	TypeConstruct;
+	typedef ::std::function<void(void*)>	TypeDestruct;
+	
 public:
     ThreadLS();
     ThreadLS(const TypeConstruct& a_construct, const TypeDestruct& a_destruct, void* a_data);
     ~ThreadLS();
     ThreadLS(const ThreadLS&)=delete;
-    ThreadLS(ThreadLS&&)=delete;
+    ThreadLS(ThreadLS&&);
     ThreadLS& operator=(const ThreadLS&)=delete;
-    ThreadLS& operator=(ThreadLS&&)=delete;
+    ThreadLS& operator=(ThreadLS&&);
 
-    ThreadObject* thrObj()const;
     QThread* qThread()const;
 
 private:
-    ThreadLS_p*const        m_thr_data_p;
+    ThreadLS_p*        m_thr_data_p;
 };
 
+
 }  // namespace qtutils{
+
+#endif  // #ifndef QTUTILS_NOT_USE_THREADLS

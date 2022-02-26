@@ -38,6 +38,7 @@ public:
 	    
 protected:
 	virtual void closeEvent(QCloseEvent *event) override;
+	virtual void hideEvent(QHideEvent *event) override;
 	
 private:
 	inline void HideCloseEvent();
