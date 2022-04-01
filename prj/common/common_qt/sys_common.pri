@@ -11,6 +11,10 @@ isEmpty( qtutilsRepoRoot ) {
 	qtutilsRepoRoot = $${PWD}/../../..
 }
 
+isEmpty( repositoryRoot ) {
+	repositoryRoot = $${qtutilsRepoRoot}
+}
+
 cpputilsRepoRoot=$${qtutilsRepoRoot}/contrib/cpputils
 
 !isEmpty(QTUTILS_MODIFIED_APP_NAME) : TARGET = $${QTUTILS_MODIFIED_APP_NAME}
