@@ -282,6 +282,29 @@ QTUTILS_EXPORT void PrepareJsonHeadersWithAuth(QNetworkRequest* a_pRequet, const
 }
 
 
+QTUTILS_EXPORT void PrepareMPartHeadersWithAuth(QNetworkRequest* a_pRequet, const QString& a_authToken,const QString& a_agent)
+{
+    ::std::string authString = ::std::string("Bearer ") + a_authToken.toStdString();
+    a_pRequet->setRawHeader("Authorization",authString.c_str());
+	
+    a_pRequet->setRawHeader("Client-Device", QSysInfo::machineHostName().toUtf8() );
+
+#ifdef CPPUTILS_EMSCRIPTEN_IS_USED
+    static_cast<void>(a_agent);  // each browser has its own agent
+#else
+    a_pRequet->setHeader(QNetworkRequest::UserAgentHeader, a_agent);  // each browser has its own agent
+
+    {
+        QSslConfiguration conf = a_pRequet->sslConfiguration();
+        conf.setPeerVerifyMode(QSslSocket::VerifyNone);
+        a_pRequet->setSslConfiguration(conf);
+    }
+#endif
+	
+	a_pRequet->setRawHeader("Accept", "*/*");
+}
+
+
 QTUTILS_EXPORT void ErrorByteArray(const QNetworkReply::NetworkError&,const ::qtutils::network::Reply& a_replyHandlerIn, QByteArray* CPPUTILS_IN_OUT a_pData)
 {
     QByteArray& responseByteArray = *a_pData;
