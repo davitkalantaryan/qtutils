@@ -26,4 +26,18 @@ QTUTILS_EXPORT bool isSameWidgetOrChild(QWidget* a_pPossibleParent, QWidget* a_p
 }
 
 
+QTUTILS_EXPORT void TakeFrameOfWindow(QWidget* a_pWindow)
+{
+	const Qt::WindowFlags spinnerFlags = a_pWindow->windowFlags();
+	a_pWindow->setWindowFlags(spinnerFlags|Qt::FramelessWindowHint);
+}
+
+
+QTUTILS_EXPORT void AssignFrameToWindow(QWidget* a_pWindow)
+{
+	const Qt::WindowFlags spinnerFlags = a_pWindow->windowFlags();
+	a_pWindow->setWindowFlags(spinnerFlags&(~Qt::FramelessWindowHint));
+}
+
+
 }}  // namespace qtutils { namespace ui{

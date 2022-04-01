@@ -45,6 +45,38 @@ void SpinnerBox::StopSpinning()
 }
 
 
+void SpinnerBox::CenterSpinner(QWidget* a_pToCenter,int a_margins)
+{
+	QWidget*const pParent = parentWidget();
+	const int marginsDouble = a_margins + a_margins;
+	const int widthThis = a_pToCenter->width();
+	const int heigthThis = a_pToCenter->height();
+	int squareSize = (widthThis<heigthThis)?widthThis:heigthThis;
+	int nOffsetX, nOffsetY;
+	if(squareSize>=marginsDouble){squareSize-=marginsDouble;}
+	
+	nOffsetX = (widthThis-squareSize)>>1;
+	nOffsetY = (heigthThis-squareSize)>>1;
+	
+	QPoint spinnerInTheParent;
+	if(pParent){
+		if(pParent==a_pToCenter){
+			spinnerInTheParent = QPoint(nOffsetX,nOffsetY);
+		}
+		else{
+			const QPoint spinnerInTheDesktop = a_pToCenter->mapToGlobal(QPoint(nOffsetX,nOffsetY));
+			spinnerInTheParent = pParent->mapFromGlobal(spinnerInTheDesktop);
+		}
+	}
+	else{
+		spinnerInTheParent = a_pToCenter->mapToGlobal(QPoint(nOffsetX,nOffsetY));
+	}
+	
+	this->resize(squareSize,squareSize);
+	this->move(spinnerInTheParent);
+}
+
+
 SpinnerBox_p* SpinnerBox::CreateSpinnerBox_p(SpinnerBox* a_pThis)
 {
 	SpinnerBox_p* pRet = new SpinnerBox_p();

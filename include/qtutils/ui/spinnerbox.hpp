@@ -28,6 +28,7 @@ public:
 	
 	void StartSpinning();
 	void StopSpinning();
+	void CenterSpinner(QWidget* a_pToCenter, int a_margins);
 	
 private:
 	static SpinnerBox_p* CreateSpinnerBox_p(SpinnerBox* a_pThis);
