@@ -299,4 +299,16 @@ QTUTILS_EXPORT void ErrorByteArray(const QNetworkReply::NetworkError&,const ::qt
 }
 
 
+QTUTILS_EXPORT QString CorectUrl(const QString& a_url)
+{
+	if((a_url.size()>0)&&(a_url.back()==QChar('/'))){
+		QString retStr(a_url);
+		retStr.chop(1);
+		return retStr;
+	}
+	
+	return a_url;
+}
+
+
 }}  // namespace qtutils { namespace network {
