@@ -55,6 +55,17 @@ Reply* AccessManagerRaw::post(ReplyContainer* a_pContainer, const QNetworkReques
 }
 
 
+Reply* AccessManagerRaw::post(ReplyContainer* a_pContainer, const QNetworkRequest& a_request, QHttpMultiPart* a_pMultiPart,  ReplyData* a_pData, int a_timeoutMs)
+{
+    QNetworkReply* pNetworkReply = m_pQtManager->post(a_request,a_pMultiPart);
+    if(pNetworkReply){
+        return new Reply(pNetworkReply,a_pContainer,a_pData, a_timeoutMs);
+    }
+    //return nullptr;
+    throw Exception(a_pData,"Unable to create Network Reply object");
+}
+
+
 Reply* AccessManagerRaw::get(ReplyContainer* a_pContainer, const QNetworkRequest& a_request, ReplyData* a_pData, int a_timeoutMs)
 {
     QNetworkReply* pNetworkReply = m_pQtManager->get(a_request);
