@@ -235,6 +235,12 @@ QNetworkReply* Reply::operator->()const
 }
 
 
+QNetworkReply* Reply::qtNetworkReply()const
+{
+    return m_pNetworkReply;
+}
+
+
 bool Reply::hasTimeout()const
 {
     return m_bHasTimeout;

@@ -111,6 +111,7 @@ public:
     
     void Abort();
     QNetworkReply* operator->()const;
+    QNetworkReply* qtNetworkReply()const;
     ReplyData* data()const;
     void ReplaceData(ReplyData* a_pData); // this will be used to replace by null to prevent delete
     bool hasTimeout()const;
