@@ -20,6 +20,8 @@
 #pragma warning (disable:4866)
 #pragma warning (disable:5204)
 #pragma warning (disable:5045)  // warning C5045: Compiler will insert Spectre mitigation
+#pragma warning (disable:4371)
+#pragma warning (disable:4242)
 #endif
 
 
