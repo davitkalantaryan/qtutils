@@ -42,6 +42,7 @@ private:
 public:
     Reply* post(ReplyContainer* a_pContainer, const QNetworkRequest &request, const QByteArray &data,  ReplyData* a_pData, int a_timeoutMs);
     Reply* post(ReplyContainer* a_pContainer, const QNetworkRequest &request, const QVariantMap&data,  ReplyData* a_pData, int a_timeoutMs);
+    Reply* post(ReplyContainer* a_pContainer, const QNetworkRequest &request, QHttpMultiPart* multiPart,  ReplyData* a_pData, int a_timeoutMs);
     Reply* get(ReplyContainer* a_pContainer, const QNetworkRequest &request, ReplyData* a_pData, int a_timeoutMs);
     Reply* deleteResource(ReplyContainer* a_pContainer, const QNetworkRequest &request, ReplyData* a_pData, int a_timeoutMs);
     //Reply* post(ReplyContainer* a_pContainer, const Request &request, HttpMultiPart *multiPart,ReplyData* a_pData);
@@ -110,6 +111,7 @@ public:
     
     void Abort();
     QNetworkReply* operator->()const;
+    QNetworkReply* qtNetworkReply()const;
     ReplyData* data()const;
     void ReplaceData(ReplyData* a_pData); // this will be used to replace by null to prevent delete
     bool hasTimeout()const;
@@ -135,7 +137,9 @@ private:
 
 QTUTILS_EXPORT void PrepareJsonHeaders(QNetworkRequest* a_pRequet, const QString& a_agent);
 QTUTILS_EXPORT void PrepareJsonHeadersWithAuth(QNetworkRequest* a_pRequet, const QString& a_authToken, const QString& a_agent);
+QTUTILS_EXPORT void PrepareMPartHeadersWithAuth(QNetworkRequest* a_pRequet, const QString& a_authToken,const QString& a_agent);
 QTUTILS_EXPORT void ErrorByteArray(const QNetworkReply::NetworkError&,const ::qtutils::network::Reply& a_replyHandlerIn, QByteArray* CPPUTILS_IN_OUT a_pData);
+QTUTILS_EXPORT QString CorectUrl(const QString& a_url);
 
 
 }}  // namespace qtutils { namespace network{

@@ -55,6 +55,17 @@ Reply* AccessManagerRaw::post(ReplyContainer* a_pContainer, const QNetworkReques
 }
 
 
+Reply* AccessManagerRaw::post(ReplyContainer* a_pContainer, const QNetworkRequest& a_request, QHttpMultiPart* a_pMultiPart,  ReplyData* a_pData, int a_timeoutMs)
+{
+    QNetworkReply* pNetworkReply = m_pQtManager->post(a_request,a_pMultiPart);
+    if(pNetworkReply){
+        return new Reply(pNetworkReply,a_pContainer,a_pData, a_timeoutMs);
+    }
+    //return nullptr;
+    throw Exception(a_pData,"Unable to create Network Reply object");
+}
+
+
 Reply* AccessManagerRaw::get(ReplyContainer* a_pContainer, const QNetworkRequest& a_request, ReplyData* a_pData, int a_timeoutMs)
 {
     QNetworkReply* pNetworkReply = m_pQtManager->get(a_request);
@@ -224,6 +235,12 @@ QNetworkReply* Reply::operator->()const
 }
 
 
+QNetworkReply* Reply::qtNetworkReply()const
+{
+    return m_pNetworkReply;
+}
+
+
 bool Reply::hasTimeout()const
 {
     return m_bHasTimeout;
@@ -282,6 +299,29 @@ QTUTILS_EXPORT void PrepareJsonHeadersWithAuth(QNetworkRequest* a_pRequet, const
 }
 
 
+QTUTILS_EXPORT void PrepareMPartHeadersWithAuth(QNetworkRequest* a_pRequet, const QString& a_authToken,const QString& a_agent)
+{
+    ::std::string authString = ::std::string("Bearer ") + a_authToken.toStdString();
+    a_pRequet->setRawHeader("Authorization",authString.c_str());
+	
+    a_pRequet->setRawHeader("Client-Device", QSysInfo::machineHostName().toUtf8() );
+
+#ifdef CPPUTILS_EMSCRIPTEN_IS_USED
+    static_cast<void>(a_agent);  // each browser has its own agent
+#else
+    a_pRequet->setHeader(QNetworkRequest::UserAgentHeader, a_agent);  // each browser has its own agent
+
+    {
+        QSslConfiguration conf = a_pRequet->sslConfiguration();
+        conf.setPeerVerifyMode(QSslSocket::VerifyNone);
+        a_pRequet->setSslConfiguration(conf);
+    }
+#endif
+	
+	a_pRequet->setRawHeader("Accept", "*/*");
+}
+
+
 QTUTILS_EXPORT void ErrorByteArray(const QNetworkReply::NetworkError&,const ::qtutils::network::Reply& a_replyHandlerIn, QByteArray* CPPUTILS_IN_OUT a_pData)
 {
     QByteArray& responseByteArray = *a_pData;
@@ -296,6 +336,18 @@ QTUTILS_EXPORT void ErrorByteArray(const QNetworkReply::NetworkError&,const ::qt
             }
         }
     } // if(responseByteArray.isEmpty()){
+}
+
+
+QTUTILS_EXPORT QString CorectUrl(const QString& a_url)
+{
+	if((a_url.size()>0)&&(a_url.back()==QChar('/'))){
+		QString retStr(a_url);
+		retStr.chop(1);
+		return retStr;
+	}
+	
+	return a_url;
 }
 
 

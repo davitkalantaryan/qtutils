@@ -38,7 +38,7 @@ private:
 };
 
 
-}}  // namespace qtutils { namespace test{
+}}  // namespace qtutils { namespace ui{
 
 
 #ifndef QTUTILS_INCLUDE_QTUTILS_UI_PASSWORDBOX_IMPL_HPP

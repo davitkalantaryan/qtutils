@@ -5,7 +5,7 @@
 # for PITZ
 #
 
-message("!!! sys_common.pri: SYSTEM_PATH=$$SYSTEM_PATH")
+message("!!! gui_common.pri: SYSTEM_PATH=$$SYSTEM_PATH")
 
 greaterThan(QT_MAJOR_VERSION, 4):QT += widgets
 #QT -= core
