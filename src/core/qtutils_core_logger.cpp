@@ -54,7 +54,6 @@ Logger::~Logger()
     qInstallMessageHandler(m_logger_data_p->m_handleBefore);
     s_pLogger = nullptr;
     delete m_logger_data_p;
-    qDebug()<<"a";
 }
 
 

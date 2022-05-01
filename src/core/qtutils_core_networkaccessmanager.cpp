@@ -6,9 +6,11 @@
 //
 
 #include <qtutils/core/networkaccessmanager.hpp>
+#include <qtutils/core/invokeblocked.hpp>
 #include <qtutils/disable_utils_warnings.h>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QThread>
 
 
 namespace qtutils { namespace network {
@@ -132,14 +134,12 @@ ReplyContainer::ReplyContainer()
 
 ReplyContainer::~ReplyContainer()
 {
-    Reply *pReplyTmp, *pReply = m_pFirst;
-    while(pReply){
-        pReply->m_pParentContainer = nullptr;
-        pReplyTmp = pReply->m_next;
-        pReply->Abort();
-        delete pReply;
-        pReply = pReplyTmp;
-    }
+    if(m_pFirst){
+        QNetworkAccessManager* pManager = (*m_pFirst)->manager();
+        ::qtutils::invokeMethodBlocked(pManager,[this](){
+            Clear();
+        });
+    }  // if(m_pFirst){
 }
 
 
@@ -164,6 +164,19 @@ void ReplyContainer::RemoveNetworkReply(Reply* a_pReply)
     if(a_pReply->m_next){a_pReply->m_next->m_prev = a_pReply->m_prev;}
     if(a_pReply==m_pFirst){m_pFirst=a_pReply->m_next;}
     if(a_pReply==m_pLast){m_pLast=a_pReply->m_prev;}
+}
+
+
+void ReplyContainer::Clear()
+{
+    Reply *pReplyTmp, *pReply = m_pFirst;
+    while(pReply){
+        pReply->m_pParentContainer = nullptr;
+        pReplyTmp = pReply->m_next;
+        pReply->Abort();
+        delete pReply;
+        pReply = pReplyTmp;
+    }
 }
 
 

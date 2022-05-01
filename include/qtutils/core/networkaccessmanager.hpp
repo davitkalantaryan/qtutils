@@ -83,6 +83,9 @@ public:
     
     void AddNewNetworkReply(Reply* a_pReply);
     void RemoveNetworkReply(Reply* a_pReply);
+
+private:
+    void Clear();
     
 protected:
     Reply    *m_pFirst, *m_pLast;    
