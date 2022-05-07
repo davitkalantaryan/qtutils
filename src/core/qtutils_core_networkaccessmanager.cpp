@@ -134,12 +134,9 @@ ReplyContainer::ReplyContainer()
 
 ReplyContainer::~ReplyContainer()
 {
-    if(m_pFirst){
-        QNetworkAccessManager* pManager = (*m_pFirst)->manager();
-        ::qtutils::invokeMethodBlocked(pManager,[this](){
-            Clear();
-        });
-    }  // if(m_pFirst){
+    ::qtutils::invokeMethodBlocked(m_pFirst,[this](){ // function takes care when m_pFirst is null
+        Clear();
+    });
 }
 
 
