@@ -110,6 +110,12 @@ void Settings::setValue(const QString &a_key, const QVariant &a_value)
 }
 
 
+void Settings::remove(const QTUTILS_QT_NSP QString &a_key)
+{
+    m_set_data->m_rawSettings.remove(a_key);
+}
+
+
 void Settings::setDefaultFormat( QTUTILS_QT_NSP QSettings::Format)
 {
     QSettings::setDefaultFormat(QSettings::IniFormat);
