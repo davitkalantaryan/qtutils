@@ -14,7 +14,7 @@ namespace qtutils {
 
 QTUTILS_EXPORT bool invokeMethodBlocked(QObject* a_pObj, const ::std::function<void(void)>& a_fnc)
 {
-    if(a_pObj->thread() == QThread::currentThread()){
+    if((!a_pObj) || (a_pObj->thread() == QThread::currentThread())){
         a_fnc();
     }
     else{
