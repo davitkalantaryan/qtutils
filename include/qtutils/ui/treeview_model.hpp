@@ -129,7 +129,7 @@ public:
 template <typename NodeType>
 class QTUTILS_EXPORT NodeDummyT : public NodeType
 {
-    static_assert( ::std::is_base_of<Node,NodeType>() );
+    static_assert( ::std::is_base_of<Node,NodeType>(), "Base of NodeType should be Node" );
 public:
     using NodeType::NodeType;
 protected:
