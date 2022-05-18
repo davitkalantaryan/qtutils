@@ -15,6 +15,7 @@
 #include <QNetworkReply>
 #include <QVariantMap>
 #include <QDateTime>
+#include <QByteArray>
 
 namespace qtutils { namespace network{
 
@@ -95,7 +96,8 @@ protected:
 class QTUTILS_EXPORT ReplyData
 {
 public:
-    virtual ~ReplyData();    
+    virtual ~ReplyData();
+    virtual QByteArray postData()const;
 };
 
 

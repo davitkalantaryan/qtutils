@@ -185,6 +185,12 @@ ReplyData::~ReplyData()
 }
 
 
+QByteArray ReplyData::postData()const
+{
+    return QByteArray();
+}
+
+
 /*////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
 
 Reply::Reply( QNetworkReply* CPPUTILS_NO_NULL a_networkReply, ReplyContainer* a_pParentContainer, ReplyData* a_pData, int a_timeoutTimer)

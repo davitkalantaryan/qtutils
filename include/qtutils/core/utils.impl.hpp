@@ -27,7 +27,7 @@ QString QtEnumToString(const EnumType& a_value)
                       "Q_ENUM, Q_ENUM_NS, Q_FLAG or Q_FLAG_NS");
 
     const QMetaEnum thisEnum = QMetaEnum::fromType<EnumType>();
-    return QString(thisEnum.name()) + "::" + thisEnum.key(static_cast<int>(a_value));
+    return QString(thisEnum.name()) + "::" + thisEnum.valueToKey(static_cast<int>(a_value));
 }
 
 
