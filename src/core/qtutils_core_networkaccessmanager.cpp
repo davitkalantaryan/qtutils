@@ -7,6 +7,7 @@
 
 #include <qtutils/core/networkaccessmanager.hpp>
 #include <qtutils/core/invokeblocked.hpp>
+#include <qtutils/core/utils.hpp>
 #include <qtutils/disable_utils_warnings.h>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -190,7 +191,8 @@ Reply::Reply( QNetworkReply* CPPUTILS_NO_NULL a_networkReply, ReplyContainer* a_
     :
       m_pNetworkReply(a_networkReply),
       m_pParentContainer(a_pParentContainer),
-      m_pData(a_pData)
+      m_pData(a_pData),
+      m_restStartDate(QDateTime::currentDateTime())
 {
     m_bHasTimeout = false;
     
@@ -358,6 +360,16 @@ QTUTILS_EXPORT QString CorectUrl(const QString& a_url)
 	}
 	
 	return a_url;
+}
+
+
+QTUTILS_EXPORT QString NetworkErrorCodeString(const QNetworkReply::NetworkError& a_errorCode)
+{
+    QString errStr = utils::QtEnumToString(a_errorCode);
+    errStr.push_back('(');
+    errStr += QString::number(static_cast<int>(a_errorCode));
+    errStr.push_back(')');
+    return errStr;
 }
 
 
