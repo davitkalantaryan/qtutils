@@ -6,9 +6,12 @@
 //
 
 #include <qtutils/core/networkaccessmanager.hpp>
+#include <qtutils/core/invokeblocked.hpp>
+#include <qtutils/core/utils.hpp>
 #include <qtutils/disable_utils_warnings.h>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QThread>
 
 
 namespace qtutils { namespace network {
@@ -132,14 +135,9 @@ ReplyContainer::ReplyContainer()
 
 ReplyContainer::~ReplyContainer()
 {
-    Reply *pReplyTmp, *pReply = m_pFirst;
-    while(pReply){
-        pReply->m_pParentContainer = nullptr;
-        pReplyTmp = pReply->m_next;
-        pReply->Abort();
-        delete pReply;
-        pReply = pReplyTmp;
-    }
+    ::qtutils::invokeMethodBlocked(m_pFirst,[this](){ // function takes care when m_pFirst is null
+        Clear();
+    });
 }
 
 
@@ -167,10 +165,29 @@ void ReplyContainer::RemoveNetworkReply(Reply* a_pReply)
 }
 
 
+void ReplyContainer::Clear()
+{
+    Reply *pReplyTmp, *pReply = m_pFirst;
+    while(pReply){
+        pReply->m_pParentContainer = nullptr;
+        pReplyTmp = pReply->m_next;
+        pReply->Abort();
+        delete pReply;
+        pReply = pReplyTmp;
+    }
+}
+
+
 /*////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
 
 ReplyData::~ReplyData()
 {
+}
+
+
+QByteArray ReplyData::postData()const
+{
+    return QByteArray();
 }
 
 
@@ -180,7 +197,8 @@ Reply::Reply( QNetworkReply* CPPUTILS_NO_NULL a_networkReply, ReplyContainer* a_
     :
       m_pNetworkReply(a_networkReply),
       m_pParentContainer(a_pParentContainer),
-      m_pData(a_pData)
+      m_pData(a_pData),
+      m_restStartDate(QDateTime::currentDateTime())
 {
     m_bHasTimeout = false;
     
@@ -348,6 +366,16 @@ QTUTILS_EXPORT QString CorectUrl(const QString& a_url)
 	}
 	
 	return a_url;
+}
+
+
+QTUTILS_EXPORT QString NetworkErrorCodeString(const QNetworkReply::NetworkError& a_errorCode)
+{
+    QString errStr = utils::QtEnumToString(a_errorCode);
+    errStr.push_back('(');
+    errStr += QString::number(static_cast<int>(a_errorCode));
+    errStr.push_back(')');
+    return errStr;
 }
 
 

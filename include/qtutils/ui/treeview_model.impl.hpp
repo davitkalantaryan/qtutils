@@ -44,7 +44,7 @@ const ParentType* Node::parent()const
 template<typename RootType>
 const RootType* Node::root()const
 {
-    static_assert( ::std::is_base_of<Node,RootType>() );
+    static_assert( ::std::is_base_of<Node,RootType>(), "RootType should be a child of the Node");
     //const RootType* pRoot = CPPUTILS_SAFE_CAST(const RootType*,rootRaw());
     //assert(pRoot);
     const RootType* pRoot = dynamic_cast<const RootType*>(rootRaw());
@@ -68,7 +68,7 @@ NodeRootT<NodeType>::NodeRootT(int a_row, int a_col, uint64_t a_nIteration)
     :
       NodeType(nullptr,a_row,a_col,a_nIteration)
 {
-    static_assert( ::std::is_base_of<Node,NodeType>() );
+    static_assert( ::std::is_base_of<Node,NodeType>(), "NodeType should be a child of the Node class");
 }
 
 

@@ -36,7 +36,7 @@ HEADERS +=	\
 	"$${repositoryRoot}/include/qtutils/ui/global_functions.hpp"
 
 
-#RC_ICONS = $${repositoryRoot}/src/resources/img/qtutils_logo.ico
+#RC_ICONS = $${repositoryRoot}/src/resources/qtutils/qtutils_logo.ico
 
 RESOURCES	+= \
 	"$${qtutilsRepoRoot}/src/resources/qtutils_rcs.qrc"

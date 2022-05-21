@@ -36,6 +36,7 @@ public:
     bool contains(const QTUTILS_QT_NSP QString &key) const;
     QTUTILS_QT_NSP QVariant value(const QTUTILS_QT_NSP QString &key, const QTUTILS_QT_NSP QVariant &defaultValue = QTUTILS_QT_NSP QVariant()) const;
     void setValue(const QTUTILS_QT_NSP QString &key, const QTUTILS_QT_NSP QVariant &value);
+    void remove(const QTUTILS_QT_NSP QString &key);
 	static void setDefaultFormat( QTUTILS_QT_NSP QSettings::Format format);
 private:
     Settings_p*const m_set_data;

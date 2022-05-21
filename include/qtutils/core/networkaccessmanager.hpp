@@ -14,7 +14,8 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QVariantMap>
-//#include <QHttpMultiPart>
+#include <QDateTime>
+#include <QByteArray>
 
 namespace qtutils { namespace network{
 
@@ -83,6 +84,9 @@ public:
     
     void AddNewNetworkReply(Reply* a_pReply);
     void RemoveNetworkReply(Reply* a_pReply);
+
+private:
+    void Clear();
     
 protected:
     Reply    *m_pFirst, *m_pLast;    
@@ -92,7 +96,8 @@ protected:
 class QTUTILS_EXPORT ReplyData
 {
 public:
-    virtual ~ReplyData();    
+    virtual ~ReplyData();
+    virtual QByteArray postData()const;
 };
 
 
@@ -129,6 +134,9 @@ private:
     QMetaObject::Connection	m_connFinished;
     QMetaObject::Connection	m_connDestroy;
     bool                    m_bHasTimeout;
+
+public:
+    const QDateTime         m_restStartDate;
     
     friend class ReplyContainer;
     friend class AccessManagerRaw;
@@ -140,6 +148,7 @@ QTUTILS_EXPORT void PrepareJsonHeadersWithAuth(QNetworkRequest* a_pRequet, const
 QTUTILS_EXPORT void PrepareMPartHeadersWithAuth(QNetworkRequest* a_pRequet, const QString& a_authToken,const QString& a_agent);
 QTUTILS_EXPORT void ErrorByteArray(const QNetworkReply::NetworkError&,const ::qtutils::network::Reply& a_replyHandlerIn, QByteArray* CPPUTILS_IN_OUT a_pData);
 QTUTILS_EXPORT QString CorectUrl(const QString& a_url);
+QTUTILS_EXPORT QString NetworkErrorCodeString(const QNetworkReply::NetworkError& a_errorCode);
 
 
 }}  // namespace qtutils { namespace network{
