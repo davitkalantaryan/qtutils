@@ -91,7 +91,7 @@ SpinnerBox_p* SpinnerBox::CreateSpinnerBox_p(SpinnerBox* a_pThis)
 
 SpinnerBox_p::SpinnerBox_p()
 	:
-	  m_movie(":/img/qtutils_loader01.gif")
+	  m_movie(":/qtutils/qtutils_loader01.gif")
 {
 }
 

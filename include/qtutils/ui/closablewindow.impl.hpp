@@ -29,7 +29,7 @@ template<typename... Targs>
 ClosableWindow<WidgetType>::ClosableWindow(Targs... a_args)
     :
       m_wdg(a_args...),
-      m_actionClose(QIcon(":/img/close_button_icon01.png"),"&Close")
+      m_actionClose(QIcon(":/qtutils/close_button_icon01.png"),"&Close")
 {
     QWidget* pParent = m_wdg.parentWidget();
     setParent(pParent);

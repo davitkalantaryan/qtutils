@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# example:  _unix_compile_qt_as_wasm.sh prj/utils/password_hasher_qt src/resources/img/focust_logo.svg src/resources/img/focust_logo.png password_hasher2
+# example:  _unix_compile_qt_as_wasm.sh prj/utils/password_hasher_qt src/resources/qtutils/focust_logo.svg src/resources/qtutils/focust_logo.png password_hasher2
 #
 # set following environment variables
 # 1. QT_ROOT_DIR   example => $ export QT_ROOT_DIR=~/qt_compiled/5.15.2
