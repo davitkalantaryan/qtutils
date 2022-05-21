@@ -1,8 +1,8 @@
 <RCC>
     <qresource prefix="/">
-        <file>img/close_button_icon01.png</file>
-	<file>img/show_password.png</file>
-	<file>img/hide_password.png</file>
-	<file>img/qtutils_loader01.gif</file>
+	<file>qtutils/close_button_icon01.png</file>
+	<file>qtutils/show_password.png</file>
+	<file>qtutils/hide_password.png</file>
+	<file>qtutils/qtutils_loader01.gif</file>
     </qresource>
 </RCC>

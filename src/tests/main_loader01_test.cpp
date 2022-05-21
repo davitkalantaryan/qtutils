@@ -67,7 +67,7 @@ LoginExmWnd::LoginExmWnd()
 	m_settingsButton.setText("SETTNGS");
 	m_loginStartButton.setText("LOGIN");
     m_exitButton.setText("EXIT");
-    m_exitButton.setIcon(QIcon(":/img/exit_app.png"));
+    m_exitButton.setIcon(QIcon(":/qtutils/exit_app.png"));
 
     m_userUidEdit.setPlaceholderText("Email/Username");
     m_passwordEdit.setPlaceholderText("Password");
@@ -92,7 +92,7 @@ LoginExmWnd::LoginExmWnd()
 	m_mainLayout.addWidget(&m_loginStartButton,nRowNumber,3,1,1);
 
 	QLabel* pIconLbl = new QLabel();
-    pIconLbl->setPixmap( QPixmap( ":/img/focust_logo.png" ) );
+    pIconLbl->setPixmap( QPixmap( ":/qtutils/focust_logo.png" ) );
 	pIconLbl->setScaledContents( true );
 	pIconLbl->setSizePolicy( QSizePolicy::Ignored, QSizePolicy::Ignored );
     m_mainLayout.addWidget(new QLabel(QString("Copyright ")+QChar(169)+QString(" 2021 FocusT, All rights reserved")),6,0,1,3);

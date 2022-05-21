@@ -93,13 +93,13 @@ void PasswordBox_p::EyeIconClicked()
 {
     if(this->isPswVisible){
         this->eyeLabel.setToolTip("Show password");
-        this->eyeLabel.setPixmap( QPixmap( ":/img/show_password.png" ) );
+        this->eyeLabel.setPixmap( QPixmap( ":/qtutils/show_password.png" ) );
         m_pParent->setEchoMode(QLineEdit::Password);
         this->isPswVisible = false;
     }
     else{
         this->eyeLabel.setToolTip("Hide password");
-        this->eyeLabel.setPixmap( QPixmap( ":/img/hide_password.png" ) );
+        this->eyeLabel.setPixmap( QPixmap( ":/qtutils/hide_password.png" ) );
         m_pParent->setEchoMode(QLineEdit::Normal);
         this->isPswVisible = true;
     }
