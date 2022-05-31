@@ -10,10 +10,10 @@ include ( "$${PWD}/../../common/common_qt/sys_common.pri" )
 # we reevaluate this
 DESTDIR = "$${PRJ_PWD}/$${SYSTEM_PATH}/test"
 
-QT -= gui
-QT -= core
-QT -= widgets
-CONFIG -= qt
+QT += gui
+#QT -= core
+QT += widgets
+#CONFIG -= qt
 
 win32{
 } else {
