@@ -57,7 +57,7 @@
     <ClInclude Include="..\..\..\include\cpputils\macroses.h" />
     <ClInclude Include="..\..\..\include\cpputils\sharedptr.hpp" />
     <ClInclude Include="..\..\..\include\cpputils\sharedptr.impl.hpp" />
-    <ClInclude Include="..\..\..\include\cpputils_internal_header.h" />
+    <ClInclude Include="..\..\..\include\cpputils\internal_header.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <GoogleTestConfiguration Condition="'$(Configuration)'=='Debug'">d</GoogleTestConfiguration>
