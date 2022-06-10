@@ -46,7 +46,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\include\cpputils_internal_header.h">
+    <ClInclude Include="..\..\..\include\cpputils\internal_header.h">
       <Filter>Header Files\incude</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\include\cpputils\bigint.hpp">
