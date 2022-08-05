@@ -321,7 +321,12 @@ QTUTILS_EXPORT void PrepareMPartHeadersWithAuth(QNetworkRequest* a_pRequet, cons
 {
     ::std::string authString = ::std::string("Bearer ") + a_authToken.toStdString();
     a_pRequet->setRawHeader("Authorization",authString.c_str());
-	
+    PrepareMPartHeaders(a_pRequet,a_agent);
+}
+
+
+QTUTILS_EXPORT void PrepareMPartHeaders(QNetworkRequest* a_pRequet, const QString& a_agent)
+{
     a_pRequet->setRawHeader("Client-Device", QSysInfo::machineHostName().toUtf8() );
 
 #ifdef CPPUTILS_EMSCRIPTEN_IS_USED
@@ -335,8 +340,8 @@ QTUTILS_EXPORT void PrepareMPartHeadersWithAuth(QNetworkRequest* a_pRequet, cons
         a_pRequet->setSslConfiguration(conf);
     }
 #endif
-	
-	a_pRequet->setRawHeader("Accept", "*/*");
+
+    a_pRequet->setRawHeader("Accept", "*/*");
 }
 
 
