@@ -18,7 +18,7 @@
 namespace qtutils { namespace ui{
 
 template <typename WidgetType>
-class TitlebarUser : public WidgetType
+class TitlebarUser : public SizeApplyWindow<WidgetType>
 {
 public:
     template<typename... Targs>
@@ -33,11 +33,8 @@ public:
     QWidget* belowWidget()const;
 
 private:
-    void ApplyNewSize(const QSize& a_newSize);
+    void ApplyNewSize(const QSize& a_newSize) override;
     
-protected:
-    virtual void resizeEvent(QResizeEvent *event) override;
-
 protected:
     TitleBar*      m_pTitleBar;
     QWidget*       m_pBelowWidget;

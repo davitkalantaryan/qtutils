@@ -8,16 +8,23 @@
 #pragma once
 
 #include <qtutils/qtutils_internal_header.h>
+#include <qtutils/ui/sizeapplywindow.hpp>
 #include <qtutils/disable_utils_warnings.h>
 #include <QWidget>
-#include <QPushButton>
+#include <QLabel>
 #include <QSize>
 #include <QPoint>
 
 
 namespace qtutils { namespace ui{
 
-class QTUTILS_EXPORT  TitleBar : public QWidget
+#define QU_TB_CLOSE_BUTTON_SIZE     25
+
+
+class CPPUTILS_DLL_PRIVATE CloseOrMnmWdg;
+
+
+class QTUTILS_EXPORT  TitleBar : public SizeApplyWindow<QWidget>
 {
 public:
     virtual ~TitleBar() override;
@@ -31,16 +38,18 @@ public:
 protected:
     virtual void    mousePressEvent(QMouseEvent *event) override;
     virtual void    mouseMoveEvent(QMouseEvent *event) override;
-    virtual void    resizeEvent(QResizeEvent *event) override;
 
 private:
-    void ApplyNewSize(const QSize& a_newSize);
+    void ApplyNewSize(const QSize& a_newSize) override;
 
 private:
-     QWidget*       m_parent;
-     QWidget*       m_pLeftWidget;
-     QPoint         m_cursorStartPoint;
-     QPushButton    m_closeButton;
+     QWidget*               m_parent;
+     QWidget*               m_pLeftWidget;
+     QPoint                 m_cursorStartPoint;
+     CloseOrMnmWdg*const    m_pCloseButton;
+     CloseOrMnmWdg*const    m_pMnmzButton;
+
+     friend class CloseOrMnmWdg;
 };
 
 

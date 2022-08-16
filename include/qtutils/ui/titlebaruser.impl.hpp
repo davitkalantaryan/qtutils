@@ -22,13 +22,12 @@ template <typename WidgetType>
 template<typename... Targs>
 TitlebarUser<WidgetType>::TitlebarUser(Targs... a_args)
     :
-      WidgetType(a_args...),
+      SizeApplyWindow<WidgetType>(a_args...),
       m_pTitleBar(new TitleBar(this)),
       m_pBelowWidget(new QWidget(this))
 {
     WidgetType::setWindowFlags(WidgetType::windowFlags()|Qt::FramelessWindowHint);
     m_pTitleBar->setParent(this);
-    ApplyNewSize(WidgetType::size());
 }
 
 
@@ -92,14 +91,6 @@ template <typename WidgetType>
 QWidget* TitlebarUser<WidgetType>::belowWidget()const
 {
     return m_pBelowWidget;
-}
-
-
-template <typename WidgetType>
-void TitlebarUser<WidgetType>::resizeEvent(QResizeEvent* a_event)
-{
-    ApplyNewSize(a_event->size());
-    WidgetType::resizeEvent(a_event);
 }
 
 
