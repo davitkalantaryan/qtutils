@@ -16,7 +16,7 @@
 
 namespace qtutils { namespace ui{
 
-#define DEFAULT_TAB_WIDTH_SIZE      100
+#define DEFAULT_TAB_WIDTH_SIZE      120
 #define DEFAULT_TAB_HEIGHT_SIZE     30
 #define TABWIDGET_HEIGH_AFTER_TAB   5
 
