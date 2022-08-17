@@ -21,6 +21,7 @@ namespace qtutils { namespace ui{
 
 
 class QTUTILS_EXPORT Tab;
+class QTUTILS_EXPORT TabBar;
 struct STabData{
     Tab*     pTab;
     QWidget* pWidget;
@@ -38,10 +39,28 @@ struct STabEq{
 };
 typedef ::cpputils::hash::VSet<STabData,STabHash,STabEq> TypeHash;
 
+
+class QTUTILS_EXPORT TabScene : public QWidget
+{
+public:
+    template<typename... Targs>
+    TabScene(Targs... a_args);
+    virtual ~TabScene() override;
+
+protected:
+    virtual void    resizeEvent(QResizeEvent* a_event) override;
+
+protected:
+    QWidget*    m_pTabActiveWidget;
+
+    friend class TabBar;
+};
+
+
 class QTUTILS_EXPORT TabBar : public QWidget
 {
 public:
-    TabBar(QWidget* a_sceneWidget, QWidget* a_parent=nullptr);
+    TabBar(TabScene* a_sceneWidget, QWidget* a_parent=nullptr);
     virtual ~TabBar() override;
 
     template<typename... Targs>
@@ -61,7 +80,7 @@ private:
     void OrderAllTabs();
 
 protected:
-    QWidget*const       m_sceneWidget;
+    TabScene*const      m_sceneWidget;
     QString             m_styleSheetForSelected;
     QString             m_styleSheetNonSelected;
     TypeHash            m_tabs;

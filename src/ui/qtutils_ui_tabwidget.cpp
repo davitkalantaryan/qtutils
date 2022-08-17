@@ -41,7 +41,23 @@ namespace qtutils { namespace ui{
 
 /*/////////////////////////////////////////////////////////////////////////////////////////////////////////*/
 
-TabBar::TabBar(QWidget* a_sceneWidget, QWidget* a_parent)
+TabScene::~TabScene()
+{
+}
+
+
+void TabScene::resizeEvent(QResizeEvent* a_event)
+{
+    QWidget::resizeEvent(a_event);
+    if(m_pTabActiveWidget){
+        m_pTabActiveWidget->resize(a_event->size());
+    }
+}
+
+
+/*/////////////////////////////////////////////////////////////////////////////////////////////////////////*/
+
+TabBar::TabBar(TabScene* a_sceneWidget, QWidget* a_parent)
     :
       QWidget(a_parent),
       m_sceneWidget(a_sceneWidget)
@@ -95,6 +111,7 @@ Tab* TabBar::addTabRaw(QWidget* a_page, Tab* a_pTab)
     tabData.pTab = a_pTab;
     const int cnHeigth(height());
     tabData.pTab->setFixedSize(m_tabsWidth,cnHeigth);
+    tabData.pTab->setStyleSheet(a_pTab->m_styleSheetNonSelected);
     m_tabs.AddEntryEvenIfExistsC(tabData);
 
     if(m_currentTab<0){
@@ -148,6 +165,7 @@ void TabBar::setCurrentIndexRaw(int a_index)
         m_currentTab = a_index;
         if(a_index>=0){
             TypeHash::iterator iter = m_tabs[size_t(m_currentTab)];
+            m_sceneWidget->m_pTabActiveWidget = iter->first.pWidget;
             iter->first.pWidget->setParent(m_sceneWidget);
             iter->first.pWidget->show();
             iter->first.pWidget->resize(m_sceneWidget->size());
@@ -155,6 +173,9 @@ void TabBar::setCurrentIndexRaw(int a_index)
             iter->first.pTab->m_isSelected = 1;
             iter->first.pTab->setStyleSheet(iter->first.pTab->m_styleSheetForSelected);
             iter->first.pTab->update();
+        }
+        else{
+            m_sceneWidget->m_pTabActiveWidget = nullptr;
         }
     }
 }

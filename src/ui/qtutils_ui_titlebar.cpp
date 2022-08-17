@@ -66,10 +66,13 @@ TitleBar::TitleBar(QWidget* a_parent, QWidget* a_pLeftWidget)
     //vcClose[0] = char(158);
     vcClose[0] = 215;
     vcClose[1] = 0;
+    m_pLeftWidget->move(0,0);
     m_pCloseButton->setText(QString::fromWCharArray(vcClose));
-    m_pCloseButton->setFixedSize(s_cCorner);
+    m_pCloseButton->setMinimumSize(s_cCorner);
+    m_pCloseButton->resize(s_cCorner);
     m_pMnmzButton->setText("-");
-    m_pMnmzButton->setFixedSize(s_cCorner);
+    m_pMnmzButton->setMinimumSize(s_cCorner);
+    m_pMnmzButton->resize(s_cCorner);
     setMinimumSize(s_cCornerDubl);
     resize(width(),QU_TB_CLOSE_BUTTON_SIZE);
 }
@@ -128,10 +131,27 @@ void TitleBar::mouseMoveEvent(QMouseEvent* a_event)
 
 void TitleBar::ApplyNewSize(const QSize& a_newSize)
 {
-    int nMovePosX = a_newSize.width()-QU_TB_CLOSE_BUTTON_SIZE;
-    const int nMovePosY = (a_newSize.height()-QU_TB_CLOSE_BUTTON_SIZE)>1;
-    m_pCloseButton->move(nMovePosX,nMovePosY);
-    m_pMnmzButton->move(nMovePosX-QU_TB_CLOSE_BUTTON_SIZE,nMovePosY);
+    const int cnSizeY = a_newSize.height();
+    const int cnSizeX = a_newSize.width();
+    int nUnit,nMovePosY,nMovePosX;
+
+    if(cnSizeX<cnSizeY){
+        nUnit = cnSizeX;
+        nMovePosY = (cnSizeY-cnSizeX)>1;
+    }
+    else{
+        nUnit = cnSizeY;
+        nMovePosY = 0;
+    }
+    nMovePosX = cnSizeX-nUnit-nUnit;
+
+
+    m_pLeftWidget->resize(nMovePosX,cnSizeY);
+    m_pMnmzButton->resize(nUnit,nUnit);
+    m_pMnmzButton->move(nMovePosX,nMovePosY);
+    m_pCloseButton->resize(nUnit,nUnit);
+    m_pCloseButton->move(nMovePosX+nUnit,nMovePosY);
+
 }
 
 

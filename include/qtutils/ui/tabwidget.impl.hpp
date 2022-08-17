@@ -36,6 +36,15 @@ Tab* TabBar::addTab(QWidget* a_page, Targs... a_args)
 }
 
 
+template<typename... Targs>
+TabScene::TabScene(Targs... a_args)
+    :
+      QWidget(a_args...),
+      m_pTabActiveWidget(nullptr)
+{
+}
+
+
 }}  //  namespace qtutils { namespace ui{
 
 
