@@ -7,6 +7,7 @@
 
 #include <qtutils/ui/titlebar.hpp>
 #include <qtutils/disable_utils_warnings.h>
+#include <functional>
 #include <QResizeEvent>
 #include <QMouseEvent>
 #include <QFont>
@@ -17,27 +18,8 @@ namespace qtutils { namespace ui{
 /*////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
 
 static constexpr QSize  s_cCorner = QSize(QU_TB_CLOSE_BUTTON_SIZE,QU_TB_CLOSE_BUTTON_SIZE);
-static constexpr QSize  s_cCornerDubl = QSize(2*QU_TB_CLOSE_BUTTON_SIZE,QU_TB_CLOSE_BUTTON_SIZE);
+//static constexpr QSize  s_cCornerDubl = QSize(2*QU_TB_CLOSE_BUTTON_SIZE,QU_TB_CLOSE_BUTTON_SIZE);
 //static constexpr QPoint s_cCornerPt = QPoint(QU_TB_CLOSE_BUTTON_SIZE,QU_TB_CLOSE_BUTTON_SIZE);
-
-
-class CPPUTILS_DLL_PRIVATE CloseOrMnmWdg final : public QLabel
-{
-public:
-    enum class Type{None,Close,Mnmz};
-
-public:
-    CloseOrMnmWdg(TitleBar* a_pParent, const Type& a_type);
-
-private:
-    void    mouseReleaseEvent(QMouseEvent* event) override;
-    bool    event(QEvent* a_event) override;
-
-private:
-    TitleBar*const  m_pParent;
-    const Type      m_type;
-    QString         m_styleSheetStr;
-};
 
 
 /*////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
@@ -45,8 +27,11 @@ private:
 
 TitleBar::~TitleBar()
 {
-    delete m_pMnmzButton;
-    delete m_pCloseButton;
+    ::std::list<CloseOrMnmWdg*>::const_iterator citer = m_rsButtons.cbegin();
+    const ::std::list<CloseOrMnmWdg*>::const_iterator citerEnd = m_rsButtons.cend();
+    for(;citer!=citerEnd;++citer){
+        delete *citer;
+    }
     delete m_pLeftWidget;
 }
 
@@ -54,26 +39,12 @@ TitleBar::~TitleBar()
 TitleBar::TitleBar(QWidget* a_parent, QWidget* a_pLeftWidget)
     :
       m_parent(a_parent),
-      m_pLeftWidget(a_pLeftWidget),
-      m_pCloseButton(new CloseOrMnmWdg(this,CloseOrMnmWdg::Type::Close)),
-      m_pMnmzButton(new CloseOrMnmWdg(this,CloseOrMnmWdg::Type::Mnmz))
+      m_pLeftWidget(a_pLeftWidget)
 {
     if(!m_pLeftWidget){
         m_pLeftWidget = new QWidget(this);
     }
 
-    wchar_t vcClose[2];
-    //vcClose[0] = char(158);
-    vcClose[0] = 215;
-    vcClose[1] = 0;
-    m_pLeftWidget->move(0,0);
-    m_pCloseButton->setText(QString::fromWCharArray(vcClose));
-    m_pCloseButton->setMinimumSize(s_cCorner);
-    m_pCloseButton->resize(s_cCorner);
-    m_pMnmzButton->setText("-");
-    m_pMnmzButton->setMinimumSize(s_cCorner);
-    m_pMnmzButton->resize(s_cCorner);
-    setMinimumSize(s_cCornerDubl);
     resize(width(),QU_TB_CLOSE_BUTTON_SIZE);
 }
 
@@ -111,6 +82,26 @@ void TitleBar::setParent(QWidget* a_parent)
 }
 
 
+void TitleBar::AddRightCornerButton(CloseOrMnmWdg* a_pBtn)
+{
+    a_pBtn->setMinimumSize(s_cCorner);
+    m_rsButtons.push_back(a_pBtn);
+    ApplyNewSize(size());
+}
+
+
+void TitleBar::AddRightCornerStdButton(const CloseOrMnmWdg::StdType& a_stdType)
+{
+    AddRightCornerButton(new CloseOrMnmWdg(this,a_stdType));
+}
+
+
+QWidget* TitleBar::tbParent()const
+{
+    return m_parent;
+}
+
+
 void TitleBar::mousePressEvent(QMouseEvent* a_event)
 {
     if(a_event->button() == Qt::LeftButton){
@@ -137,61 +128,120 @@ void TitleBar::ApplyNewSize(const QSize& a_newSize)
 
     if(cnSizeX<cnSizeY){
         nUnit = cnSizeX;
-        nMovePosY = (cnSizeY-cnSizeX)>1;
+        nMovePosY = (cnSizeY-cnSizeX)/2;
     }
     else{
         nUnit = cnSizeY;
         nMovePosY = 0;
     }
-    nMovePosX = cnSizeX-nUnit-nUnit;
+    nMovePosX = cnSizeX;
 
+    ::std::list<CloseOrMnmWdg*>::const_reverse_iterator criter = m_rsButtons.crbegin();
+    const ::std::list<CloseOrMnmWdg*>::const_reverse_iterator criterEnd = m_rsButtons.rend();
 
-    m_pLeftWidget->resize(nMovePosX,cnSizeY);
-    m_pMnmzButton->resize(nUnit,nUnit);
-    m_pMnmzButton->move(nMovePosX,nMovePosY);
-    m_pCloseButton->resize(nUnit,nUnit);
-    m_pCloseButton->move(nMovePosX+nUnit,nMovePosY);
+    for(;criter!=criterEnd;++criter){
+        nMovePosX-=nUnit;
+        (*criter)->setFixedSize(nUnit,nUnit);
+        (*criter)->move(nMovePosX,nMovePosY);
+    }
 
+    m_pLeftWidget->setFixedSize(nMovePosX,cnSizeY);
 }
 
 
 /*////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
 
-CloseOrMnmWdg::CloseOrMnmWdg(TitleBar* a_pParent, const Type& a_type)
+static void StaticCallbackFunction(TitleBar*,CloseOrMnmWdg*){}
+
+#define QTUTILS_TABBAR_MAX_SYMBOL   0x1f5d6 // to unmaximize 1F5D7
+
+static void StaticCallbackForStdTypes(TitleBar* a_pTitleBar, CloseOrMnmWdg* a_pBtn)
+{
+    QWidget* pParent = a_pTitleBar->tbParent();
+
+    switch(a_pBtn->m_stdType){
+    case CloseOrMnmWdg::StdType::Close:
+        pParent->close();
+        break;
+    case CloseOrMnmWdg::StdType::Mnmz:
+        pParent->showMinimized();
+        break;
+    default:
+        if(pParent->isMaximized()){
+            const char32_t vcTxt[2] = {QTUTILS_TABBAR_MAX_SYMBOL,0};
+            pParent->showNormal();
+            a_pBtn->setText(QString::fromUcs4(vcTxt));
+        }
+        else{
+            const char32_t vcTxt[2] = {0x1f5d7,0};
+            pParent->showMaximized();
+            a_pBtn->setText(QString::fromUcs4(vcTxt));
+        }
+        break;
+    } // switch(m_type){
+}
+
+
+CloseOrMnmWdg::~CloseOrMnmWdg()
+{
+}
+
+
+CloseOrMnmWdg::CloseOrMnmWdg(const QString& a_styleSheetWhenHover,TitleBar* a_pParent, const TypeClbk& a_clbk)
     :
       QLabel(a_pParent),
       m_pParent(a_pParent),
-      m_type(a_type)
+      m_clbk(a_clbk?a_clbk:(&StaticCallbackFunction)),
+      m_stdType(StdType::None),
+      m_styleSheetWhenHover(a_styleSheetWhenHover)
 {
     QFont aFont = font();
-    switch(m_type){
-    case Type::Mnmz:
-        aFont.setPointSize(24);
-        break;
-    default:
-        aFont.setPointSize(18);
-        break;
-    } // switch(m_type){
+    aFont.setPointSize(21);
     setFont(aFont);
     setAlignment(Qt::AlignCenter);
     setAttribute(Qt::WA_Hover, true);
 }
 
 
+CloseOrMnmWdg::CloseOrMnmWdg(TitleBar* a_pParent, const StdType& a_stdType)
+    :
+      QLabel(a_pParent),
+      m_pParent(a_pParent),
+      m_clbk(&StaticCallbackForStdTypes),
+      m_stdType(a_stdType),
+      m_styleSheetWhenHover("Background-color: rgb(0,255,155);")
+{
+    char32_t vcTxt[2];
+    QFont aFont = font();
+
+    switch(m_stdType){
+    case StdType::Close:
+        vcTxt[0] = 215;
+        aFont.setPointSize(18);
+        break;
+    case StdType::Mnmz:
+        vcTxt[0] = '-';
+        aFont.setPointSize(24);
+        break;
+    default:
+        vcTxt[0] = QTUTILS_TABBAR_MAX_SYMBOL;
+        aFont.setPointSize(16);
+        break;
+    } // switch(m_type){
+
+    setFont(aFont);
+    vcTxt[1] = 0;
+    setText(QString::fromUcs4(vcTxt));
+
+    setAlignment(Qt::AlignCenter);
+    setAttribute(Qt::WA_Hover, true);
+
+}
+
+
 void CloseOrMnmWdg::mouseReleaseEvent(QMouseEvent* a_event)
 {
-    if(a_event->button() == Qt::LeftButton){
-        switch(m_type){
-        case Type::Close:
-            m_pParent->m_parent->close();
-            break;
-        case Type::Mnmz:
-            m_pParent->m_parent->showMinimized();
-            break;
-        default:
-            break;
-        } // switch(m_type){
-    }
+    m_clbk(m_pParent,this);
     QWidget::mouseMoveEvent(a_event);
 }
 
@@ -201,11 +251,11 @@ bool CloseOrMnmWdg::event(QEvent* a_event)
     switch(a_event->type())
     {
     case QEvent::HoverEnter:
-        m_styleSheetStr = styleSheet();
-        setStyleSheet("Background-color: rgb(0,255,155);");
+        m_styleSheetBackp = styleSheet();
+        setStyleSheet(m_styleSheetWhenHover/*"Background-color: rgb(0,255,155);"*/);
         return true;
     case QEvent::HoverLeave:
-        setStyleSheet(m_styleSheetStr);
+        setStyleSheet(m_styleSheetBackp);
         return true;
     default:
         break;

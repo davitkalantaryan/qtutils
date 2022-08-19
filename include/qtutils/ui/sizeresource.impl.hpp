@@ -34,6 +34,23 @@ inline int SizeResource<NumType>::getPixelsY(const TypeNumVal& a_value)const
 }
 
 
+//
+template <typename WidgetType,typename NumType>
+template<typename... Targs>
+SizeResourceUser<WidgetType,NumType>::SizeResourceUser(const SizeResource<NumType>* a_pSR, Targs... a_args)
+    :
+      WidgetType(a_args...),
+      m_pSR(a_pSR)
+{
+}
+
+
+template <typename WidgetType,typename NumType>
+SizeResourceUser<WidgetType,NumType>::~SizeResourceUser()
+{
+}
+
+
 }}  //  namespace qtutils{ namespace ui{
 
 

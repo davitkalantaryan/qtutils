@@ -32,6 +32,19 @@ public:
 };
 
 
+template <typename WidgetType,typename NumType=int>
+class SizeResourceUser : public WidgetType
+{
+public:
+    template<typename... Targs>
+    SizeResourceUser(const SizeResource<NumType>* a_pSR, Targs... a_args);
+    virtual ~SizeResourceUser() override;
+
+public:
+    const SizeResource<NumType>*const  m_pSR;
+};
+
+
 }}  //  namespace qtutils{ namespace ui{
 
 
