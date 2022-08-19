@@ -153,7 +153,8 @@ void TitleBar::ApplyNewSize(const QSize& a_newSize)
 
 static void StaticCallbackFunction(TitleBar*,CloseOrMnmWdg*){}
 
-#define QTUTILS_TABBAR_MAX_SYMBOL   0x1f5d6 // to unmaximize 1F5D7
+#define QTUTILS_TABBAR_MAX_SYMBOL       0x1f5d6
+#define QTUTILS_TABBAR_NO_MAX_SYMBOL    0x1f5d7
 
 static void StaticCallbackForStdTypes(TitleBar* a_pTitleBar, CloseOrMnmWdg* a_pBtn)
 {
@@ -173,7 +174,7 @@ static void StaticCallbackForStdTypes(TitleBar* a_pTitleBar, CloseOrMnmWdg* a_pB
             a_pBtn->setText(QString::fromUcs4(vcTxt));
         }
         else{
-            const char32_t vcTxt[2] = {0x1f5d7,0};
+            const char32_t vcTxt[2] = {QTUTILS_TABBAR_NO_MAX_SYMBOL,0};
             pParent->showMaximized();
             a_pBtn->setText(QString::fromUcs4(vcTxt));
         }
@@ -224,7 +225,7 @@ CloseOrMnmWdg::CloseOrMnmWdg(TitleBar* a_pParent, const StdType& a_stdType)
         aFont.setPointSize(24);
         break;
     default:
-        vcTxt[0] = QTUTILS_TABBAR_MAX_SYMBOL;
+        vcTxt[0] = a_pParent->tbParent()->isMaximized()?QTUTILS_TABBAR_NO_MAX_SYMBOL:QTUTILS_TABBAR_MAX_SYMBOL;
         aFont.setPointSize(16);
         break;
     } // switch(m_type){
