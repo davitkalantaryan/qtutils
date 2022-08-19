@@ -226,7 +226,7 @@ CloseOrMnmWdg::CloseOrMnmWdg(TitleBar* a_pParent, const StdType& a_stdType)
         break;
     default:
         vcTxt[0] = a_pParent->tbParent()->isMaximized()?QTUTILS_TABBAR_NO_MAX_SYMBOL:QTUTILS_TABBAR_MAX_SYMBOL;
-        aFont.setPointSize(16);
+        aFont.setPointSize(12);
         break;
     } // switch(m_type){
 
