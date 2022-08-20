@@ -1,25 +1,25 @@
 //
-// file:            passwordbox.impl.hpp
-// path:			include/qtutils/ui/passwordbox.impl.hpp
-// created on:		2022 Jan 25
+// file:            passwordbox02.impl.hpp
+// path:			include/qtutils/ui/passwordbox02.impl.hpp
+// created on:		2022 Aug 20
 // created by:		Davit Kalantaryan (davit.kalantaryan@gmail.com)
 //
 
 #pragma once
 
-#ifndef QTUTILS_INCLUDE_QTUTILS_UI_PASSWORDBOX_IMPL_HPP
-#define QTUTILS_INCLUDE_QTUTILS_UI_PASSWORDBOX_IMPL_HPP
+#ifndef QTUTILS_INCLUDE_QTUTILS_UI_PASSWORDBOX02_IMPL_HPP
+#define QTUTILS_INCLUDE_QTUTILS_UI_PASSWORDBOX02_IMPL_HPP
 
-#ifndef QTUTILS_INCLUDE_QTUTILS_UI_PASSWORDBOX_HPP
-#include "passwordbox.hpp"
+#ifndef QTUTILS_INCLUDE_QTUTILS_UI_PASSWORDBOX02_HPP
+#include "passwordbox02.hpp"
 #endif
 
 namespace qtutils { namespace ui{
 
 template<typename... Targs>
-PasswordBox::PasswordBox(Targs... a_args)
+PasswordBox02::PasswordBox02(Targs... a_args)
     :
-      EditWithLabelInRight(InitLabel(this),a_args...)
+      WgtWithLblInRight<QLineEdit>(InitLabel(this),a_args...)
 {
 }
 

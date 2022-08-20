@@ -1,11 +1,11 @@
 //
-// file:            focust_ui_passwordbox.hpp
-// path:			src/ui/focust_ui_passwordbox.hpp
-// created on:		2022 Jan 12
+// file:            focust_ui_passwordbox02.hpp
+// path:			src/ui/focust_ui_passwordbox02.hpp
+// created on:		2022 Aug 20
 // created by:		Davit Kalantaryan (davit.kalantaryan@gmail.com)
 //
 
-#include <qtutils/ui/passwordbox.hpp>
+#include <qtutils/ui/passwordbox02.hpp>
 #include <qtutils/disable_utils_warnings.h>
 #include <QLabel>
 #include <QResizeEvent>
@@ -15,10 +15,10 @@
 namespace qtutils { namespace ui{
 
 
-class CPPUTILS_DLL_PRIVATE PswWndLabel final : public Label01
+class CPPUTILS_DLL_PRIVATE PswWndLabel02 final : public Label01
 {
 public:
-    PswWndLabel(PasswordBox* a_parent);
+    PswWndLabel02(PasswordBox02* a_parent);
 
 private:
     inline void EyeIconClicked();
@@ -30,20 +30,20 @@ private:
 
 /*////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
 
-PasswordBox::~PasswordBox()
+PasswordBox02::~PasswordBox02()
 {
 }
 
 
-PswWndLabel* PasswordBox::InitLabel(PasswordBox* a_pThis)
+void PasswordBox02::InitLabel()
 {
-    return new PswWndLabel(a_pThis);
+    WgtWithLblInRight<QLineEdit>::SetLabelInRight( new PswWndLabel02(this) );
 }
 
 
 /*////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
 
-void PswWndLabel::EyeIconClicked()
+void PswWndLabel02::EyeIconClicked()
 {
     QLineEdit* pParent = static_cast<QLineEdit*>(parentWidget());
 
@@ -64,9 +64,9 @@ void PswWndLabel::EyeIconClicked()
 
 /*////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
 
-PswWndLabel::PswWndLabel(PasswordBox* a_parent)
+PswWndLabel02::PswWndLabel02(PasswordBox02* a_parent)
     :
-      Label01([](Label01* a_pLbl){static_cast<PswWndLabel*>(a_pLbl)->EyeIconClicked();},a_parent)
+      Label01([](Label01* a_pLbl){static_cast<PswWndLabel02*>(a_pLbl)->EyeIconClicked();},a_parent)
 {
     SetProperParamsToImagedLbl(this);
     m_isPswVisible = true;
