@@ -26,6 +26,7 @@ WgtWithLblInRight<WidgetType>::WgtWithLblInRight(Targs... a_args)
       ::qtutils::ui::SizeApplyWindow<WidgetType>(a_args...),
       m_pLabelInRight(nullptr)
 {
+    SetLabelInRight(new QLabel());
 }
 
 

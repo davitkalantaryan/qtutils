@@ -16,13 +16,15 @@
 
 namespace qtutils { namespace ui{
 
+
 template<typename... Targs>
 PasswordBox::PasswordBox(Targs... a_args)
     :
-      QLineEdit(a_args...),
-      m_pass_data_p(CreatePasswordBox_p(this))
+      WgtWithLblInRight<QLineEdit>(a_args...)
 {
+    Init();
 }
+
 
 }} // namespace qtutils { namespace ui{
 

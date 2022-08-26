@@ -19,8 +19,9 @@ namespace qtutils { namespace ui{
 template<typename... Targs>
 PasswordBox02::PasswordBox02(Targs... a_args)
     :
-      WgtWithLblInRight<QLineEdit>(InitLabel(this),a_args...)
+      WgtWithLblInRight<QLineEdit>(a_args...)
 {
+    InitLabel();
 }
 
 }} // namespace qtutils { namespace ui{
