@@ -32,7 +32,7 @@ public:
     void ReleaseOwnershipOfBelowWidget();
     QWidget* belowWidget()const;
 
-private:
+protected:
     void ApplyNewSize(const QSize& a_newSize) override;
     
 protected:

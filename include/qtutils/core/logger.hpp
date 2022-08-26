@@ -1,6 +1,6 @@
 //
 // file:            logger.hpp
-// path:			include/focust/core/logger.hpp
+// path:			include/qtutils/core/logger.hpp
 // created on:		2022 Jan 12
 // created by:		Davit Kalantaryan (davit.kalantaryan@gmail.com)
 //
