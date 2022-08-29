@@ -8,6 +8,7 @@
 #pragma once
 
 #include <qtutils/qtutils_internal_header.h>
+#include <qtutils/sizes.h>
 #include <qtutils/ui/sizeapplywindow.hpp>
 #include <list>
 #include <qtutils/disable_utils_warnings.h>
@@ -19,7 +20,7 @@
 
 namespace qtutils { namespace ui{
 
-#define QU_TB_CLOSE_BUTTON_SIZE     25
+#define QU_TB_CLOSE_BUTTON_SIZE     QTUTILS_TITLEBAR_DEFAULT_HEIGHT
 
 class QTUTILS_EXPORT  TitleBar;
 
