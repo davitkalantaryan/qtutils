@@ -80,6 +80,17 @@ Reply* AccessManagerRaw::get(ReplyContainer* a_pContainer, const QNetworkRequest
 }
 
 
+Reply* AccessManagerRaw::head(ReplyContainer* a_pContainer, const QNetworkRequest& a_request, ReplyData* a_pData, int a_timeoutMs)
+{
+    QNetworkReply* pNetworkReply = m_pQtManager->head(a_request);
+    if(pNetworkReply){
+        return new Reply(pNetworkReply,a_pContainer,a_pData, a_timeoutMs);
+    }
+    //return nullptr;
+    throw Exception(a_pData,"Unable to create Network Reply object");
+}
+
+
 Reply* AccessManagerRaw::deleteResource(ReplyContainer* a_pContainer, const QNetworkRequest& a_request, ReplyData* a_pData, int a_timeoutMs)
 {
     QNetworkReply* pNetworkReply = m_pQtManager->deleteResource(a_request);
