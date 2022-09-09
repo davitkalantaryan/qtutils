@@ -53,7 +53,7 @@ Reply* AccessManagerRaw::post(ReplyContainer* a_pContainer, const QNetworkReques
 Reply* AccessManagerRaw::post(ReplyContainer* a_pContainer, const QNetworkRequest& a_request, const QVariantMap& a_data,  ReplyData* a_pData, int a_timeoutMs)
 {
     const QJsonDocument dataJsonDoc = QJsonDocument(QJsonObject::fromVariantMap(a_data));
-    QByteArray dataBA = dataJsonDoc.toJson(QJsonDocument::Compact);
+    const QByteArray dataBA = dataJsonDoc.toJson(QJsonDocument::Compact);
     return post(a_pContainer,a_request,dataBA,a_pData,a_timeoutMs);
 }
 
