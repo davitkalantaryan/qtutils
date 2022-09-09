@@ -301,9 +301,9 @@ void Reply::ReplaceData(ReplyData* a_pData)
 
 /*////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
 
-QTUTILS_EXPORT void PrepareJsonHeaders(QNetworkRequest* a_pRequet, const QString& a_agent)
+QTUTILS_EXPORT void PrepareHeadersRaw(const QByteArray& a_contTypeHeader, QNetworkRequest* a_pRequet, const QString& a_agent)
 {
-    a_pRequet->setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+    a_pRequet->setHeader(QNetworkRequest::ContentTypeHeader, a_contTypeHeader);
     a_pRequet->setRawHeader("Client-Device", QSysInfo::machineHostName().toUtf8() );
 
 #ifdef CPPUTILS_EMSCRIPTEN_IS_USED
@@ -317,6 +317,12 @@ QTUTILS_EXPORT void PrepareJsonHeaders(QNetworkRequest* a_pRequet, const QString
         a_pRequet->setSslConfiguration(conf);
     }
 #endif
+}
+
+
+QTUTILS_EXPORT void PrepareJsonHeaders(QNetworkRequest* a_pRequet, const QString& a_agent)
+{
+    PrepareHeadersRaw("application/json",a_pRequet,a_agent);
 }
 
 
