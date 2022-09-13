@@ -1,21 +1,20 @@
 //
-// file:            wgtwithlblinright.hpp
-// path:			include/qtutils/ui/wgtwithlblinright.hpp
+// file:            wgtwithwgtinright.hpp
+// path:			include/qtutils/ui/wgtwithwgtinright.hpp
 // created on:		2022 Aug 20
 // created by:		Davit Kalantaryan (davit.kalantaryan@gmail.com)
 //
 
 #pragma once
 
-#ifndef QTUTILS_INCLUDE_QTUTILS_UI_WGTWITHLBLINRIGHT_HPP
-#define QTUTILS_INCLUDE_QTUTILS_UI_WGTWITHLBLINRIGHT_HPP
+#ifndef QTUTILS_INCLUDE_QTUTILS_UI_WGTWITHWGTINRIGHT_HPP
+#define QTUTILS_INCLUDE_QTUTILS_UI_WGTWITHWGTINRIGHT_HPP
 
 
 #include <qtutils/qtutils_internal_header.h>
 #include <qtutils/ui/sizeapplywindow.hpp>
 #include <functional>
 #include <qtutils/disable_utils_warnings.h>
-#include <QLabel>
 
 
 namespace qtutils { namespace ui{
@@ -43,10 +42,10 @@ protected:
 }}  // namespace qtutils { namespace ui{
 
 
-#ifndef QTUTILS_INCLUDE_QTUTILS_UI_WGTWITHLBLINRIGHT_IMPL_HPP
-#include "wgtwithlblinright.impl.hpp"
+#ifndef QTUTILS_INCLUDE_QTUTILS_UI_WGTWITHWGTINRIGHT_IMPL_HPP
+#include "wgtwithwgtinright.impl.hpp"
 #endif
 
 
 
-#endif  // #ifndef QTUTILS_INCLUDE_QTUTILS_UI_WGTWITHLBLINRIGHT_HPP
+#endif  // #ifndef QTUTILS_INCLUDE_QTUTILS_UI_WGTWITHWGTINRIGHT_HPP

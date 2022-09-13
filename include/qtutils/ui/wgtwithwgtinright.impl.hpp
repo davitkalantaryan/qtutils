@@ -7,16 +7,24 @@
 
 #pragma once
 
-#ifndef QTUTILS_INCLUDE_QTUTILS_UI_WGTWITHLBLINRIGHT_IMPL_HPP
-#define QTUTILS_INCLUDE_QTUTILS_UI_WGTWITHLBLINRIGHT_IMPL_HPP
+#ifndef QTUTILS_INCLUDE_QTUTILS_UI_WGTWITHWGTINRIGHT_IMPL_HPP
+#define QTUTILS_INCLUDE_QTUTILS_UI_WGTWITHWGTINRIGHT_IMPL_HPP
 
-#ifndef QTUTILS_INCLUDE_QTUTILS_UI_WGTWITHLBLINRIGHT_HPP
-#include "wgtwithlblinright.hpp"
+#ifndef QTUTILS_INCLUDE_QTUTILS_UI_WGTWITHWGTINRIGHT_HPP
+#include "wgtwithwgtinright.hpp"
 #endif
 
 #include <type_traits>
 
 namespace qtutils { namespace ui{
+
+
+template <typename WidgetType, typename RightWgtType>
+WgtWithWgtInRight<WidgetType,RightWgtType>::~WgtWithWgtInRight()
+{
+    delete m_pWgtInRight;
+}
+
 
 
 template <typename WidgetType, typename RightWgtType>
@@ -74,60 +82,7 @@ void WgtWithWgtInRight<WidgetType,RightWgtType>::SetWgtInRight(RightWgtType* a_p
 
 
 
-/*//////////////////////////////////////////////////////////////////////////////////////////////*/
-
-template <typename WidgetType>
-template<typename... Targs>
-WgtWithLblInRight<WidgetType>::WgtWithLblInRight(Targs... a_args)
-    :
-      ::qtutils::ui::SizeApplyWindow<WidgetType>(a_args...),
-      m_pLabelInRight(nullptr)
-{
-    SetLabelInRight(new QLabel());
-}
-
-
-template <typename WidgetType>
-WgtWithLblInRight<WidgetType>::~WgtWithLblInRight()
-{
-    delete m_pLabelInRight;
-}
-
-
-template <typename WidgetType>
-void WgtWithLblInRight<WidgetType>::ApplyNewSize(const QSize& a_newSize)
-{
-    int eyeSizeLn;
-    const int newHeight = a_newSize.height();
-    if(newHeight>2){
-        eyeSizeLn = newHeight-2;
-    }
-    else{
-        eyeSizeLn = newHeight-2;
-    }
-    m_pLabelInRight->resize(eyeSizeLn,eyeSizeLn);
-    m_pLabelInRight->move(a_newSize.width()-eyeSizeLn-1,1);
-
-//#if ::std::is_bse_of<>
-//#endif
-}
-
-
-
-
-
-//
-
-template<typename... Targs>
-Label01::Label01(const TypeClbk& a_lblPushClbk, Targs... a_args)
-    :
-      QLabel(a_args...),
-      m_lblPushClbk(a_lblPushClbk?a_lblPushClbk:([](Label01*){}))
-{
-}
-
-
 }} // namespace qtutils { namespace ui{
 
 
-#endif  // #ifndef QTUTILS_INCLUDE_QTUTILS_UI_WGTWITHLBLINRIGHT_IMPL_HPP
+#endif  // #ifndef QTUTILS_INCLUDE_QTUTILS_UI_WGTWITHWGTINRIGHT_IMPL_HPP

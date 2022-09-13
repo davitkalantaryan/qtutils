@@ -6,6 +6,7 @@
 //
 
 #include <qtutils/ui/passwordbox.hpp>
+#include <qtutils/ui/global_functions.hpp>
 #include <qtutils/disable_utils_warnings.h>
 #include <QLabel>
 #include <QMouseEvent>
@@ -39,7 +40,7 @@ PasswordBox::~PasswordBox()
 void PasswordBox::Init()
 {
     setEchoMode(QLineEdit::Password);
-    WgtWithLblInRight<QLineEdit>::SetLabelInRight(new PswWndLabel(this));
+    WgtWithWgtInRight<QLineEdit,QLabel>::SetWgtInRight(new PswWndLabel(this));
 }
 
 

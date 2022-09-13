@@ -12,15 +12,16 @@
 
 
 #include <qtutils/qtutils_internal_header.h>
-#include <qtutils/ui/wgtwithlblinright.hpp>
+#include <qtutils/ui/wgtwithwgtinright.hpp>
 #include <qtutils/disable_utils_warnings.h>
 #include <QLineEdit>
+#include <QLabel>
 
 
 namespace qtutils { namespace ui{
 
 
-class PasswordBox QTUTILS_EXPORT : public WgtWithLblInRight<QLineEdit>
+class PasswordBox QTUTILS_EXPORT : public WgtWithWgtInRight<QLineEdit,QLabel>
 {
 public:
     template<typename... Targs>
@@ -28,7 +29,7 @@ public:
     virtual ~PasswordBox() override;
 
 private:
-    void SetLabelInRight(QLabel* a_pLabelInRight) = delete;
+    void SetWgtInRight(QLabel* a_pLabelInRight) = delete;
     void Init();
 };
 
