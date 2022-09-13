@@ -40,4 +40,11 @@ QTUTILS_EXPORT void AssignFrameToWindow(QWidget* a_pWindow)
 }
 
 
+QTUTILS_EXPORT void SetProperParamsToImagedLbl(QLabel* a_pLbl)
+{
+    a_pLbl->setScaledContents( true );
+    a_pLbl->setSizePolicy( QSizePolicy::Ignored, QSizePolicy::Ignored );
+}
+
+
 }}  // namespace qtutils { namespace ui{
