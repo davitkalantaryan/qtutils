@@ -11,7 +11,7 @@
 #ifndef QTUTILS_INCLUDE_QTUTILS_UI_SIZERESOURCE_HPP
 #define QTUTILS_INCLUDE_QTUTILS_UI_SIZERESOURCE_HPP
 
-#include <qtutils/internal_header.h>
+#include <qtutils/export_symbols.h>
 
 namespace qtutils{ namespace ui{
 

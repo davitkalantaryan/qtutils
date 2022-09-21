@@ -8,6 +8,7 @@
 #ifndef QTUTILS_INCLUDE_QTUTILS_SIZES_H
 #define QTUTILS_INCLUDE_QTUTILS_SIZES_H
 
+#include <qtutils/export_symbols.h>
 
 #define QTUTILS_TITLEBAR_DEFAULT_HEIGHT     25
 

@@ -11,7 +11,7 @@
 #define QTUTILS_INCLUDE_QTUTILS_UI_WGTWITHWGTINRIGHT_HPP
 
 
-#include <qtutils/qtutils_internal_header.h>
+#include <qtutils/export_symbols.h>
 #include <qtutils/ui/sizeapplywindow.hpp>
 #include <functional>
 #include <qtutils/disable_utils_warnings.h>

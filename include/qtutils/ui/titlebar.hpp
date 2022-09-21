@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include <qtutils/qtutils_internal_header.h>
+#include <qtutils/export_symbols.h>
 #include <qtutils/sizes.h>
 #include <qtutils/ui/sizeapplywindow.hpp>
 #include <list>

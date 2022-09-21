@@ -8,7 +8,7 @@
 #ifndef QTUTILS_INCLUDE_QTUTILS_CORE_DISABLE_UTILS_WARNINGS_H
 #define QTUTILS_INCLUDE_QTUTILS_CORE_DISABLE_UTILS_WARNINGS_H
 
-#include <qtutils/qtutils_internal_header.h>
+#include <qtutils/export_symbols.h>
 #include <cpputils/disable_compiler_warnings.h>
 
 // https://docs.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warnings-c4800-through-c4999?view=msvc-160 (type convertion)

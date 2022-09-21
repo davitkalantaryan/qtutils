@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include <qtutils/qtutils_internal_header.h>
+#include <qtutils/export_symbols.h>
 #include <stdexcept>
 #include <qtutils/disable_utils_warnings.h>
 #include <QTimer>

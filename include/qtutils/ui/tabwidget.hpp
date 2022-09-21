@@ -10,7 +10,7 @@
 #ifndef QTUTILS_INCLUDE_QTUTILS_UI_TABWIDGET_HPP
 #define QTUTILS_INCLUDE_QTUTILS_UI_TABWIDGET_HPP
 
-#include <qtutils/internal_header.h>
+#include <qtutils/export_symbols.h>
 #include <cpputils/hash/vhash.hpp>
 #include <qtutils/disable_utils_warnings.h>
 #include <QWidget>

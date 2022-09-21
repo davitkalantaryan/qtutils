@@ -11,7 +11,7 @@
 #define QTUTILS_INCLUDE_QTUTILS_UI_PASSWORDBOX02_HPP
 
 
-#include <qtutils/qtutils_internal_header.h>
+#include <qtutils/export_symbols.h>
 #if 0
 #include <qtutils/ui/wgtwithwgtinright.hpp>
 #include <qtutils/disable_utils_warnings.h>

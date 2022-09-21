@@ -11,7 +11,7 @@
 #define QTUTILS_INCLUDE_CLOSABLEWINDOW_HPP
 
 
-#include <qtutils/qtutils_internal_header.h>
+#include <qtutils/export_symbols.h>
 #include <qtutils/ui/resiziblewindow.hpp>
 #include <qtutils/disable_utils_warnings.h>
 #include <QWidget>

@@ -5,7 +5,7 @@
 // created by:		Davit Kalantaryan (davit.kalantaryan@gmail.com)
 //
 
-#include <qtutils/qtutils_internal_header.h>
+#include <qtutils/export_symbols.h>
 #include <qtutils/disable_utils_warnings.h>
 #include <qglobal.h>
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)

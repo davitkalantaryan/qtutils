@@ -10,7 +10,7 @@
 #ifndef QTUTILS_INCLUDE_QTUTILS_UI_SPINNERBOX_HPP
 #define QTUTILS_INCLUDE_QTUTILS_UI_SPINNERBOX_HPP
 
-#include <qtutils/qtutils_internal_header.h>
+#include <qtutils/export_symbols.h>
 #include <qtutils/disable_utils_warnings.h>
 #include <QLabel>
 

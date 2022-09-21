@@ -11,7 +11,7 @@
 #define QTUTILS_INCLUDE_QTUTILS_UI_TREEVIEW_MODEL_HPP
 
 
-#include <qtutils/qtutils_internal_header.h>
+#include <qtutils/export_symbols.h>
 #include <type_traits>
 #include <stdint.h>
 #include <qtutils/disable_utils_warnings.h>

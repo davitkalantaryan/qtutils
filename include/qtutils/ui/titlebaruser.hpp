@@ -11,7 +11,7 @@
 #define QTUTILS_INCLUDE_QTUTILS_UI_TITLEBARUSER_HPP
 
 
-#include <qtutils/qtutils_internal_header.h>
+#include <qtutils/export_symbols.h>
 #include <qtutils/ui/titlebar.hpp>
 
 
