@@ -10,7 +10,7 @@
 #ifndef QTUTILS_INCLUDE_QTUTILS_CORE_UTILS_HPP
 #define QTUTILS_INCLUDE_QTUTILS_CORE_UTILS_HPP
 
-#include <qtutils/qtutils_internal_header.h>
+#include <qtutils/export_symbols.h>
 #include <qtutils/disable_utils_warnings.h>
 #include <QString>
 

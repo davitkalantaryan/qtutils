@@ -8,7 +8,7 @@
 #pragma once
 
 
-#include <qtutils/qtutils_internal_header.h>
+#include <qtutils/export_symbols.h>
 
 #ifdef CPPUTILS_MULTITHREADED
 #include <qtutils/core/threadls.hpp>

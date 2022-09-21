@@ -11,7 +11,7 @@
 #define QTUTILS_INCLUDE_RESIZIBLEWINDOW_HPP
 
 
-#include <qtutils/qtutils_internal_header.h>
+#include <qtutils/export_symbols.h>
 #include <cpputils/flagshelper.h>
 #include <stdint.h>
 #include <qtutils/disable_utils_warnings.h>

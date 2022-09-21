@@ -14,7 +14,7 @@
 #ifndef QTUTILS_INCLUDE_CLOSABLEWINDOW_HPP
 #include "closablewindow.hpp"
 #endif
-#include <qtutils/disable_utils_warnings.h>
+#include <qtutils/export_symbols.h>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QToolBar>

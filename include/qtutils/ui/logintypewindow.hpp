@@ -11,7 +11,7 @@
 #define QTUTILS_INCLUDE_LOGINTYPEWINDOW_HPP
 
 
-#include <qtutils/qtutils_internal_header.h>
+#include <qtutils/export_symbols.h>
 #include <qtutils/ui/resiziblewindow.hpp>
 #if defined(CPPUTILS_EMSCRIPTEN_IS_USED) || defined(QTUTILS_UI_FORCE_WEB_STYLE)
 #include <qtutils/ui/webstylelogintypewindow.hpp>

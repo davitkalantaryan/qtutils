@@ -11,12 +11,12 @@
 #ifndef QTUTILS_INCLUDE_QTUTILS_UI_SIZERESOURCE_HPP
 #define QTUTILS_INCLUDE_QTUTILS_UI_SIZERESOURCE_HPP
 
-#include <qtutils/internal_header.h>
+#include <qtutils/export_symbols.h>
 
 namespace qtutils{ namespace ui{
 
 
-template <typename NumType>
+template <typename NumTypeX, typename NumTypeY=NumTypeX>
 class SizeResource
 {
 public:
@@ -27,22 +27,29 @@ public:
     inline int getPixelsY(const TypeNumVal& a_value)const;
 
 public:
-    NumType     m_ratioX;
-    NumType     m_ratioY;
+    NumTypeX     m_ratioX;
+    NumTypeY     m_ratioY;
 };
 
 
-template <typename WidgetType,typename NumType=int>
+template <typename WidgetType,typename NumTypeX=int,typename NumTypeY=NumTypeX>
 class SizeResourceUser : public WidgetType
 {
 public:
     template<typename... Targs>
-    SizeResourceUser(const SizeResource<NumType>* a_pSR, Targs... a_args);
+    SizeResourceUser(const SizeResource<NumTypeX,NumTypeY>* a_pSR, Targs... a_args);
     virtual ~SizeResourceUser() override;
 
 public:
-    const SizeResource<NumType>*const  m_pSR;
+    const SizeResource<NumTypeX,NumTypeY>*const  m_pSR;
 };
+
+
+template <typename WidgetType>
+using SizeResourceUserI = SizeResourceUser<WidgetType>;
+
+template <typename WidgetType>
+using SizeResourceUserD = SizeResourceUser<WidgetType,double>;
 
 
 }}  //  namespace qtutils{ namespace ui{

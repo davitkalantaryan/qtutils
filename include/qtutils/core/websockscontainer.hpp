@@ -8,7 +8,7 @@
 #pragma once
 
 
-#include <qtutils/qtutils_internal_header.h>
+#include <qtutils/export_symbols.h>
 #include <stddef.h>
 #include <qtutils/disable_utils_warnings.h>
 #include <QWebSocket>

@@ -11,30 +11,26 @@
 #define QTUTILS_INCLUDE_QTUTILS_UI_PASSWORDBOX_HPP
 
 
-#include <qtutils/qtutils_internal_header.h>
+#include <qtutils/export_symbols.h>
+#include <qtutils/ui/wgtwithwgtinright.hpp>
 #include <qtutils/disable_utils_warnings.h>
 #include <QLineEdit>
+#include <QLabel>
 
 
 namespace qtutils { namespace ui{
 
-class CPPUTILS_DLL_PRIVATE PasswordBox_p;
 
-class PasswordBox QTUTILS_EXPORT : public QLineEdit
+class PasswordBox QTUTILS_EXPORT : public WgtWithWgtInRight<QLineEdit,QLabel>
 {
 public:
     template<typename... Targs>
     PasswordBox(Targs... a_args);
     virtual ~PasswordBox() override;
-    
-protected:
-    void resizeEvent(QResizeEvent *event) override;
-    
+
 private:
-    static PasswordBox_p* CreatePasswordBox_p(PasswordBox*);
-    
-private:
-    PasswordBox_p*const m_pass_data_p;
+    void SetWgtInRight(QLabel* a_pLabelInRight) = delete;
+    void Init();
 };
 
 

@@ -8,7 +8,7 @@
 #pragma once
 
 
-#include <qtutils/qtutils_internal_header.h>
+#include <qtutils/export_symbols.h>
 
 #ifndef QTUTILS_NOT_USE_INITDEINIT
 

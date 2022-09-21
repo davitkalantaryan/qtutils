@@ -11,17 +11,6 @@
 #include <cpputils/internal_header.h>
 
 
-#if defined(QTUTILS_COMPILING_SHARED_LIB)
-    #define QTUTILS_EXPORT CPPUTILS_DLL_PUBLIC
-#elif defined(QTUTILS_USING_STATIC_LIB_OR_OBJECTS)
-    #define QTUTILS_EXPORT
-#elif defined(QTUTILS_LOAD_FROM_DLL)
-	#define QTUTILS_EXPORT CPPUTILS_IMPORT_FROM_DLL
-#else
-    #define QTUTILS_EXPORT CPPUTILS_DLL_PRIVATE
-#endif
-
-
 #define QTUTILS_QT_NSP  ::
 
 

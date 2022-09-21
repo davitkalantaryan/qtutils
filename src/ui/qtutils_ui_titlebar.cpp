@@ -105,7 +105,16 @@ QWidget* TitleBar::tbParent()const
 void TitleBar::mousePressEvent(QMouseEvent* a_event)
 {
     if(a_event->button() == Qt::LeftButton){
+#ifdef QTUTILS_TITLEBAR_SEARCH_TOP_MOST
+        QWidget *pParent = m_parent, *pParentTmp = m_parent->parentWidget();
+        while(pParentTmp){
+            pParent = pParentTmp;
+            pParentTmp = pParent->parentWidget();
+        }
+        m_cursorStartPoint = pParent->pos() - a_event->globalPos();
+#else
         m_cursorStartPoint = m_parent->pos() - a_event->globalPos();
+#endif
     }
     SizeApplyWindow<QWidget>::mousePressEvent(a_event);
 }
@@ -114,7 +123,16 @@ void TitleBar::mousePressEvent(QMouseEvent* a_event)
 void TitleBar::mouseMoveEvent(QMouseEvent* a_event)
 {
     if(a_event->buttons() & Qt::LeftButton){
+#ifdef QTUTILS_TITLEBAR_SEARCH_TOP_MOST
+        QWidget *pParent = m_parent, *pParentTmp = m_parent->parentWidget();
+        while(pParentTmp){
+            pParent = pParentTmp;
+            pParentTmp = pParent->parentWidget();
+        }
+        pParent->move(m_cursorStartPoint + a_event->globalPos());
+#else
         m_parent->move(m_cursorStartPoint + a_event->globalPos());
+#endif
     }
     SizeApplyWindow<QWidget>::mouseMoveEvent(a_event);
 }
@@ -159,6 +177,13 @@ static void StaticCallbackFunction(TitleBar*,CloseOrMnmWdg*){}
 static void StaticCallbackForStdTypes(TitleBar* a_pTitleBar, CloseOrMnmWdg* a_pBtn)
 {
     QWidget* pParent = a_pTitleBar->tbParent();
+#ifdef QTUTILS_TITLEBAR_SEARCH_TOP_MOST
+    QWidget* pParentTmp = pParent->parentWidget();
+    while(pParentTmp){
+        pParent = pParentTmp;
+        pParentTmp = pParent->parentWidget();
+    }
+#endif
 
     switch(a_pBtn->m_stdType){
     case CloseOrMnmWdg::StdType::Close:
@@ -197,7 +222,7 @@ CloseOrMnmWdg::CloseOrMnmWdg(const QString& a_styleSheetWhenHover,TitleBar* a_pP
       m_styleSheetWhenHover(a_styleSheetWhenHover)
 {
     QFont aFont = font();
-    aFont.setPointSize(21);
+    aFont.setPixelSize(23);
     setFont(aFont);
     setAlignment(Qt::AlignCenter);
     setAttribute(Qt::WA_Hover, true);
@@ -218,15 +243,15 @@ CloseOrMnmWdg::CloseOrMnmWdg(TitleBar* a_pParent, const StdType& a_stdType)
     switch(m_stdType){
     case StdType::Close:
         vcTxt[0] = 215;
-        aFont.setPointSize(18);
+        aFont.setPixelSize(20);
         break;
     case StdType::Mnmz:
         vcTxt[0] = '-';
-        aFont.setPointSize(24);
+        aFont.setPixelSize(26);
         break;
     default:
         vcTxt[0] = a_pParent->tbParent()->isMaximized()?QTUTILS_TABBAR_NO_MAX_SYMBOL:QTUTILS_TABBAR_MAX_SYMBOL;
-        aFont.setPointSize(12);
+        aFont.setPixelSize(14);
         break;
     } // switch(m_type){
 

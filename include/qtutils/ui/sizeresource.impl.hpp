@@ -18,26 +18,26 @@
 namespace qtutils{ namespace ui{
 
 
-template <typename NumType>
+template <typename NumTypeX, typename NumTypeY>
 template <typename TypeNumVal>
-inline int SizeResource<NumType>::getPixelsX(const TypeNumVal& a_value)const
+inline int SizeResource<NumTypeX,NumTypeY>::getPixelsX(const TypeNumVal& a_value)const
 {
     return static_cast<int>(m_ratioX*a_value);
 }
 
 
-template <typename NumType>
+template <typename NumTypeX,typename NumTypeY>
 template <typename TypeNumVal>
-inline int SizeResource<NumType>::getPixelsY(const TypeNumVal& a_value)const
+inline int SizeResource<NumTypeX,NumTypeY>::getPixelsY(const TypeNumVal& a_value)const
 {
     return static_cast<int>(m_ratioY*a_value);
 }
 
 
 //
-template <typename WidgetType,typename NumType>
+template <typename WidgetType,typename NumTypeX,typename NumTypeY>
 template<typename... Targs>
-SizeResourceUser<WidgetType,NumType>::SizeResourceUser(const SizeResource<NumType>* a_pSR, Targs... a_args)
+SizeResourceUser<WidgetType,NumTypeX,NumTypeY>::SizeResourceUser(const SizeResource<NumTypeX,NumTypeY>* a_pSR, Targs... a_args)
     :
       WidgetType(a_args...),
       m_pSR(a_pSR)
@@ -45,8 +45,8 @@ SizeResourceUser<WidgetType,NumType>::SizeResourceUser(const SizeResource<NumTyp
 }
 
 
-template <typename WidgetType,typename NumType>
-SizeResourceUser<WidgetType,NumType>::~SizeResourceUser()
+template <typename WidgetType,typename NumTypeX,typename NumTypeY>
+SizeResourceUser<WidgetType,NumTypeX,NumTypeY>::~SizeResourceUser()
 {
 }
 

@@ -11,10 +11,12 @@
 #define QTUTILS_INCLUDE_QTUTILS_UI_PASSWORDBOX02_HPP
 
 
-#include <qtutils/qtutils_internal_header.h>
-#include <qtutils/ui/wgtwithlblinright.hpp>
+#include <qtutils/export_symbols.h>
+#if 0
+#include <qtutils/ui/wgtwithwgtinright.hpp>
 #include <qtutils/disable_utils_warnings.h>
 #include <QLineEdit>
+#include <QLabel>
 
 
 namespace qtutils { namespace ui{
@@ -22,7 +24,7 @@ namespace qtutils { namespace ui{
 
 class CPPUTILS_DLL_PRIVATE PswWndLabel02;
 
-class PasswordBox02 QTUTILS_EXPORT : public WgtWithLblInRight<QLineEdit>
+class PasswordBox02 QTUTILS_EXPORT : public WgtWithWgtInRight<QLineEdit,QLabel>
 {
 public:
     template<typename... Targs>
@@ -30,7 +32,7 @@ public:
     virtual ~PasswordBox02() override;
 
 private:
-    void SetLabelInRight(QLabel* a_pLabelInRight)=delete;
+    void SetWgtInRight(QLabel* a_pLabelInRight)=delete;
         
 private:
     void InitLabel();
@@ -45,6 +47,7 @@ private:
 #include "passwordbox02.impl.hpp"
 #endif
 
+#endif
 
 
 #endif  // #ifndef QTUTILS_INCLUDE_QTUTILS_UI_PASSWORDBOX02_HPP

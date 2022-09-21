@@ -53,7 +53,7 @@ Reply* AccessManagerRaw::post(ReplyContainer* a_pContainer, const QNetworkReques
 Reply* AccessManagerRaw::post(ReplyContainer* a_pContainer, const QNetworkRequest& a_request, const QVariantMap& a_data,  ReplyData* a_pData, int a_timeoutMs)
 {
     const QJsonDocument dataJsonDoc = QJsonDocument(QJsonObject::fromVariantMap(a_data));
-    QByteArray dataBA = dataJsonDoc.toJson(QJsonDocument::Compact);
+    const QByteArray dataBA = dataJsonDoc.toJson(QJsonDocument::Compact);
     return post(a_pContainer,a_request,dataBA,a_pData,a_timeoutMs);
 }
 
@@ -77,6 +77,17 @@ Reply* AccessManagerRaw::get(ReplyContainer* a_pContainer, const QNetworkRequest
     }
     //return nullptr;
 	throw Exception(a_pData,"Unable to create Network Reply object");
+}
+
+
+Reply* AccessManagerRaw::head(ReplyContainer* a_pContainer, const QNetworkRequest& a_request, ReplyData* a_pData, int a_timeoutMs)
+{
+    QNetworkReply* pNetworkReply = m_pQtManager->head(a_request);
+    if(pNetworkReply){
+        return new Reply(pNetworkReply,a_pContainer,a_pData, a_timeoutMs);
+    }
+    //return nullptr;
+    throw Exception(a_pData,"Unable to create Network Reply object");
 }
 
 
@@ -290,9 +301,9 @@ void Reply::ReplaceData(ReplyData* a_pData)
 
 /*////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
 
-QTUTILS_EXPORT void PrepareJsonHeaders(QNetworkRequest* a_pRequet, const QString& a_agent)
+QTUTILS_EXPORT void PrepareHeadersRaw(const QByteArray& a_contTypeHeader, QNetworkRequest* a_pRequet, const QString& a_agent)
 {
-    a_pRequet->setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+    a_pRequet->setHeader(QNetworkRequest::ContentTypeHeader, a_contTypeHeader);
     a_pRequet->setRawHeader("Client-Device", QSysInfo::machineHostName().toUtf8() );
 
 #ifdef CPPUTILS_EMSCRIPTEN_IS_USED
@@ -306,6 +317,12 @@ QTUTILS_EXPORT void PrepareJsonHeaders(QNetworkRequest* a_pRequet, const QString
         a_pRequet->setSslConfiguration(conf);
     }
 #endif
+}
+
+
+QTUTILS_EXPORT void PrepareJsonHeaders(QNetworkRequest* a_pRequet, const QString& a_agent)
+{
+    PrepareHeadersRaw("application/json",a_pRequet,a_agent);
 }
 
 

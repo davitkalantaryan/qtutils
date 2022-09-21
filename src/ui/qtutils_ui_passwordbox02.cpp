@@ -6,6 +6,7 @@
 //
 
 #include <qtutils/ui/passwordbox02.hpp>
+#if 0
 #include <qtutils/disable_utils_warnings.h>
 #include <QLabel>
 #include <QResizeEvent>
@@ -75,3 +76,5 @@ PswWndLabel02::PswWndLabel02(PasswordBox02* a_parent)
 
 
 }}  // namespace qtutils { namespace ui{
+
+#endif
