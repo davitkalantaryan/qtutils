@@ -21,7 +21,7 @@
 namespace qtutils { namespace ui{
 
 
-class PasswordBox QTUTILS_EXPORT : public WgtWithWgtInRight<QLineEdit,QLabel>
+class QTUTILS_EXPORT PasswordBox : public WgtWithWgtInRight<QLineEdit,QLabel>
 {
 public:
     template<typename... Targs>

@@ -5,5 +5,6 @@
 	<file>qtutils/hide_password.png</file>
 	<file>qtutils/qtutils_loader01.gif</file>
 	<file>qtutils/exit_app.png</file>
+	<file>qtutils/search_box01.png</file>
     </qresource>
 </RCC>
