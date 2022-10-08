@@ -8,6 +8,8 @@
 
 #include <qtutils/core/logger.hpp>
 #include <cpputils/inscopecleaner.hpp>
+#include <cpputils/mutex_ml.hpp>
+#include <mutex>
 #include <qtutils/disable_utils_warnings.h>
 #include <QFileInfo>
 #include <QDateTime>
@@ -15,53 +17,76 @@
 
 namespace qtutils{
 
-static Logger_p* s_pLogger = nullptr;
+static QtMessageHandler s_defaultHandler    = nullptr;
+static Logger_p* s_pFirstLogger             = nullptr;
+static ::cpputils::mutex_ml s_logsMutex;
 
 static void MessageHandlerStatic(QtMsgType a_type, const QMessageLogContext& a_context,const QString& a_message);
 
-static void MessageHandlerStaticForNull(QtMsgType, const QMessageLogContext &,const QString &)
+static void MessageHandlerStaticForNull(void*,QtMsgType, const QMessageLogContext &,const QString &)
 {
-    qDebug()<<"";
 }
 
 
 /*////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
 
-class CPPUTILS_DLL_PRIVATE Logger_p
+class CPPUTILS_DLL_PRIVATE Logger_p final
 {
 public:
+    Logger_p(const Logger::TypeLogger& a_logger, void* a_pOwner);
+    ~Logger_p();
     void MessageHandler(QtMsgType a_type, const QMessageLogContext& a_context,const QString& a_message);
 
+private:
+    Logger_p*           m_prev;
+
 public:
-    QtMessageHandler    m_handleBefore;
-    QtMessageHandler    m_handleCurrent;
+    Logger_p*           m_next;
+    void*               m_pOwner;
+    Logger::TypeLogger  m_logger;
 };
 
 
 /*////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
 
-Logger::Logger()
+Logger::Logger(const TypeLogger& a_logger, void* a_pOwner)
     :
-      m_logger_data_p(new Logger_p())
+      m_logger_data_p(new Logger_p(a_logger?a_logger:&MessageHandlerStaticForNull,a_pOwner))
 {
-    s_pLogger = this->m_logger_data_p;
-    m_logger_data_p->m_handleCurrent = m_logger_data_p->m_handleBefore = qInstallMessageHandler(&MessageHandlerStatic);
 }
 
 
 Logger::~Logger()
 {
-    qInstallMessageHandler(m_logger_data_p->m_handleBefore);
-    s_pLogger = nullptr;
     delete m_logger_data_p;
 }
 
 
-QtMessageHandler Logger::SetNewLogger(const QtMessageHandler& a_logger)
+void Logger::SetNewLogger(const TypeLogger& a_logger, void* a_pOwner)
 {
-    QtMessageHandler logger = m_logger_data_p->m_handleCurrent;
-    m_logger_data_p->m_handleCurrent = a_logger?a_logger:&MessageHandlerStaticForNull;
-    return logger;
+    m_logger_data_p->m_logger = a_logger?a_logger:&MessageHandlerStaticForNull;
+    m_logger_data_p->m_pOwner = a_pOwner;
+}
+
+
+QtMessageHandler Logger::DefaultHandler()
+{
+    QtMessageHandler retHandler = nullptr;
+
+    {  //  start lock
+        ::std::lock_guard<::cpputils::mutex_ml> aGuard(s_logsMutex);
+
+        if(s_defaultHandler){
+            retHandler = s_defaultHandler;
+        }
+        else{
+            retHandler = s_defaultHandler = qInstallMessageHandler(&MessageHandlerStatic);
+            qInstallMessageHandler(s_defaultHandler);
+        }
+
+    }  //  end locks
+
+    return retHandler;
 }
 
 
@@ -111,15 +136,55 @@ void Logger_p::MessageHandler(QtMsgType a_type, const QMessageLogContext& a_cont
     }
 
 
-    m_handleCurrent(a_type,a_context,msgCntx+a_message);
+    m_logger(m_pOwner,a_type,a_context,msgCntx+a_message);
 }
 
 
 /*////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
 
+Logger_p::Logger_p(const Logger::TypeLogger& a_logger, void* a_pOwner)
+    :
+      m_prev(nullptr),
+      m_pOwner(a_pOwner),
+      m_logger(a_logger)
+{
+    ::std::lock_guard<::cpputils::mutex_ml> aGuard(s_logsMutex);
+
+    if(s_pFirstLogger){
+        s_pFirstLogger->m_prev = this;
+    }
+    else{
+        if(!s_defaultHandler){s_defaultHandler = qInstallMessageHandler(&MessageHandlerStatic);}
+    }
+
+    m_next = s_pFirstLogger;
+    s_pFirstLogger = this;
+}
+
+
+Logger_p::~Logger_p()
+{
+    ::std::lock_guard<::cpputils::mutex_ml> aGuard(s_logsMutex);
+
+    if(m_prev){m_prev->m_next = m_next;}
+    if(m_next){m_next->m_prev = m_prev;}
+    if(this==s_pFirstLogger){
+        qInstallMessageHandler(s_defaultHandler);
+        s_defaultHandler = nullptr;
+        s_pFirstLogger = nullptr;
+    }
+}
+
+
 static void MessageHandlerStatic(QtMsgType a_type, const QMessageLogContext& a_context,const QString& a_message)
 {
-    s_pLogger->MessageHandler(a_type,a_context,a_message);
+    Logger_p* pLogger;
+    ::std::lock_guard<::cpputils::mutex_ml> aGuard(s_logsMutex);
+    pLogger = s_pFirstLogger;
+    while(pLogger){
+        pLogger->MessageHandler(a_type,a_context,a_message);
+        pLogger = pLogger->m_next;
+    }
 }
 
 

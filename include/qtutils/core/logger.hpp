@@ -9,6 +9,7 @@
 
 
 #include <qtutils/export_symbols.h>
+#include <functional>
 #include <qtutils/disable_utils_warnings.h>
 #include <QDebug>
 #include <QMessageLogger>
@@ -30,16 +31,20 @@ class CPPUTILS_DLL_PRIVATE Logger_p;
 class QTUTILS_EXPORT Logger final
 {
 public:
-    Logger();
+    typedef ::std::function<void(void*,QtMsgType, const QMessageLogContext &, const QString &)> TypeLogger;
+public:
+    Logger(const TypeLogger& a_logger=nullptr, void* a_pOwner=nullptr);
     Logger(const Logger&)=delete;
     Logger(Logger&&)=delete;
     ~Logger();
     Logger& operator=(const Logger&)=delete;
     Logger& operator=(Logger&&)=delete;
 
-    QtMessageHandler SetNewLogger(const QtMessageHandler& a_logger);
-    static QString  FileAndLineString(const char* a_fileName, int a_line);
-    static QString  FileLineAndFunctionString(const char* a_fileName, int a_line, const char* a_cpcFunction);
+    void SetNewLogger(const TypeLogger& a_logger, void* a_pOwner=nullptr);
+
+    static QtMessageHandler DefaultHandler();
+    static QString          FileAndLineString(const char* a_fileName, int a_line);
+    static QString          FileLineAndFunctionString(const char* a_fileName, int a_line, const char* a_cpcFunction);
 
 private:
     Logger_p*const      m_logger_data_p;
