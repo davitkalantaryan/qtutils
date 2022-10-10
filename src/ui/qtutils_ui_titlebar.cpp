@@ -111,9 +111,9 @@ void TitleBar::mousePressEvent(QMouseEvent* a_event)
             pParent = pParentTmp;
             pParentTmp = pParent->parentWidget();
         }
-        m_cursorStartPoint = pParent->pos() - a_event->globalPos();
+        m_cursorStartPoint = pParent->pos() - a_event->globalPosition().toPoint();
 #else
-        m_cursorStartPoint = m_parent->pos() - a_event->globalPos();
+        m_cursorStartPoint = m_parent->pos() - a_event->globalPosition().toPoint();
 #endif
     }
     SizeApplyWindow<QWidget>::mousePressEvent(a_event);
@@ -129,9 +129,9 @@ void TitleBar::mouseMoveEvent(QMouseEvent* a_event)
             pParent = pParentTmp;
             pParentTmp = pParent->parentWidget();
         }
-        pParent->move(m_cursorStartPoint + a_event->globalPos());
+        pParent->move(m_cursorStartPoint + a_event->globalPosition().toPoint());
 #else
-        m_parent->move(m_cursorStartPoint + a_event->globalPos());
+        m_parent->move(m_cursorStartPoint + a_event->globalPosition().toPoint());
 #endif
     }
     SizeApplyWindow<QWidget>::mouseMoveEvent(a_event);
