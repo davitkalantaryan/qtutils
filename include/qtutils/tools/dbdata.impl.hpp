@@ -40,7 +40,7 @@ template <typename TypeSharedPtr>
 static inline TypeSharedPtr FromQVariant(const QVariant& a_qv, int* a_pnChanges)
 {
     const QVariantMap aDtMap = a_qv.toMap();
-    TypeSharedPtr::element_type* this_p = new TypeSharedPtr::element_type();
+    typename TypeSharedPtr::element_type* this_p = new typename TypeSharedPtr::element_type();
     int nChanges = this_p->FromVariantMap(aDtMap);
     if(a_pnChanges){
         *a_pnChanges = nChanges;
@@ -65,7 +65,7 @@ template<typename TypeVM,typename... Targs>
 int SharedPtr<Type>::FromVariantMap(const TypeVM& a_vmt,Targs... a_args)
 {
     const QVariantMap aDtMap = TypeVmToVariantMap(a_vmt);
-    Type* this_p = get();
+    Type* this_p = ::std::shared_ptr<Type>::get();
     assert(this_p);
     return this_p->FromVariantMap(aDtMap,a_args...);
 }
@@ -86,7 +86,7 @@ void GroupOfType<Type,ContKey,ContType>::TakeFromOtherContainer(GroupOfType& a_m
     Type aDataTmp;
     const size_t cunCurrentSize(ContType::size());
     size_t unFound(0);
-    ContType::iterator iterOld, iterNew;
+    typename ContType::iterator iterOld, iterNew;
 
     for(iterNew=a_mM.begin();(iterNew!=ContType::s_nullIter)&&(unFound<cunCurrentSize);++iterNew){
         iterOld = ContType::find(iterNew->first);
@@ -103,7 +103,7 @@ void GroupOfType<Type,ContKey,ContType>::TakeFromOtherContainer(GroupOfType& a_m
 
 
 template <typename Type, typename ContKey,typename ContType>
-typename GroupOfType<Type,ContKey,ContType>& GroupOfType<Type,ContKey,ContType>::operator=(GroupOfType&& a_mM)
+GroupOfType<Type,ContKey,ContType>& GroupOfType<Type,ContKey,ContType>::operator=(GroupOfType&& a_mM)
 {
     TakeFromOtherContainer(a_mM);
     return *this;
@@ -111,7 +111,7 @@ typename GroupOfType<Type,ContKey,ContType>& GroupOfType<Type,ContKey,ContType>:
 
 
 template <typename Type, typename ContKey,typename ContType>
-typename GroupOfType<Type,ContKey,ContType>& GroupOfType<Type,ContKey,ContType>::operator=(const GroupOfType& a_cM)
+GroupOfType<Type,ContKey,ContType>& GroupOfType<Type,ContKey,ContType>::operator=(const GroupOfType& a_cM)
 {
     GroupOfType mM(a_cM);
     TakeFromOtherContainer(mM);
@@ -123,7 +123,7 @@ template <typename Type, typename ContKey,typename ContType>
 GroupOfType<Type,ContKey,ContType>::operator QVariant()const
 {
     QVariantList aDtList;
-    ContType::const_iterator iter = ContType::begin();
+    typename ContType::const_iterator iter = ContType::begin();
 
     for(;iter!=ContType::s_constNullIter;++iter){
         aDtList.push_back((QVariant)iter->second);
