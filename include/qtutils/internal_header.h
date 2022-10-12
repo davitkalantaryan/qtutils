@@ -11,6 +11,12 @@
 #include <cpputils/internal_header.h>
 
 
+#if defined(CPPUTILS_EMSCRIPTEN_IS_USED) && !defined(FORCE_USE_STANDARD_DB)
+#ifndef QTUTILS_USE_NON_STANDARD_DB
+#define QTUTILS_USE_NON_STANDARD_DB
+#endif
+#endif
+
 #define QTUTILS_QT_NSP  ::
 
 
