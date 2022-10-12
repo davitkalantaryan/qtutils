@@ -162,7 +162,7 @@ GroupOfType<Type,ContKey,ContType> GroupOfType<Type,ContKey,ContType>::fromQVari
     //    }
     //}
 
-    return ::std::move(retCR);
+    return retCR;
 }
 
 
