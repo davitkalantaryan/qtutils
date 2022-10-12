@@ -26,10 +26,12 @@ namespace qtutils {
 #ifdef QTUTILS_USE_NON_STANDARD_DB
 
 class SqlDatabase;
+class CPPUTILS_DLL_PRIVATE SqlQuery_p;
 
 class QTUTILS_EXPORT SqlQuery
 {
 public:
+    ~SqlQuery();
     SqlQuery(const SqlDatabase& db);
 
     bool        exec(const QString& query);
@@ -40,6 +42,9 @@ public:
     bool        next();
     QVariant    value(int index) const;
     int         numRowsAffected() const;
+
+private:
+    SqlQuery_p* m_sql_querry_data_p;
 };
 
 #else

@@ -30,12 +30,12 @@ class CPPUTILS_DLL_PRIVATE SqlDatabase_p;
 class QTUTILS_EXPORT SqlDatabase
 {
 public:
+    ~SqlDatabase();
     SqlDatabase();
     SqlDatabase(const SqlDatabase& cM);
-    SqlDatabase(SqlDatabase&& cM);
-    ~SqlDatabase();
-    SqlDatabase operator=(const SqlDatabase& cM);
-    SqlDatabase operator=(SqlDatabase&& cM);
+    SqlDatabase(SqlDatabase&& mM);
+    SqlDatabase& operator=(const SqlDatabase& cM);
+    SqlDatabase& operator=(SqlDatabase&& mM);
 
     bool        isOpen() const;
     bool        open();

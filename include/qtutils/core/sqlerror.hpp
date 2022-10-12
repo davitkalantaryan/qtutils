@@ -23,22 +23,35 @@ namespace qtutils {
 
 #ifdef QTUTILS_USE_NON_STANDARD_DB
 
+class CPPUTILS_DLL_PRIVATE SqlError_p;
+
 class QTUTILS_EXPORT SqlError
 {
 public:
-    enum ErrorType{None,ET1};
+    enum ErrorType{
+        NoError,
+        ConnectionError,
+        StatementError,
+        TransactionError,
+        UnknownError,
+    };
 public:
+    ~SqlError();
+    SqlError();
     QString     databaseText() const;
     QString     driverText() const;
     QString     nativeErrorCode() const;
     QString     text() const;
     ErrorType   type() const;
+
+private:
+    SqlError_p* m_err_data_p;
 };
 
-#else
+#else   //  #ifdef QTUTILS_USE_NON_STANDARD_DB
 
 typedef QSqlError SqlError;
 
-#endif
+#endif  //  #ifdef QTUTILS_USE_NON_STANDARD_DB
 
 }  //  namespace qtutils {
