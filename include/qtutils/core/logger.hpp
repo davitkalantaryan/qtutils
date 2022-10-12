@@ -19,13 +19,14 @@ namespace qtutils {
 
 class CPPUTILS_DLL_PRIVATE Logger_p;
 
-#define QtUtilsDebugNV       QMessageLogger(__FILE__, __LINE__, __FUNCTION__).debug
-#define QtUtilsDebug()       (QtUtilsDebugNV()<< ::qtutils::Logger::FileAndLineString(__FILE__,__LINE__) << ": ")
-#define QtUtilsDebugV()      (QtUtilsDebugNV()<< ::qtutils::Logger::FileLineAndFunctionString(__FILE__,__LINE__,__FUNCTION__) << ": ")
-#define QtUtilsInfo          QMessageLogger(__FILE__, __LINE__, __FUNCTION__).info
-#define QtUtilsWarning       QMessageLogger(__FILE__, __LINE__, __FUNCTION__).warning
-#define QtUtilsCritical      QMessageLogger(__FILE__, __LINE__, __FUNCTION__).critical
-#define QtUtilsFatal         QMessageLogger(__FILE__, __LINE__, __FUNCTION__).fatal
+#define QtUtilsDebugNV                      QMessageLogger(__FILE__, __LINE__, __FUNCTION__).debug
+#define QtUtilsDebug()                      (QtUtilsDebugNV()<< ::qtutils::Logger::FileAndLineString(__FILE__,__LINE__) << ": ")
+#define QtUtilsDebugV()                     (QtUtilsDebugNV()<< ::qtutils::Logger::FileLineAndFunctionString(__FILE__,__LINE__,__FUNCTION__) << ": ")
+#define QtUtilsInfo                         QMessageLogger(__FILE__, __LINE__, __FUNCTION__).info
+#define QtUtilsWarning                      QMessageLogger(__FILE__, __LINE__, __FUNCTION__).warning
+#define QtUtilsCriticalRaw(_fl,_ln,_fnc)    QMessageLogger(_fl, _ln, _fnc).critical()
+#define QtUtilsCritical                     QMessageLogger(__FILE__, __LINE__, __FUNCTION__).critical
+#define QtUtilsFatal                        QMessageLogger(__FILE__, __LINE__, __FUNCTION__).fatal
 
 
 class QTUTILS_EXPORT Logger final
