@@ -14,11 +14,25 @@
 #include <qglobal.h>
 
 
+namespace qtutils{
+
+
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+
 #define QMouseEventToGlobalPosition(_mouseEvent_p)    (_mouseEvent_p)->globalPos()
+
+typedef int   sizetype;
+
 #else
+
 #define QMouseEventToGlobalPosition(_mouseEvent_p)    (_mouseEvent_p)->globalPosition().toPoint()
+
+typedef qsizetype   sizetype;
+
 #endif
+
+
+}  //  namespace qtutils{
 
 
 #endif  // #ifndef QTUTILS_INCLUDE_QTUTILS_VERSION_RESOLVING_H

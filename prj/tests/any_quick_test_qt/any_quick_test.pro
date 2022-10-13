@@ -7,10 +7,10 @@
 
 include ( "$${PWD}/../../common/common_qt/sys_common.pri" )
 
-QT -= gui
-QT -= core
-QT -= widgets
-CONFIG -= qt
+#QT -= gui
+#QT -= core
+#QT -= widgets
+#CONFIG -= qt
 
 LIBS += -pthread
 
