@@ -18,6 +18,8 @@
 
 namespace qtutils { namespace ui{
 
+#define QTUTILS_TITLEBARUSER_DEF_MARGIN_SIZE    2
+
 template <typename WidgetType>
 template<typename... Targs>
 TitlebarUser<WidgetType>::TitlebarUser(Targs... a_args)
@@ -26,6 +28,7 @@ TitlebarUser<WidgetType>::TitlebarUser(Targs... a_args)
       m_pTitleBar(new TitleBar(this)),
       m_pBelowWidget(new QWidget(this))
 {
+    SetMargins(QTUTILS_TITLEBARUSER_DEF_MARGIN_SIZE,QTUTILS_TITLEBARUSER_DEF_MARGIN_SIZE,QTUTILS_TITLEBARUSER_DEF_MARGIN_SIZE,QTUTILS_TITLEBARUSER_DEF_MARGIN_SIZE);
     WidgetType::setWindowFlags(WidgetType::windowFlags()|Qt::FramelessWindowHint);
     m_pTitleBar->setParent(this);
 }
@@ -36,6 +39,77 @@ TitlebarUser<WidgetType>::~TitlebarUser()
 {
     delete m_pBelowWidget;
     delete m_pTitleBar;
+}
+
+
+template <typename WidgetType>
+void TitlebarUser<WidgetType>::SetMargins(int a_leftMargin, int a_rightMargin, int a_topMargin, int a_downMargin)
+{
+    m_leftMargin = a_leftMargin;
+    m_rightMargin = a_rightMargin;
+    m_topMargin = a_topMargin;
+    m_downMargin = a_downMargin;
+    WidgetType::setMinimumSize(m_leftMargin+m_rightMargin+1,m_topMargin+m_downMargin+1);
+}
+
+
+template <typename WidgetType>
+void TitlebarUser<WidgetType>::SetLeftMargin(int a_leftMargin)
+{
+    m_leftMargin = a_leftMargin;
+    WidgetType::setMinimumSize(m_leftMargin+m_rightMargin+1,m_topMargin+m_downMargin+1);
+}
+
+
+template <typename WidgetType>
+void TitlebarUser<WidgetType>::SetRightMargin(int a_rightMargin)
+{
+    m_rightMargin = a_rightMargin;
+    WidgetType::setMinimumSize(m_leftMargin+m_rightMargin+1,m_topMargin+m_downMargin+1);
+}
+
+
+template <typename WidgetType>
+void TitlebarUser<WidgetType>::SetTopMargin(int a_topMargin)
+{
+    m_topMargin = a_topMargin;
+    WidgetType::setMinimumSize(m_leftMargin+m_rightMargin+1,m_topMargin+m_downMargin+1);
+}
+
+
+template <typename WidgetType>
+void TitlebarUser<WidgetType>::SetDownMargin(int a_downMargin)
+{
+    m_downMargin = a_downMargin;
+    WidgetType::setMinimumSize(m_leftMargin+m_rightMargin+1,m_topMargin+m_downMargin+1);
+}
+
+
+template <typename WidgetType>
+int  TitlebarUser<WidgetType>::leftMargin() const
+{
+    return m_leftMargin;
+}
+
+
+template <typename WidgetType>
+int  TitlebarUser<WidgetType>::rightMargin() const
+{
+    return m_rightMargin;
+}
+
+
+template <typename WidgetType>
+int  TitlebarUser<WidgetType>::topMargin() const
+{
+    return m_topMargin;
+}
+
+
+template <typename WidgetType>
+int  TitlebarUser<WidgetType>::downMargin() const
+{
+    return m_downMargin;
 }
 
 
@@ -99,10 +173,12 @@ void TitlebarUser<WidgetType>::ApplyNewSize(const QSize& a_newSize)
 {
     const int cnWidthThis(a_newSize.width());
     const int cnTitlebarHeight(m_pTitleBar->height());
-    m_pTitleBar->move(0,0);
-    m_pTitleBar->resize(cnWidthThis,cnTitlebarHeight);
-    m_pBelowWidget->move(0,cnTitlebarHeight);
-    m_pBelowWidget->resize(cnWidthThis,a_newSize.height()-cnTitlebarHeight);
+    // int            m_leftMargin, m_rightMargin, m_topMargin, m_downMargin;
+    const int cnHmargins(m_leftMargin+m_rightMargin);
+    m_pTitleBar->move(m_leftMargin,m_topMargin);
+    m_pTitleBar->resize(cnWidthThis-cnHmargins,cnTitlebarHeight);
+    m_pBelowWidget->move(m_leftMargin,cnTitlebarHeight+m_topMargin);
+    m_pBelowWidget->resize(cnWidthThis-cnHmargins,a_newSize.height()-cnTitlebarHeight-m_topMargin-m_downMargin);
 }
 
 
