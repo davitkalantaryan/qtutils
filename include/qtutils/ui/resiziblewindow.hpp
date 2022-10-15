@@ -37,12 +37,13 @@ public:
 	void Init2(); 
 	    
 protected:
+    virtual void showEvent(QShowEvent *event) override;
 	virtual void closeEvent(QCloseEvent *event) override;
 	virtual void hideEvent(QHideEvent *event) override;
 	
 private:
 	inline void HideCloseEvent();
-	void show();  // we disable show call
+    inline bool InitAndShowBase();
 	virtual void InitRaw();
 	
 protected:

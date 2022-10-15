@@ -19,6 +19,10 @@
 
 namespace qtutils{ namespace tools{
 
+#ifndef QTUTILS_TOOLS_DBDATA_GETID
+#define QTUTILS_TOOLS_DBDATA_GETID  id
+#endif
+
 
 template <typename Type>
 SharedPtr<Type>::SharedPtr()
@@ -143,7 +147,7 @@ GroupOfType<Type,ContKey,ContType> GroupOfType<Type,ContKey,ContType>::fromQVari
     foreach(elm, aList){
         try{
             Type cr = Type::fromQVariant(elm,a_args...);
-            retCR.AddEntryIfNotExistC(::std::pair<ContKey,Type>(cr->getId(),cr));
+            retCR.AddEntryIfNotExistC(::std::pair<ContKey,Type>(cr->QTUTILS_TOOLS_DBDATA_GETID,cr));
         }
         catch(...){
             //
