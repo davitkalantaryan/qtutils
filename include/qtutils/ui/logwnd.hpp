@@ -17,6 +17,37 @@
 #include <QColor>
 #include <QMessageLogContext>
 
+
+namespace qtutils{ namespace ui{
+
+
+enum class LogTypes {
+    Debug = 0,
+    Info = 1,
+    Warning = 2,
+    Error = 3,
+    Count
+};
+
+
+}}  //  namespace qtutils{ namespace ui{
+
+
+QTUTILS_UI_NTDT_NSP_P1
+
+
+class QTUTILS_EXPORT CategoryNoty final
+{
+public:
+    QString                     name;
+    ::qtutils::ui::LogTypes     type;
+};
+Q_DECLARE_METATYPE(QTUTILS_UI_NTDT_NSP CategoryNoty)
+
+
+QTUTILS_UI_NTDT_NSP_P2
+
+
 namespace qtutils{ namespace ui{
 
 
@@ -25,16 +56,9 @@ class CPPUTILS_DLL_PRIVATE LogWnd_p;
 
 class QTUTILS_EXPORT LogWnd : public ::qtutils::ui::SizeApplyWindow<QWidget>
 {
+    Q_OBJECT
+
 public:
-
-    enum class LogTypes {
-        Debug = 0,
-        Info = 1,
-        Warning = 2,
-        Error = 3,
-        Count
-    };
-
     virtual ~LogWnd() override;
     template<typename... Targs>
     LogWnd(Targs... a_args);
@@ -46,10 +70,13 @@ public:
     static void SetDefaultColor(const LogTypes& a_type, const QColor& a_newColor);
     void SetCategoryColors(const QString& a_categoryName, const QColor* a_newColors, size_t a_count, size_t a_offset=0);
     void SetCategoryColors(const QString& a_categoryName, const LogTypes& a_type, const QColor& a_newColor);
-    void AddLogCategory(const QString& a_categoryName);
+    void AddLogCategory(const QString& a_categoryName, bool a_defaultEnable);
     void RemoveCategory(const QString& a_categoryName);
+    void EnableCategoryType(const QString& a_categoryName, const LogTypes& a_type);
+    void DisableCategoryType(const QString& a_categoryName, const LogTypes& a_type);
+    bool isEnabledCategoryType(const QString& a_categoryName, const LogTypes& a_type);
     void ClearAllCategories();
-    void AddLog(const QString& a_categoryName, QtMsgType a_msgType, const QMessageLogContext& a_ctx, const QString& a_msg);
+    void AddLog(QtMsgType a_msgType, const QMessageLogContext& a_ctx, const QString& a_msg);
     void SetMaxNumberOfLogs(size_t a_logsCount);
 
 protected:
@@ -60,7 +87,14 @@ private:
     static LogWnd_p* ConstructLogger(LogWnd* a_pLogger);
 
 private:
+signals:
+    void CategoryTypeEnabledSignal(QTUTILS_UI_NTDT_NSP CategoryNoty);
+    void CategoryTypeDisabledSignal(QTUTILS_UI_NTDT_NSP CategoryNoty);
+
+private:
     LogWnd_p*const   m_logwnd_data_p;
+
+    friend class LogWnd_p;
 };
 
 

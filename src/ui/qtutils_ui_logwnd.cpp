@@ -30,7 +30,7 @@ public:
 
 typedef ::cpputils::hash::DllHash<QString,::std::shared_ptr<CategoryData> >    HashCategories;
 
-static constexpr size_t s_cunNumberOfLogTypes = static_cast<size_t>(LogWnd::LogTypes::Count);
+static constexpr size_t s_cunNumberOfLogTypes = static_cast<size_t>(LogTypes::Count);
 static QColor           s_defaultColors[s_cunNumberOfLogTypes] = {
     QColor(0,0,190),
     QColor(0,190,0),
@@ -47,7 +47,7 @@ inline bool QTUTILS_UI_LOGWND_BIT_VALUE(uint32_t a_val,const BitNumType& a_bitNu
     return cunVal?true:false;
 }
 
-inline void QTUTILS_UI_LOGWND_SET_BIT_VALUE(uint32_t* a_pVal, const LogWnd::LogTypes& a_bitNum, bool a_newVal){
+inline void QTUTILS_UI_LOGWND_SET_BIT_VALUE(uint32_t* a_pVal, const LogTypes& a_bitNum, bool a_newVal){
     uint32_t mask = 1<<(static_cast<uint32_t>(a_bitNum));
     if(a_newVal){
         *a_pVal |= mask;
@@ -62,7 +62,9 @@ inline void QTUTILS_UI_LOGWND_SET_BIT_VALUE(uint32_t* a_pVal, const LogWnd::LogT
 class CPPUTILS_DLL_PRIVATE CategoryData final
 {
 public:
-    CategoryData(const QString& a_categoryName, LogWnd_p* a_logwnd_data_p);
+    CategoryData(const QString& a_categoryName, LogWnd_p* a_logwnd_data_p, bool a_defaultEnable);
+
+    inline void SetTypeEnable(const LogTypes& a_type, bool a_isEnable);
 
 private:
     void ConnectSignals();
@@ -107,6 +109,7 @@ public:
     inline void CategoryVisibilityChanged(::std::list<SLogStr>::const_iterator a_iter);
     inline void ApplyNewSize(const QSize& a_newSize);
     inline void ClearAllCategories();
+    inline void EmitCategoryTypeChange(const QString& a_categoryName, const LogTypes& a_type, bool a_isEnabled);
 
 public:
     LogWnd*const            m_pParent;
@@ -217,13 +220,13 @@ void LogWnd::SetCategoryColors(const QString& a_categoryName, const LogTypes& a_
 }
 
 
-void LogWnd::AddLogCategory(const QString& a_categoryName)
+void LogWnd::AddLogCategory(const QString& a_categoryName, bool a_defaultEnable)
 {
     size_t unHash;
     const HashCategories::const_iterator citer = m_logwnd_data_p->m_categories.find(a_categoryName,&unHash);
     if(citer!=HashCategories::s_constNullIter){return;} // category is already there
 
-    ::std::shared_ptr<CategoryData> aCategoryData = ::std::shared_ptr<CategoryData>(new CategoryData(a_categoryName,m_logwnd_data_p));
+    ::std::shared_ptr<CategoryData> aCategoryData = ::std::shared_ptr<CategoryData>(new CategoryData(a_categoryName,m_logwnd_data_p,a_defaultEnable));
     m_logwnd_data_p->m_categories.AddEntryWithKnownHashC(::std::pair<QString,::std::shared_ptr<CategoryData> >(a_categoryName,aCategoryData),unHash);
     ApplyNewSize(size());
 
@@ -243,6 +246,33 @@ void LogWnd::RemoveCategory(const QString& a_categoryName)
 }
 
 
+void LogWnd::EnableCategoryType(const QString& a_categoryName, const LogTypes& a_type)
+{
+    const HashCategories::const_iterator citer = m_logwnd_data_p->m_categories.find(a_categoryName);
+    if(citer==HashCategories::s_constNullIter){return;}
+    CategoryData* pCategoryData = citer->second.get();
+    pCategoryData->SetTypeEnable(a_type,true);
+}
+
+
+void LogWnd::DisableCategoryType(const QString& a_categoryName, const LogTypes& a_type)
+{
+    const HashCategories::const_iterator citer = m_logwnd_data_p->m_categories.find(a_categoryName);
+    if(citer==HashCategories::s_constNullIter){return;}
+    CategoryData* pCategoryData = citer->second.get();
+    pCategoryData->SetTypeEnable(a_type,false);
+}
+
+
+bool LogWnd::isEnabledCategoryType(const QString& a_categoryName, const LogTypes& a_type)
+{
+    const HashCategories::const_iterator citer = m_logwnd_data_p->m_categories.find(a_categoryName);
+    if(citer==HashCategories::s_constNullIter){return false;}
+    CategoryData* pCategoryData = citer->second.get();
+    return QTUTILS_UI_LOGWND_BIT_VALUE(pCategoryData->m_flags.b.isEnabledVect,a_type);
+}
+
+
 void LogWnd::ClearAllCategories()
 {
     m_logwnd_data_p->ClearAllCategories();
@@ -255,24 +285,30 @@ static inline size_t QtMsgTypeToIndex(const QtMsgType& a_msgType){
     // enum QtMsgType { QtDebugMsg, QtWarningMsg, QtCriticalMsg, QtFatalMsg, QtInfoMsg, QtSystemMsg = QtCriticalMsg };
     switch(a_msgType){
     case QtDebugMsg:
-        return QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogWnd::LogTypes::Debug);
+        return QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Debug);
     case QtWarningMsg:
-        return QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogWnd::LogTypes::Warning);
+        return QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Warning);
     case QtInfoMsg:
-        return QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogWnd::LogTypes::Info);
+        return QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Info);
         break;
     default:
         break;
     }  //  switch(a_msgType){
-    return QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogWnd::LogTypes::Error);
+    return QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Error);
 }
 
 
-void LogWnd::AddLog(const QString& a_categoryName, QtMsgType a_msgType, const QMessageLogContext& a_ctx, const QString& a_msg)
+void LogWnd::AddLog(QtMsgType a_msgType, const QMessageLogContext& a_ctx, const QString& a_msg)
 {
     static_cast<void>(a_ctx);  // for now this argument is not used
 
-    const HashCategories::const_iterator citer = m_logwnd_data_p->m_categories.find(a_categoryName);
+    if(!a_ctx.category){
+        return;
+    }
+
+    const QString categoryName = QString(a_ctx.category);
+
+    const HashCategories::const_iterator citer = m_logwnd_data_p->m_categories.find(categoryName);
     if(citer==HashCategories::s_constNullIter){return;}
     const CategoryData* pCategoryData = citer->second.get();
 
@@ -400,9 +436,22 @@ inline void LogWnd_p::ClearAllCategories()
 }
 
 
+inline void LogWnd_p::EmitCategoryTypeChange(const QString& a_categoryName, const LogTypes& a_type, bool a_isEnabled)
+{
+    const QTUTILS_UI_NTDT_NSP CategoryNoty aCtgTypeNoty({a_categoryName,a_type});
+
+    if(a_isEnabled){
+        emit m_pParent->CategoryTypeEnabledSignal(aCtgTypeNoty);
+    }
+    else{
+        emit m_pParent->CategoryTypeDisabledSignal(aCtgTypeNoty);
+    }
+}
+
+
 /*/////////////////////////////////////////////////////////////////////////////////*/
 
-CategoryData::CategoryData(const QString& a_categoryName, LogWnd_p* a_logwnd_data_p)
+CategoryData::CategoryData(const QString& a_categoryName, LogWnd_p* a_logwnd_data_p, bool a_defaultEnable)
     :
       m_categoryName(a_categoryName),
       m_categoryControlWgt(a_logwnd_data_p->m_pParent),
@@ -429,55 +478,55 @@ CategoryData::CategoryData(const QString& a_categoryName, LogWnd_p* a_logwnd_dat
     nMaxHeight = m_categoryNameLbl.height();
 
     settingsKey = a_logwnd_data_p->m_settingsKey + "/" + a_categoryName + "/Debug/isEnabled";
-    isEnabled = aSettings.value(settingsKey,true).toBool();
-    QTUTILS_UI_LOGWND_SET_BIT_VALUE(&(m_flags.b.isEnabledVect),LogWnd::LogTypes::Debug,isEnabled);
-    m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogWnd::LogTypes::Debug)].setParent(&m_categoryControlWgt);
-    m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogWnd::LogTypes::Debug)].setChecked(isEnabled);
-    m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogWnd::LogTypes::Debug)].setText("Debug");
-    m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogWnd::LogTypes::Debug)].
-            setFixedSize(m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogWnd::LogTypes::Debug)].sizeHint());
-    m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogWnd::LogTypes::Debug)].move(nX,0);
-    nX += m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogWnd::LogTypes::Debug)].width();
-    nNextHeight = m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogWnd::LogTypes::Debug)].height();
+    isEnabled = aSettings.value(settingsKey,a_defaultEnable).toBool();
+    QTUTILS_UI_LOGWND_SET_BIT_VALUE(&(m_flags.b.isEnabledVect),LogTypes::Debug,isEnabled);
+    m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Debug)].setParent(&m_categoryControlWgt);
+    m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Debug)].setChecked(isEnabled);
+    m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Debug)].setText("Debug");
+    m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Debug)].
+            setFixedSize(m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Debug)].sizeHint());
+    m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Debug)].move(nX,0);
+    nX += m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Debug)].width();
+    nNextHeight = m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Debug)].height();
     nMaxHeight = (nNextHeight>nMaxHeight)?nNextHeight:nMaxHeight;
 
     settingsKey = a_logwnd_data_p->m_settingsKey + "/" + a_categoryName + "/Info/isEnabled";
-    isEnabled = aSettings.value(settingsKey,true).toBool();
-    QTUTILS_UI_LOGWND_SET_BIT_VALUE(&(m_flags.b.isEnabledVect),LogWnd::LogTypes::Info,isEnabled);
-    m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogWnd::LogTypes::Info)].setParent(&m_categoryControlWgt);
-    m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogWnd::LogTypes::Info)].setChecked(isEnabled);
-    m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogWnd::LogTypes::Info)].setText("Info");
-    m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogWnd::LogTypes::Info)].
-            setFixedSize(m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogWnd::LogTypes::Info)].sizeHint());
-    m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogWnd::LogTypes::Info)].move(nX,0);
-    nX += m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogWnd::LogTypes::Info)].width();
-    nNextHeight = m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogWnd::LogTypes::Info)].height();
+    isEnabled = aSettings.value(settingsKey,a_defaultEnable).toBool();
+    QTUTILS_UI_LOGWND_SET_BIT_VALUE(&(m_flags.b.isEnabledVect),LogTypes::Info,isEnabled);
+    m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Info)].setParent(&m_categoryControlWgt);
+    m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Info)].setChecked(isEnabled);
+    m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Info)].setText("Info");
+    m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Info)].
+            setFixedSize(m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Info)].sizeHint());
+    m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Info)].move(nX,0);
+    nX += m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Info)].width();
+    nNextHeight = m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Info)].height();
     nMaxHeight = (nNextHeight>nMaxHeight)?nNextHeight:nMaxHeight;
 
     settingsKey = a_logwnd_data_p->m_settingsKey + "/" + a_categoryName + "/Warning/isEnabled";
-    isEnabled = aSettings.value(settingsKey,true).toBool();
-    QTUTILS_UI_LOGWND_SET_BIT_VALUE(&(m_flags.b.isEnabledVect),LogWnd::LogTypes::Warning,isEnabled);
-    m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogWnd::LogTypes::Warning)].setParent(&m_categoryControlWgt);
-    m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogWnd::LogTypes::Warning)].setChecked(isEnabled);
-    m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogWnd::LogTypes::Warning)].setText("Warning");
-    m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogWnd::LogTypes::Warning)].
-            setFixedSize(m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogWnd::LogTypes::Warning)].sizeHint());
-    m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogWnd::LogTypes::Warning)].move(nX,0);
-    nX += m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogWnd::LogTypes::Warning)].width();
-    nNextHeight = m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogWnd::LogTypes::Warning)].height();
+    isEnabled = aSettings.value(settingsKey,a_defaultEnable).toBool();
+    QTUTILS_UI_LOGWND_SET_BIT_VALUE(&(m_flags.b.isEnabledVect),LogTypes::Warning,isEnabled);
+    m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Warning)].setParent(&m_categoryControlWgt);
+    m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Warning)].setChecked(isEnabled);
+    m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Warning)].setText("Warning");
+    m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Warning)].
+            setFixedSize(m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Warning)].sizeHint());
+    m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Warning)].move(nX,0);
+    nX += m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Warning)].width();
+    nNextHeight = m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Warning)].height();
     nMaxHeight = (nNextHeight>nMaxHeight)?nNextHeight:nMaxHeight;
 
     settingsKey = a_logwnd_data_p->m_settingsKey + "/" + a_categoryName + "/Error/isEnabled";
-    isEnabled = aSettings.value(settingsKey,true).toBool();
-    QTUTILS_UI_LOGWND_SET_BIT_VALUE(&(m_flags.b.isEnabledVect),LogWnd::LogTypes::Error,isEnabled);
-    m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogWnd::LogTypes::Error)].setParent(&m_categoryControlWgt);
-    m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogWnd::LogTypes::Error)].setChecked(isEnabled);
-    m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogWnd::LogTypes::Error)].setText("Error");
-    m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogWnd::LogTypes::Error)].
-            setFixedSize(m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogWnd::LogTypes::Error)].sizeHint());
-    m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogWnd::LogTypes::Error)].move(nX,0);
-    nX += m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogWnd::LogTypes::Error)].width();
-    nNextHeight = m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogWnd::LogTypes::Error)].height();
+    isEnabled = aSettings.value(settingsKey,a_defaultEnable).toBool();
+    QTUTILS_UI_LOGWND_SET_BIT_VALUE(&(m_flags.b.isEnabledVect),LogTypes::Error,isEnabled);
+    m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Error)].setParent(&m_categoryControlWgt);
+    m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Error)].setChecked(isEnabled);
+    m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Error)].setText("Error");
+    m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Error)].
+            setFixedSize(m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Error)].sizeHint());
+    m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Error)].move(nX,0);
+    nX += m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Error)].width();
+    nNextHeight = m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Error)].height();
     nMaxHeight = (nNextHeight>nMaxHeight)?nNextHeight:nMaxHeight;
 
     m_categoryControlWgt.setMinimumWidth(nX);
@@ -486,48 +535,55 @@ CategoryData::CategoryData(const QString& a_categoryName, LogWnd_p* a_logwnd_dat
 }
 
 
+static const char* s_setKeyNameExt[s_cunNumberOfLogTypes] = {
+    "/Debug/",
+    "/Info/",
+    "/Warning/",
+    "/Error/"
+};
+
+
+inline void CategoryData::SetTypeEnable(const LogTypes& a_type, bool a_isEnable)
+{
+    const bool isChecked = QTUTILS_UI_LOGWND_BIT_VALUE(m_flags.b.isEnabledVect,a_type);
+    if(isChecked!=a_isEnable){
+        QTUTILS_UI_LOGWND_SET_BIT_VALUE(&(m_flags.b.isEnabledVect),a_type,a_isEnable);
+        m_logwnd_data_p->CategoryVisibilityChanged(m_logwnd_data_p->m_logs.begin());
+        ::qtutils::Settings aSettings;
+        const QString settingsKey = m_logwnd_data_p->m_settingsKey + "/" + m_categoryName +
+                s_setKeyNameExt[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(a_type)] + "isEnabled";
+        aSettings.setValue(settingsKey,a_isEnable);
+        m_logwnd_data_p->EmitCategoryTypeChange(m_categoryName,a_type,a_isEnable);
+    }
+}
+
+
 void CategoryData::ConnectSignals()
 {
     QCheckBox* pNextCheckBox;
 
-    pNextCheckBox = &(m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogWnd::LogTypes::Debug)]);
+    pNextCheckBox = &(m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Debug)]);
     QObject::connect(pNextCheckBox,&QCheckBox::stateChanged,&m_categoryControlWgt,[this](int a_state){
         const bool isCheckedByGui = (a_state != Qt::Unchecked);
-        const bool isChecked = QTUTILS_UI_LOGWND_BIT_VALUE(m_flags.b.isEnabledVect,LogWnd::LogTypes::Debug);
-        if(isChecked!=isCheckedByGui){
-            QTUTILS_UI_LOGWND_SET_BIT_VALUE(&(m_flags.b.isEnabledVect),LogWnd::LogTypes::Debug,isCheckedByGui);
-            m_logwnd_data_p->CategoryVisibilityChanged(m_logwnd_data_p->m_logs.begin());
-        }
+        SetTypeEnable(LogTypes::Debug,isCheckedByGui);
     });
 
-    pNextCheckBox = &(m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogWnd::LogTypes::Info)]);
+    pNextCheckBox = &(m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Info)]);
     QObject::connect(pNextCheckBox,&QCheckBox::stateChanged,&m_categoryControlWgt,[this](int a_state){
         const bool isCheckedByGui = (a_state != Qt::Unchecked);
-        const bool isChecked = QTUTILS_UI_LOGWND_BIT_VALUE(m_flags.b.isEnabledVect,LogWnd::LogTypes::Info);
-        if(isChecked!=isCheckedByGui){
-            QTUTILS_UI_LOGWND_SET_BIT_VALUE(&(m_flags.b.isEnabledVect),LogWnd::LogTypes::Info,isCheckedByGui);
-            m_logwnd_data_p->CategoryVisibilityChanged(m_logwnd_data_p->m_logs.begin());
-        }
+        SetTypeEnable(LogTypes::Info,isCheckedByGui);
     });
 
-    pNextCheckBox = &(m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogWnd::LogTypes::Warning)]);
+    pNextCheckBox = &(m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Warning)]);
     QObject::connect(pNextCheckBox,&QCheckBox::stateChanged,&m_categoryControlWgt,[this](int a_state){
         const bool isCheckedByGui = (a_state != Qt::Unchecked);
-        const bool isChecked = QTUTILS_UI_LOGWND_BIT_VALUE(m_flags.b.isEnabledVect,LogWnd::LogTypes::Warning);
-        if(isChecked!=isCheckedByGui){
-            QTUTILS_UI_LOGWND_SET_BIT_VALUE(&(m_flags.b.isEnabledVect),LogWnd::LogTypes::Warning,isCheckedByGui);
-            m_logwnd_data_p->CategoryVisibilityChanged(m_logwnd_data_p->m_logs.begin());
-        }
+        SetTypeEnable(LogTypes::Warning,isCheckedByGui);
     });
 
-    pNextCheckBox = &(m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogWnd::LogTypes::Error)]);
+    pNextCheckBox = &(m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Error)]);
     QObject::connect(pNextCheckBox,&QCheckBox::stateChanged,&m_categoryControlWgt,[this](int a_state){
         const bool isCheckedByGui = (a_state != Qt::Unchecked);
-        const bool isChecked = QTUTILS_UI_LOGWND_BIT_VALUE(m_flags.b.isEnabledVect,LogWnd::LogTypes::Error);
-        if(isChecked!=isCheckedByGui){
-            QTUTILS_UI_LOGWND_SET_BIT_VALUE(&(m_flags.b.isEnabledVect),LogWnd::LogTypes::Error,isCheckedByGui);
-            m_logwnd_data_p->CategoryVisibilityChanged(m_logwnd_data_p->m_logs.begin());
-        }
+        SetTypeEnable(LogTypes::Error,isCheckedByGui);
     });
 }
 
@@ -537,10 +593,16 @@ void CategoryData::ConnectSignals()
 QtutilsUiLogwndIniter::QtutilsUiLogwndIniter()
 {
     ::qtutils::Settings aSettings;
-    s_defaultColors[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogWnd::LogTypes::Debug)]    = aSettings.value("QtutilsUiLogwndGlobalColors/Debug",   QColor(0,0,190))  .value<QColor>();
-    s_defaultColors[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogWnd::LogTypes::Info)]     = aSettings.value("QtutilsUiLogwndGlobalColors/Info",    QColor(0,190,0))  .value<QColor>();
-    s_defaultColors[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogWnd::LogTypes::Warning)]  = aSettings.value("QtutilsUiLogwndGlobalColors/Warning", QColor(100,100,0)).value<QColor>();
-    s_defaultColors[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogWnd::LogTypes::Error)]    = aSettings.value("QtutilsUiLogwndGlobalColors/Error",   QColor(190,0,0))  .value<QColor>();
+    s_defaultColors[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Debug)]    = aSettings.value("QtutilsUiLogwndGlobalColors/Debug",   QColor(0,0,190))  .value<QColor>();
+    s_defaultColors[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Info)]     = aSettings.value("QtutilsUiLogwndGlobalColors/Info",    QColor(0,190,0))  .value<QColor>();
+    s_defaultColors[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Warning)]  = aSettings.value("QtutilsUiLogwndGlobalColors/Warning", QColor(100,100,0)).value<QColor>();
+    s_defaultColors[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Error)]    = aSettings.value("QtutilsUiLogwndGlobalColors/Error",   QColor(190,0,0))  .value<QColor>();
+
+    s_setKeyNameExt[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Debug)]   = "/Debug/";
+    s_setKeyNameExt[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Info)]    = "/Info/";
+    s_setKeyNameExt[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Warning)] = "/Warning/";
+    s_setKeyNameExt[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Error)]   = "/Debug/";
+
 }
 
 
