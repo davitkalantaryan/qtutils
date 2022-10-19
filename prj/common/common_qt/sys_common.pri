@@ -7,6 +7,8 @@
 #
 
 
+message("!!! $${PWD}/sys_common.pri")
+
 isEmpty( qtutilsRepoRoot ) {
 	qtutilsRepoRoot = $${PWD}/../../..
 }
@@ -15,8 +17,9 @@ isEmpty( repositoryRoot ) {
 	repositoryRoot = $${qtutilsRepoRoot}
 }
 
-cpputilsRepoRoot=$${qtutilsRepoRoot}/contrib/cpputils
-
 !isEmpty(QTUTILS_MODIFIED_APP_NAME) : TARGET = $${QTUTILS_MODIFIED_APP_NAME}
 
+isEmpty( cpputilsRepoRoot ){
+        cpputilsRepoRoot=$${qtutilsRepoRoot}/contrib/cpputils
+}
 include("$${cpputilsRepoRoot}/prj/common/common_qt/sys_common.pri")
