@@ -17,6 +17,6 @@
 
 namespace qtutils { namespace core{
 
-QTUTILS_EXPORT QList<QJsonObject> ParseJWT(const QByteArray& a_inpBA);
+QTUTILS_EXPORT QList<QJsonObject> ParseJWT(const QByteArray& a_inpBA, QByteArray* a_pSignatureBuff);
 
 }}  // namespace qtutils { namespace core{

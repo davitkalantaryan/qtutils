@@ -81,16 +81,19 @@ static inline TypeSharedPtr FromQVariant(const QVariant& a_qv, int* a_pnChanges=
         return *this;                                           \
     }
 
-#define QTUTILS_TOOLS_FIND_FIELD_RAW(_nChanges,_variantMap, _field,_keyName,_fieldType)   \
+#define QTUTILS_TOOLS_FIND_FIELD_RAW(_nChanges,_variantMap,_field,_keyName,_fieldType,_cont)   \
     if((_variantMap).contains(_keyName)){                                       \
         _fieldType newVal((_variantMap).value(_keyName).value<_fieldType>());   \
-        if(newVal!=this->_field){                                               \
-            this->_field = (::std::move(newVal));                               \
+        if(newVal!=(_cont)._field){                                               \
+            (_cont)._field = (::std::move(newVal));                               \
             ++(_nChanges);                                                      \
         }                                                                       \
     }
 
-#define QTUTILS_TOOLS_FIND_FIELD(_field)     QTUTILS_TOOLS_FIND_FIELD_RAW(nChanges,a_variantMap,_field,#_field,decltype(this->_field))
+#define QTUTILS_TOOLS_FIND_FIELD02(_vm,_cont,_field)    \
+    QTUTILS_TOOLS_FIND_FIELD_RAW(nChanges,(_vm),_field,#_field,decltype((_cont)._field),_cont)
+
+#define QTUTILS_TOOLS_FIND_FIELD(_field)    QTUTILS_TOOLS_FIND_FIELD02(a_variantMap,*this,_field)
 
 
 }}  //  namespace qtutils{ namespace tools{

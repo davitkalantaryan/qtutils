@@ -22,7 +22,7 @@ static inline QJsonObject ParseJWTPart(const QByteArray& a_inpArray)
 }
 
 
-QTUTILS_EXPORT QList<QJsonObject> ParseJWT(const QByteArray& a_inpBA)
+QTUTILS_EXPORT QList<QJsonObject> ParseJWT(const QByteArray& a_inpBA, QByteArray* a_pSignatureBuff)
 {
     const QList<QByteArray> inpList = a_inpBA.split('.');
 
@@ -31,9 +31,9 @@ QTUTILS_EXPORT QList<QJsonObject> ParseJWT(const QByteArray& a_inpBA)
     }
 
     QList<QJsonObject> retList;
-    for(int i(0); i<3; ++i){
-        retList.push_back(ParseJWTPart(inpList.at(i)));
-    }
+    retList.push_back(ParseJWTPart(inpList.at(0)));
+    retList.push_back(ParseJWTPart(inpList.at(1)));
+    if(a_pSignatureBuff){*a_pSignatureBuff=inpList.at(2);}
 
     return retList;
 }
