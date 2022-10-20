@@ -19,8 +19,10 @@ namespace qtutils { namespace ui{
 
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 typedef QEvent  EnterEvent;
+#define qtutils_pos_fnc01   pos
 #else
 typedef QEnterEvent  EnterEvent;
+#define qtutils_pos_fnc01   position().toPoint
 #endif
 
 }}  // namespace qtutils { namespace ui{

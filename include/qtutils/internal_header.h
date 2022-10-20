@@ -21,10 +21,10 @@
 
 // https://gcc.gnu.org/bugzilla/show_bug.cgi?id=56480
 #ifdef CPPUTILS_GCC_BUG_56480
-#define QTUTILS_UI_NTDT             ::
+#define QTUTILS_UI_NTDT_NSP         ::
 #define QTUTILS_UI_NTDT_NSP_P1
 #define QTUTILS_UI_NTDT_NSP_P2
-#define QTUTILS_CORE_NTDT           ::
+#define QTUTILS_CORE_NTDT_NSP       ::
 #define QTUTILS_CORE_NTDT_NSP_P1
 #define QTUTILS_CORE_NTDT_NSP_P2
 #else
