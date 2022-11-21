@@ -105,7 +105,9 @@ void GroupOfType<Type,ContKey,ContType>::TakeFromOtherContainer(GroupOfType& a_m
 template <typename Type, typename ContKey,typename ContType>
 GroupOfType<Type,ContKey,ContType>& GroupOfType<Type,ContKey,ContType>::operator=(GroupOfType&& a_mM)
 {
-    TakeFromOtherContainer(a_mM);
+    //TakeFromOtherContainer(a_mM);
+    // todo: fix upper line
+    ContType::operator=(a_mM);
     return *this;
 }
 
