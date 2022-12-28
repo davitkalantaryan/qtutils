@@ -139,10 +139,8 @@ void TabBar::setCurrentIndex(int a_index)
 void TabBar::OrderAllTabs()
 {
     TypeHash::iterator iter;
-    const int cnWidth(width());
     const size_t tabsCount = m_tabs.size();
-    const int allTabsLen = int(tabsCount)*m_tabsWidth;
-    int moveToX = (allTabsLen<cnWidth)?((cnWidth-allTabsLen)/2) : 0;
+    int moveToX = 0;
 
     for(size_t i(0); i<tabsCount;++i,moveToX+=m_tabsWidth){
         iter = m_tabs[i];

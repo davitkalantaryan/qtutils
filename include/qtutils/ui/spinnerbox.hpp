@@ -19,7 +19,7 @@ namespace qtutils { namespace ui{
 
 class CPPUTILS_DLL_PRIVATE SpinnerBox_p;
 
-class SpinnerBox QTUTILS_EXPORT : public QLabel
+class QTUTILS_EXPORT SpinnerBox : public QLabel
 {
 public:
 	template<typename... Targs>

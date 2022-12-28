@@ -31,6 +31,15 @@ public:
     void SetBelowWidget(QWidget* a_belowWidget);
     void ReleaseOwnershipOfBelowWidget();
     QWidget* belowWidget()const;
+    void SetMargins(int a_leftMargin, int a_rightMargin, int a_topMargin, int a_downMargin);
+    void SetLeftMargin(int a_leftMargin);
+    void SetRightMargin(int a_rightMargin);
+    void SetTopMargin(int a_topMargin);
+    void SetDownMargin(int a_downMargin);
+    int  leftMargin() const;
+    int  rightMargin() const;
+    int  topMargin() const;
+    int  downMargin() const;
 
 protected:
     void ApplyNewSize(const QSize& a_newSize) override;
@@ -38,6 +47,7 @@ protected:
 protected:
     TitleBar*      m_pTitleBar;
     QWidget*       m_pBelowWidget;
+    int            m_leftMargin, m_rightMargin, m_topMargin, m_downMargin;
 };
 
 

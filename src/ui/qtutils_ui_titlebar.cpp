@@ -6,6 +6,7 @@
 //
 
 #include <qtutils/ui/titlebar.hpp>
+#include <qtutils/version_resolving.h>
 #include <qtutils/disable_utils_warnings.h>
 #include <functional>
 #include <QResizeEvent>
@@ -111,9 +112,9 @@ void TitleBar::mousePressEvent(QMouseEvent* a_event)
             pParent = pParentTmp;
             pParentTmp = pParent->parentWidget();
         }
-        m_cursorStartPoint = pParent->pos() - a_event->globalPos();
+        m_cursorStartPoint = pParent->pos() - QMouseEventToGlobalPosition(a_event);
 #else
-        m_cursorStartPoint = m_parent->pos() - a_event->globalPos();
+        m_cursorStartPoint = m_parent->pos() - QMouseEventToGlobalPosition(a_event);
 #endif
     }
     SizeApplyWindow<QWidget>::mousePressEvent(a_event);
@@ -129,9 +130,9 @@ void TitleBar::mouseMoveEvent(QMouseEvent* a_event)
             pParent = pParentTmp;
             pParentTmp = pParent->parentWidget();
         }
-        pParent->move(m_cursorStartPoint + a_event->globalPos());
+        pParent->move(m_cursorStartPoint + QMouseEventToGlobalPosition(a_event));
 #else
-        m_parent->move(m_cursorStartPoint + a_event->globalPos());
+        m_parent->move(m_cursorStartPoint + QMouseEventToGlobalPosition(a_event));
 #endif
     }
     SizeApplyWindow<QWidget>::mouseMoveEvent(a_event);

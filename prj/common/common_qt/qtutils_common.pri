@@ -7,4 +7,6 @@
 #
 
 
-INCLUDEPATH += $${PWD}/../../../include
+message("!!! $${PWD}/qtutils_common.pri")
+
+include("$${PWD}/flags_common.pri")

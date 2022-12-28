@@ -73,47 +73,50 @@ void ResizibleWindowRaw<WidgetType>::InitRaw()
 
 
 template <typename WidgetType>
-void ResizibleWindowRaw<WidgetType>::show()
-{
-}
-
-template <typename WidgetType>
 void ResizibleWindowRaw<WidgetType>::InitAndShow()
 {
-	m_settingsKey = typeid(*this).name()+QString::number(m_flags.b.instanceNumber);
-	
-	if(m_flags.b.initNotCalled){
-		m_flags.b2.initCalledOrNot = CPPUTILS_MAKE_BITS_POSITIVE;
-		this->InitRaw();
-	}
-	
-	Settings aSettings;
-	bool bIsMaximized = false;
-	bool bIsMinimized = false;
-		
-	if(aSettings.contains(m_settingsKey+QTUTILS_RSBL_WND_POS_KEY)){
-		const QPoint aPos = aSettings.value(m_settingsKey+QTUTILS_RSBL_WND_POS_KEY).toPoint();
-		WidgetType::move(aPos);
-	}
-		
-	if(aSettings.contains(m_settingsKey+QTUTILS_RSBL_WND_IS_MAXIMIZED_KEY)){
-		bIsMaximized = aSettings.value(m_settingsKey+QTUTILS_RSBL_WND_IS_MAXIMIZED_KEY).toBool();
-	}
-	
-	if(aSettings.contains(m_settingsKey+QTUTILS_RSBL_WND_IS_MINIMIZED_KEY)){
-		bIsMinimized = aSettings.value(m_settingsKey+QTUTILS_RSBL_WND_IS_MINIMIZED_KEY).toBool();
-	}
-	
-	
-	if(bIsMaximized){
-		WidgetType::showMaximized();
-	}
-	else if(bIsMinimized){
-		WidgetType::showMinimized();
-	}
-	else{
-		WidgetType::show();
-	}
+    if(InitAndShowBase()){
+        WidgetType::show();
+    }
+}
+
+
+template <typename WidgetType>
+inline bool ResizibleWindowRaw<WidgetType>::InitAndShowBase()
+{
+    if(m_flags.b.initNotCalled){
+        m_flags.b2.initCalledOrNot = CPPUTILS_MAKE_BITS_POSITIVE;
+        m_settingsKey = typeid(*this).name()+QString::number(m_flags.b.instanceNumber);
+        this->InitRaw();
+    }
+
+    Settings aSettings;
+    bool bIsMaximized = false;
+    bool bIsMinimized = false;
+
+    if(aSettings.contains(m_settingsKey+QTUTILS_RSBL_WND_POS_KEY)){
+        const QPoint aPos = aSettings.value(m_settingsKey+QTUTILS_RSBL_WND_POS_KEY).toPoint();
+        WidgetType::move(aPos);
+    }
+
+    if(aSettings.contains(m_settingsKey+QTUTILS_RSBL_WND_IS_MAXIMIZED_KEY)){
+        bIsMaximized = aSettings.value(m_settingsKey+QTUTILS_RSBL_WND_IS_MAXIMIZED_KEY).toBool();
+    }
+
+    if(aSettings.contains(m_settingsKey+QTUTILS_RSBL_WND_IS_MINIMIZED_KEY)){
+        bIsMinimized = aSettings.value(m_settingsKey+QTUTILS_RSBL_WND_IS_MINIMIZED_KEY).toBool();
+    }
+
+
+    if(bIsMaximized){
+        WidgetType::showMaximized();
+        return false;
+    }
+    else if(bIsMinimized){
+        WidgetType::showMinimized();
+        return false;
+    }
+    return true;
 }
 
 
@@ -144,6 +147,14 @@ inline void ResizibleWindowRaw<WidgetType>::HideCloseEvent()
         }
         m_flags.b2.hideCalledOrNot =  CPPUTILS_MAKE_BITS_POSITIVE;
     }
+}
+
+
+template <typename WidgetType>
+void ResizibleWindowRaw<WidgetType>::showEvent(QShowEvent* a_event)
+{
+    InitAndShowBase();
+    WidgetType::showEvent(a_event);
 }
 
 
