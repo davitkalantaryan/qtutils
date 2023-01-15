@@ -8,7 +8,7 @@
 #ifndef INCLUDE_QTUTILS_INTERNAL_HEADER_H
 #define INCLUDE_QTUTILS_INTERNAL_HEADER_H
 
-#include <cpputils/internal_header.h>
+#include <cinternal/internal_header.h>
 
 
 #if defined(CPPUTILS_EMSCRIPTEN_IS_USED) && !defined(FORCE_USE_STANDARD_DB)
