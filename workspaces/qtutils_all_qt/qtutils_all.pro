@@ -15,8 +15,9 @@ include ( "$${repositoryRoot}/prj/common/common_qt/sys_common.pri" )
 SUBDIRS		+=	"$${repositoryRoot}/prj/tests/any_quick_test_qt/any_quick_test.pro"
 SUBDIRS		+=	"$${repositoryRoot}/prj/tests/googletest_mult/googletest_getter.pro"
 
-cpputilsFromHere{
-	SUBDIRS	+= "$${repositoryRoot}/contrib/cpputils/workspaces/cpputils_qt/cpputils.pro"
+cpputilsFromHere
+{
+        SUBDIRS	+= "$${repositoryRoot}/contrib/cpputils/workspaces/cpputils_all_qt/cpputils_all.pro"
 }
 
 OTHER_FILES += $$files($${repositoryRoot}/scripts/*.bat,true)
