@@ -16,12 +16,12 @@ COMMON_SRC_DIR=$(repoRootPath)/src/core
 GTEST_SRCS	= $(shell find $(GTEST_SRC_DIR) -name "*.cpp")
 #COMMON_SRCS	= $(shell find $(COMMON_SRC_DIR) -name "*.cpp")
 
-CPPFLAGS += -I$(repoRootPathCppUtils)/contrib/googletest/googletest/include
+CPPFLAGS += -I$(cpputilsRepoRoot)/contrib/googletest/googletest/include
 # c=+ 11 is needed for google test
 CPPFLAGS += -std=c++11
 
-LIBS += $(repoRootPathCppUtils)/sys/$(lsbCode)/$(Configuration)/lib/libgtest_main$(nameExtension).a
-LIBS += $(repoRootPathCppUtils)/sys/$(lsbCode)/$(Configuration)/lib/libgtest$(nameExtension).a
+LIBS += $(cpputilsRepoRoot)/sys/$(lsbCode)/$(Configuration)/lib/libgtest_main$(nameExtension).a
+LIBS += $(cpputilsRepoRoot)/sys/$(lsbCode)/$(Configuration)/lib/libgtest$(nameExtension).a
 LIBS += -pthread
 
 all: $(repoRootPath)/sys/$(lsbCode)/$(Configuration)/test/$(targetName)

@@ -1,11 +1,12 @@
 #
-# file:			any_quick_test.pro
-# path:			prj/tests/any_quick_test_qt/any_quick_test.pro
+# file:		any_quick_test.pro
+# path:		prj/tests/any_quick_test_qt/any_quick_test.pro
 # created on:	2021 Mar 07
 # created by:	Davit Kalantaryan
 #
 
 include ( "$${PWD}/../../common/common_qt/sys_common.pri" )
+include ( "$${PWD}/../../common/common_qt/flags_common.pri" )
 
 #QT -= gui
 #QT -= core

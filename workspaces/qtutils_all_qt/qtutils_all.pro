@@ -17,7 +17,7 @@ SUBDIRS		+=	"$${repositoryRoot}/prj/tests/googletest_mult/googletest_getter.pro"
 
 cpputilsFromHere
 {
-	SUBDIRS	+= "$${repositoryRoot}/contrib/cpputils/workspaces/cpputils_qt/cpputils.pro"
+        SUBDIRS	+= "$${repositoryRoot}/contrib/cpputils/workspaces/cpputils_all_qt/cpputils_all.pro"
 }
 
 OTHER_FILES += $$files($${repositoryRoot}/scripts/*.bat,true)
