@@ -58,7 +58,7 @@ template <typename WidgetType>
 void ResizibleWindowRaw<WidgetType>::Init2()
 {
 	if(m_flags.b.initNotCalled){
-		m_flags.b2.initCalledOrNot = CPPUTILS_MAKE_BITS_POSITIVE;
+        m_flags.b2.initCalledOrNot = CPPUTILS_MAKE_BITS_TRUE;
 		m_settingsKey = typeid(*this).name()+QString::number(m_flags.b.instanceNumber);
 		this->InitRaw();
 	}
@@ -85,7 +85,7 @@ template <typename WidgetType>
 inline bool ResizibleWindowRaw<WidgetType>::InitAndShowBase()
 {
     if(m_flags.b.initNotCalled){
-        m_flags.b2.initCalledOrNot = CPPUTILS_MAKE_BITS_POSITIVE;
+        m_flags.b2.initCalledOrNot = CPPUTILS_MAKE_BITS_TRUE;
         m_settingsKey = typeid(*this).name()+QString::number(m_flags.b.instanceNumber);
         this->InitRaw();
     }
@@ -145,7 +145,7 @@ inline void ResizibleWindowRaw<WidgetType>::HideCloseEvent()
             aSettings.setValue(m_settingsKey+QTUTILS_RSBL_WND_IS_MINIMIZED_KEY,false);
             aSettings.setValue(m_settingsKey+QTUTILS_RSBL_WND_SIZE_KEY,WidgetType::size());
         }
-        m_flags.b2.hideCalledOrNot =  CPPUTILS_MAKE_BITS_POSITIVE;
+        m_flags.b2.hideCalledOrNot =  CPPUTILS_MAKE_BITS_TRUE;
     }
 }
 
