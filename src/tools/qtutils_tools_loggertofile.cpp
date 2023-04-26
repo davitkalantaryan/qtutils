@@ -141,7 +141,7 @@ void LoggerToFile_p::MessageHandler(QtMsgType a_msgType, const QMessageLogContex
     if(logFile_p && logFile_p->isOpen()){
         QTextStream out(logFile_p);
         out << a_msg<< "\n";
-#ifndef NDEBUG
+#if defined(QTUTILS_LOG_TO_FILE_CALL_DEFAULT_LOGS)
         QtMessageHandler defHandler = ::qtutils::Logger::DefaultHandler();
         (*defHandler)(a_msgType,a_ctx,a_msg);
 #endif
