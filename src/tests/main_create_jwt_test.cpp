@@ -15,9 +15,10 @@ int main(void)
 {
     QByteArray baSignature;
     const QVariantMap payloadVM = {
-        {"email",QString("harut1225@gmail.com")},
+        {"email","harut1225@gmail.com"},
         {"exp",1682268930},
         {"iat",1682254530},
+        {"roles",QVariantList({"ROLE_USER"})},
         {"type",1},
     };
     const QByteArray jwtToken = ::qtutils::core::CreateJWT("RS256",payloadVM,::qtutils::core::GenerateJwtSecret01(),&baSignature);
