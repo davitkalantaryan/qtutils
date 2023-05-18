@@ -23,4 +23,11 @@ AppExiter::~AppExiter()
 }
 
 
+AppExiterPtr::AppExiterPtr()
+    :
+      ::std::shared_ptr<AppExiter>(new AppExiter())
+{
+}
+
+
 }}  // namespace qtutils { namespace core{

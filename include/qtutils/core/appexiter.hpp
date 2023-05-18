@@ -21,7 +21,12 @@ public:
 	~AppExiter();
 };
 
-typedef ::std::shared_ptr<AppExiter>	AppExiterPtr;
+
+class QTUTILS_EXPORT AppExiterPtr : public ::std::shared_ptr<AppExiter>
+{
+public:
+    AppExiterPtr();
+};
 
 
 }}  // namespace qtutils { namespace core{
