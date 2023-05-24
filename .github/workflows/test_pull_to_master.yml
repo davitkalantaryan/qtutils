@@ -14,9 +14,9 @@ jobs:
         runs-on: ${{ matrix.os }}
         strategy:
           matrix:
-            os: [ubuntu-18.04, ubuntu-20.04]
+	    os: [ubuntu-20.04, ubuntu-22.04, macos-latest]
         steps:
-            - uses: actions/checkout@v2
+	    - uses: actions/checkout@v3
            
             - name: Preparing 3rd party libraries for ${{ matrix.os }}
               run: ./scripts/.cicd/unix_prebuild.sh
@@ -34,7 +34,7 @@ jobs:
         # runs-on: windows-latest
         runs-on: windows-2019
         steps:
-            - uses: actions/checkout@v2
+	    - uses: actions/checkout@v3
 
             - name: Setup MSBuild.exe
               uses: microsoft/setup-msbuild@v1.0.2
@@ -51,19 +51,3 @@ jobs:
 
             #- name: running unittest for windows
               #run: .\scripts\.cicd\windows_test_pull_to_master_unittest.bat
-
-    # do we need mac ?
-    mac:
-        runs-on: macos-latest
-        steps:
-            - uses: actions/checkout@v2
-
-            - name: Preparing 3rd party libraries for mac
-              run: ./scripts/.cicd/unix_prebuild.sh
-
-            - name: Compiling for mac
-              run: ./scripts/.cicd/unix_test_pull_to_master_build.sh CPPUTILS_DEBUG=1
-              #working-directory: blabla
-
-            - name: running unittest for mac
-              run: ./scripts/.cicd/unix_test_pull_to_master_unittest.sh	Debug
