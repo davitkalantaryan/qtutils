@@ -10,13 +10,13 @@ on:
 jobs:
 
     # matrix for debian linuxes (for now ubuntu-18.04 and ubuntu-20.04)
-    debian-linuxes:
+    unixes:
         runs-on: ${{ matrix.os }}
         strategy:
           matrix:
-            os: [ubuntu-18.04, ubuntu-20.04]
+            os: [ubuntu-20.04, ubuntu-22.04, macos-latest]
         steps:
-            - uses: actions/checkout@v2
+            - uses: actions/checkout@v3
            
             - name: Preparing 3rd party libraries for ${{ matrix.os }}
               run: ./scripts/.cicd/unix_prebuild.sh
@@ -31,16 +31,19 @@ jobs:
             
     # This is for windows
     windows:
-        # runs-on: windows-latest
         runs-on: windows-2019
         steps:
-            - uses: actions/checkout@v2
+            - uses: actions/checkout@v3
 
             - name: Setup MSBuild.exe
-              uses: microsoft/setup-msbuild@v1.0.2
+              uses: microsoft/setup-msbuild@v1.1
+              with:
+                  vs-version: 16.10.4
 
             - name: Setup developer command prompt
               uses: ilammy/msvc-dev-cmd@v1
+              #with:
+              #    toolset: v142
 
             - name: Preparing 3rd party libraries for windows
               run: .\scripts\.cicd\windows_prebuild.bat
@@ -52,18 +55,3 @@ jobs:
             #- name: running unittest for windows
               #run: .\scripts\.cicd\windows_test_pull_to_master_unittest.bat
 
-    # do we need mac ?
-    mac:
-        runs-on: macos-latest
-        steps:
-            - uses: actions/checkout@v2
-
-            - name: Preparing 3rd party libraries for mac
-              run: ./scripts/.cicd/unix_prebuild.sh
-
-            - name: Compiling for mac
-              run: ./scripts/.cicd/unix_test_pull_to_master_build.sh CPPUTILS_DEBUG=1
-              #working-directory: blabla
-
-            - name: running unittest for mac
-              run: ./scripts/.cicd/unix_test_pull_to_master_unittest.sh	Debug

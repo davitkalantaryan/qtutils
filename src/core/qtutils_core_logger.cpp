@@ -154,7 +154,9 @@ Logger_p::Logger_p(const Logger::TypeLogger& a_logger, void* a_pOwner)
         s_pFirstLogger->m_prev = this;
     }
     else{
-        if(!s_defaultHandler){s_defaultHandler = qInstallMessageHandler(&MessageHandlerStatic);}
+        if(!s_defaultHandler){
+            s_defaultHandler = qInstallMessageHandler(&MessageHandlerStatic);
+        }
     }
 
     m_next = s_pFirstLogger;

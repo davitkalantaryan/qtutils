@@ -58,7 +58,7 @@ template <typename WidgetType>
 void ResizibleWindowRaw<WidgetType>::Init2()
 {
 	if(m_flags.b.initNotCalled){
-		m_flags.b2.initCalledOrNot = CPPUTILS_MAKE_BITS_POSITIVE;
+        m_flags.b2.initCalledOrNot = CPPUTILS_MAKE_BITS_TRUE;
 		m_settingsKey = typeid(*this).name()+QString::number(m_flags.b.instanceNumber);
 		this->InitRaw();
 	}
@@ -84,15 +84,16 @@ void ResizibleWindowRaw<WidgetType>::InitAndShow()
 template <typename WidgetType>
 inline bool ResizibleWindowRaw<WidgetType>::InitAndShowBase()
 {
+    bool bIsMinimized = false;
     if(m_flags.b.initNotCalled){
-        m_flags.b2.initCalledOrNot = CPPUTILS_MAKE_BITS_POSITIVE;
+        bIsMinimized = true;
+        m_flags.b2.initCalledOrNot = CPPUTILS_MAKE_BITS_TRUE;
         m_settingsKey = typeid(*this).name()+QString::number(m_flags.b.instanceNumber);
         this->InitRaw();
     }
 
     Settings aSettings;
     bool bIsMaximized = false;
-    bool bIsMinimized = false;
 
     if(aSettings.contains(m_settingsKey+QTUTILS_RSBL_WND_POS_KEY)){
         const QPoint aPos = aSettings.value(m_settingsKey+QTUTILS_RSBL_WND_POS_KEY).toPoint();
@@ -103,18 +104,23 @@ inline bool ResizibleWindowRaw<WidgetType>::InitAndShowBase()
         bIsMaximized = aSettings.value(m_settingsKey+QTUTILS_RSBL_WND_IS_MAXIMIZED_KEY).toBool();
     }
 
-    if(aSettings.contains(m_settingsKey+QTUTILS_RSBL_WND_IS_MINIMIZED_KEY)){
-        bIsMinimized = aSettings.value(m_settingsKey+QTUTILS_RSBL_WND_IS_MINIMIZED_KEY).toBool();
+    if(bIsMinimized){
+        if(aSettings.contains(m_settingsKey+QTUTILS_RSBL_WND_IS_MINIMIZED_KEY)){
+            bIsMinimized = aSettings.value(m_settingsKey+QTUTILS_RSBL_WND_IS_MINIMIZED_KEY).toBool();
+        }
     }
-
 
     if(bIsMaximized){
-        WidgetType::showMaximized();
-        return false;
+        if(!(WidgetType::isMaximized())){
+            WidgetType::showMaximized();
+            return false;
+        }
     }
     else if(bIsMinimized){
-        WidgetType::showMinimized();
-        return false;
+        if(!(WidgetType::isMinimized())){
+            WidgetType::showMinimized();
+            return false;
+        }
     }
     return true;
 }
@@ -145,7 +151,7 @@ inline void ResizibleWindowRaw<WidgetType>::HideCloseEvent()
             aSettings.setValue(m_settingsKey+QTUTILS_RSBL_WND_IS_MINIMIZED_KEY,false);
             aSettings.setValue(m_settingsKey+QTUTILS_RSBL_WND_SIZE_KEY,WidgetType::size());
         }
-        m_flags.b2.hideCalledOrNot =  CPPUTILS_MAKE_BITS_POSITIVE;
+        m_flags.b2.hideCalledOrNot =  CPPUTILS_MAKE_BITS_TRUE;
     }
 }
 
