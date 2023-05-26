@@ -108,6 +108,9 @@ inline bool ResizibleWindowRaw<WidgetType>::InitAndShowBase()
         if(aSettings.contains(m_settingsKey+QTUTILS_RSBL_WND_IS_MINIMIZED_KEY)){
             bIsMinimized = aSettings.value(m_settingsKey+QTUTILS_RSBL_WND_IS_MINIMIZED_KEY).toBool();
         }
+        else{
+            bIsMinimized = false;
+        }
     }
 
     if(bIsMaximized){
