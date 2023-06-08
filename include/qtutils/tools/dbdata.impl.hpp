@@ -40,6 +40,18 @@ SharedPtr<Type>::SharedPtr(Type* a_ptr)
 }
 
 
+template <typename Type>
+bool SharedPtr<Type>::operator!=(const SharedPtr& a_cM)const
+{
+    const Type*const pThis = ::std::shared_ptr<Type>::get();
+    const Type*const pThat = a_cM.get();
+
+    if(pThis==pThat){return false;}
+    if((!pThis) || (!pThat)){return true;}
+    return (*pThis) != (*pThat);
+}
+
+
 template <typename TypeSharedPtr>
 static inline TypeSharedPtr FromQVariant(const QVariant& a_qv, int* a_pnChanges)
 {

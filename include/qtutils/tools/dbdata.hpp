@@ -35,6 +35,7 @@ class SharedPtr : public ::std::shared_ptr<Type>
 public:
     SharedPtr();
     SharedPtr(Type* a_ptr);
+    bool operator!=(const SharedPtr& a_cM)const;
     template<typename... Targs>
     static SharedPtr<Type> fromQVariant(const QVariant& a_qv,Targs... a_args);
     template<typename TypeVM,typename... Targs>
