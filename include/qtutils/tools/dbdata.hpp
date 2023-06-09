@@ -62,6 +62,7 @@ public:
     static GroupOfType fromQVariant(const QVariant& a_qv,Targs... a_args);
 
     void TakeFromOtherContainer(GroupOfType& a_mM);
+    bool operator!=(const GroupOfType& a_cM)const;
 };
 
 

@@ -184,6 +184,27 @@ GroupOfType<Type,ContKey,ContType> GroupOfType<Type,ContKey,ContType>::fromQVari
 }
 
 
+template <typename Type, typename ContKey,typename ContType>
+bool GroupOfType<Type,ContKey,ContType>::operator!=(const GroupOfType& a_cM)const
+{
+    const size_t sizeThis = ContType::size();
+    const size_t sizeThat = a_cM.size();
+    if(sizeThis!=sizeThat){return true;}
+    if(!sizeThis){return false;}
+
+    typename ContType::const_iterator thisIter = ContType::begin();
+    typename ContType::const_iterator thatIter = a_cM.begin();
+
+    for(;thisIter != ContType::s_constNullIter;++thisIter,++thatIter){
+        if((thisIter->second)!=(thatIter->second)){
+            return true;
+        }
+    }  //  for(;thisIter != ContType::s_constNullIter;++thisIter,++thatIter){
+
+    return false;
+}
+
+
 }}  //  namespace qtutils{ namespace tools{
 
 
