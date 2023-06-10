@@ -87,56 +87,6 @@ int SharedPtr<Type>::FromVariantMap(const TypeVM& a_vmt,Targs... a_args)
 }
 
 
-//template <typename Type, typename ContKey,typename ContType>
-//template<typename... Targs>
-//GroupOfType<Type,ContKey,ContType>::GroupOfType(Targs... a_args)
-//    :
-//      ContType(a_args...)
-//{
-//}
-
-
-template <typename Type, typename ContKey,typename ContType>
-void GroupOfType<Type,ContKey,ContType>::TakeFromOtherContainer(GroupOfType& a_mM)
-{
-    Type aDataTmp;
-    const size_t cunCurrentSize(ContType::size());
-    size_t unFound(0);
-    typename ContType::iterator iterOld, iterNew;
-
-    for(iterNew=a_mM.begin();(iterNew!=ContType::s_nullIter)&&(unFound<cunCurrentSize);++iterNew){
-        iterOld = ContType::find(iterNew->first);
-        if(iterOld!=ContType::s_nullIter){
-            ++unFound;
-            aDataTmp = iterNew->second;
-            iterNew->second = ::std::move(iterOld->second);
-            *(iterNew->second.get()) = (::std::move(*(aDataTmp.get())));
-        }
-    }  //  end of for
-
-    ContType::operator=(::std::move(a_mM));
-}
-
-
-template <typename Type, typename ContKey,typename ContType>
-GroupOfType<Type,ContKey,ContType>& GroupOfType<Type,ContKey,ContType>::operator=(GroupOfType&& a_mM)
-{
-    //TakeFromOtherContainer(a_mM);
-    // todo: fix upper line
-    ContType::operator=(a_mM);
-    return *this;
-}
-
-
-template <typename Type, typename ContKey,typename ContType>
-GroupOfType<Type,ContKey,ContType>& GroupOfType<Type,ContKey,ContType>::operator=(const GroupOfType& a_cM)
-{
-    GroupOfType mM(a_cM);
-    TakeFromOtherContainer(mM);
-    return *this;
-}
-
-
 template <typename Type, typename ContKey,typename ContType>
 GroupOfType<Type,ContKey,ContType>::operator QVariant()const
 {

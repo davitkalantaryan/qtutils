@@ -54,14 +54,13 @@ public:
     GroupOfType(const GroupOfType&)=default;
     GroupOfType(GroupOfType&&)=default;
 
-    GroupOfType& operator=(const GroupOfType& a_cM);
-    GroupOfType& operator=(GroupOfType&& a_mM);
+    GroupOfType& operator=(const GroupOfType&)=default;
+    GroupOfType& operator=(GroupOfType&&)=default;
 
     operator QVariant()const;
     template<typename... Targs>
     static GroupOfType fromQVariant(const QVariant& a_qv,Targs... a_args);
 
-    void TakeFromOtherContainer(GroupOfType& a_mM);
     bool operator!=(const GroupOfType& a_cM)const;
 };
 
