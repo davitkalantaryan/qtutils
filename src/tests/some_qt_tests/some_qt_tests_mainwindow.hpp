@@ -15,6 +15,9 @@
 #include <QPushButton>
 
 
+#define SOME_QT_TEST_VERSION    "1.0.3"
+#define SOME_QT_TEST_KEY01      "SOME_QT_TEST_KEY01"
+
 
 namespace qtutils { namespace some_qt_tests{
 
@@ -22,7 +25,7 @@ namespace qtutils { namespace some_qt_tests{
 class CPPUTILS_DLL_PRIVATE MainWindow : public QWidget
 {
 public:
-	MainWindow();
+	MainWindow(const QString& a_initValue);
 		
 protected:
 	QGridLayout         m_mainLayout;

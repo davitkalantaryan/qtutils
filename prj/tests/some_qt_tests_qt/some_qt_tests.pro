@@ -32,7 +32,10 @@ CONFIG += c++17
 
 
 SOURCES += $$files($${qtutilsRepoRoot}/src/tests/some_qt_tests/*.cpp,true)
+SOURCES += "$${qtutilsRepoRoot}/src/ui/qtutils_ui_global_functions.cpp"
+SOURCES += "$${qtutilsRepoRoot}/src/core/qtutils_core_settings.cpp"
 HEADERS += $$files($${qtutilsRepoRoot}/src/tests/some_qt_tests/*.hpp,true)
+HEADERS += "$${qtutilsRepoRoot}/include/qtutils/core/settings.hpp"
 #HEADERS += $$files($${qtutilsRepoRoot}/include/*.hpp,true)
 #HEADERS += $$files($${qtutilsRepoRoot}/include/*.h,true)
 

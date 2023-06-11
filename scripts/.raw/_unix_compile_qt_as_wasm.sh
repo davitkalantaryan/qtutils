@@ -22,6 +22,10 @@ trap 'last_command=$current_command; current_command=$BASH_COMMAND' DEBUG
 # echo an error message before exiting
 #trap 'echo "\"${last_command}\" command finished with exit code $?."' EXIT
 
+#wasmTargetDir=wasm_32
+wasmTargetDir=wasm_singlethread
+#wasmTargetDir=wasm_multithread
+
 if [ $# -lt 3 ]; then
         echo "at least 3 arguments should be provided"
 	exit 1
@@ -73,7 +77,8 @@ if [ ! -d $QT_ROOT_DIR ]; then
 	echo "QT_ROOT_DIR environment variable does not point to directory"
 	exit 1
 fi
-if [ ! -d $QT_ROOT_DIR/wasm_32 ]; then
+#if [ ! -d $QT_ROOT_DIR/wasm_32 ]; then
+if [ ! -d $QT_ROOT_DIR/${wasmTargetDir} ]; then
 	echo "No WASM toolchain in the qt"
 	exit 1
 fi
@@ -81,7 +86,7 @@ fi
 
 cd ${currentDirectory}
 cd "$qtProjectileDir"
-"$QT_ROOT_DIR/wasm_32/bin/qmake" CONFIG+=release CONFIG-=debug ${APP_NAME_OPTION}
+"$QT_ROOT_DIR/${wasmTargetDir}/bin/qmake" CONFIG+=release CONFIG-=debug ${APP_NAME_OPTION}
 
 
 make -f Makefile.${targetName}.wasm.Release

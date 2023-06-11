@@ -7,10 +7,12 @@
 
 
 #include "some_qt_tests_mainwindow.hpp"
+#include <qtutils/core/settings.hpp>
 #include <qtutils/ui/webdialog.hpp>
 #include <qtutils/disable_utils_warnings.h>
 #include <QMessageBox>
 #include <QCoreApplication>
+#include <QLabel>
 
 
 namespace qtutils { namespace some_qt_tests{
@@ -28,15 +30,17 @@ static inline void ShowMessageBox(const QMessageBox::Icon& a_icon, const QString
 }
 
 
-MainWindow::MainWindow()
+MainWindow::MainWindow(const QString& a_initValue)
 {
     
     m_showMsgBoxBtn.setText("Show Msg. Box");
     m_closeBtn.setText("Exit");
+    m_anyTextEdit.setText(a_initValue);
     
-    m_mainLayout.addWidget(&m_anyTextEdit,0,0,1,2);
-    m_mainLayout.addWidget(&m_showMsgBoxBtn,1,0,1,1);
-    m_mainLayout.addWidget(&m_closeBtn,1,1,1,1);
+    m_mainLayout.addWidget(new QLabel(SOME_QT_TEST_VERSION),0,0,1,2);
+    m_mainLayout.addWidget(&m_anyTextEdit,1,0,1,2);
+    m_mainLayout.addWidget(&m_showMsgBoxBtn,2,0,1,1);
+    m_mainLayout.addWidget(&m_closeBtn,2,1,1,1);
     
     setLayout(&m_mainLayout);
     
@@ -47,6 +51,11 @@ MainWindow::MainWindow()
     connect(&m_closeBtn,&QPushButton::clicked,this,[this](){
         close();
         QCoreApplication::quit();
+    });
+    
+    connect(&m_anyTextEdit,&QLineEdit::textEdited,this,[](const QString& a_newText){
+        ::qtutils::Settings aSettings;
+        aSettings.setValue(SOME_QT_TEST_KEY01,a_newText);
     });
 }
 

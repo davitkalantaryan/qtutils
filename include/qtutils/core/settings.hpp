@@ -13,14 +13,17 @@
 #include <qtutils/disable_utils_warnings.h>
 #include <QSettings>
 
+
 namespace qtutils{
 
 
 class QTUTILS_EXPORT Settings : public QTUTILS_QT_NSP QSettings
 {
 public:
-    using QTUTILS_QT_NSP QSettings::QSettings;
-    virtual ~Settings() CPPUTILS_OVERRIDE;
+    using QTUTILS_QT_NSP QSettings::QSettings;    
+#if defined(CPPUTILS_POSSIBLE_NO_PERS_FILE) || defined(QTUTILS_CORE_FORCE_NEW_SETTINGS)
+    static void setDefaultFormat(Format a_format);
+#endif
 };
 
 }  // namespace qtutils{
