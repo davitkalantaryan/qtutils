@@ -12,6 +12,8 @@
 #include <qtutils/disable_utils_warnings.h>
 #include <QWidget>
 #include <QLabel>
+#include <QMessageBox>
+#include <QString>
 
 
 namespace qtutils { namespace ui{
@@ -20,6 +22,7 @@ QTUTILS_EXPORT bool isSameWidgetOrChild(QWidget* a_pPossibleParent, QWidget* a_p
 QTUTILS_EXPORT void TakeFrameOfWindow(QWidget* a_pWindow);
 QTUTILS_EXPORT void AssignFrameToWindow(QWidget* a_pWindow);
 QTUTILS_EXPORT void SetProperParamsToImagedLbl(QLabel* a_pLbl);
+QTUTILS_EXPORT void ShowMessageBox(const QMessageBox::Icon& a_icon, const QString a_title, const QString a_text);
 
 
 }}  // namespace qtutils { namespace test{

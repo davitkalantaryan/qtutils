@@ -8,7 +8,7 @@
 
 #include "some_qt_tests_mainwindow.hpp"
 #include <qtutils/core/settings.hpp>
-#include <qtutils/ui/webdialog.hpp>
+#include <qtutils/ui/global_functions.hpp>
 #include <qtutils/disable_utils_warnings.h>
 #include <QMessageBox>
 #include <QCoreApplication>
@@ -18,19 +18,7 @@
 namespace qtutils { namespace some_qt_tests{
 
 
-static inline void ShowMessageBox(const QMessageBox::Icon& a_icon, const QString a_title, const QString a_text)
-{	
-#if defined(CPPUTILS_EMSCRIPTEN_IS_USED) || defined(QTUTILS_UI_FORCE_WEB_STYLE)
-	::qtutils::ui::WebDialog<QMessageBox>* pMessageBox = new ::qtutils::ui::WebDialog<QMessageBox>(a_icon,a_title,a_text);
-	pMessageBox->open();
-#else
-	QMessageBox aMessageBox(a_icon,a_title,a_text);
-	aMessageBox.exec();
-#endif
-}
-
-
-MainWindow::MainWindow(const QString& a_initValue)
+MainWindowRaw::MainWindowRaw(const QString& a_initValue)
 {
     
     m_showMsgBoxBtn.setText("Show Msg. Box");
@@ -45,7 +33,7 @@ MainWindow::MainWindow(const QString& a_initValue)
     setLayout(&m_mainLayout);
     
     connect(&m_showMsgBoxBtn,&QPushButton::clicked,this,[](){
-        ShowMessageBox(QMessageBox::Information,"MsgTitle","MsgText");
+        ui::ShowMessageBox(QMessageBox::Information,"MsgTitle","MsgText");
     });
     
     connect(&m_closeBtn,&QPushButton::clicked,this,[this](){

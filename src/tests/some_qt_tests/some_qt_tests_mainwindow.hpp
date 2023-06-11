@@ -8,6 +8,7 @@
 #pragma once
 
 #include <qtutils/ui/resiziblewindow.hpp>
+#include <qtutils/ui/logintypewindow.hpp>
 #include <qtutils/disable_utils_warnings.h>
 #include <QWidget>
 #include <QGridLayout>
@@ -22,10 +23,10 @@
 namespace qtutils { namespace some_qt_tests{
 
 
-class CPPUTILS_DLL_PRIVATE MainWindow : public QWidget
+class CPPUTILS_DLL_PRIVATE MainWindowRaw : public QWidget
 {
 public:
-	MainWindow(const QString& a_initValue);
+    MainWindowRaw(const QString& a_initValue);
 		
 protected:
 	QGridLayout         m_mainLayout;
@@ -34,6 +35,8 @@ protected:
     QPushButton         m_closeBtn;
 };
 
+
+typedef ::qtutils::ui::LoginTypeWindow<MainWindowRaw> MainWindow;
 
 
 }}  //  namespace qtutils { namespace some_qt_tests{
