@@ -40,6 +40,18 @@ SharedPtr<Type>::SharedPtr(Type* a_ptr)
 }
 
 
+template <typename Type>
+bool SharedPtr<Type>::operator!=(const SharedPtr& a_cM)const
+{
+    const Type*const pThis = ::std::shared_ptr<Type>::get();
+    const Type*const pThat = a_cM.get();
+
+    if(pThis==pThat){return false;}
+    if((!pThis) || (!pThat)){return true;}
+    return (*pThis) != (*pThat);
+}
+
+
 template <typename TypeSharedPtr>
 static inline TypeSharedPtr FromQVariant(const QVariant& a_qv, int* a_pnChanges)
 {
@@ -72,56 +84,6 @@ int SharedPtr<Type>::FromVariantMap(const TypeVM& a_vmt,Targs... a_args)
     Type* this_p = ::std::shared_ptr<Type>::get();
     assert(this_p);
     return this_p->FromVariantMap(aDtMap,a_args...);
-}
-
-
-//template <typename Type, typename ContKey,typename ContType>
-//template<typename... Targs>
-//GroupOfType<Type,ContKey,ContType>::GroupOfType(Targs... a_args)
-//    :
-//      ContType(a_args...)
-//{
-//}
-
-
-template <typename Type, typename ContKey,typename ContType>
-void GroupOfType<Type,ContKey,ContType>::TakeFromOtherContainer(GroupOfType& a_mM)
-{
-    Type aDataTmp;
-    const size_t cunCurrentSize(ContType::size());
-    size_t unFound(0);
-    typename ContType::iterator iterOld, iterNew;
-
-    for(iterNew=a_mM.begin();(iterNew!=ContType::s_nullIter)&&(unFound<cunCurrentSize);++iterNew){
-        iterOld = ContType::find(iterNew->first);
-        if(iterOld!=ContType::s_nullIter){
-            ++unFound;
-            aDataTmp = iterNew->second;
-            iterNew->second = ::std::move(iterOld->second);
-            *(iterNew->second.get()) = (::std::move(*(aDataTmp.get())));
-        }
-    }  //  end of for
-
-    ContType::operator=(::std::move(a_mM));
-}
-
-
-template <typename Type, typename ContKey,typename ContType>
-GroupOfType<Type,ContKey,ContType>& GroupOfType<Type,ContKey,ContType>::operator=(GroupOfType&& a_mM)
-{
-    //TakeFromOtherContainer(a_mM);
-    // todo: fix upper line
-    ContType::operator=(a_mM);
-    return *this;
-}
-
-
-template <typename Type, typename ContKey,typename ContType>
-GroupOfType<Type,ContKey,ContType>& GroupOfType<Type,ContKey,ContType>::operator=(const GroupOfType& a_cM)
-{
-    GroupOfType mM(a_cM);
-    TakeFromOtherContainer(mM);
-    return *this;
 }
 
 
@@ -169,6 +131,27 @@ GroupOfType<Type,ContKey,ContType> GroupOfType<Type,ContKey,ContType>::fromQVari
     //}
 
     return retCR;
+}
+
+
+template <typename Type, typename ContKey,typename ContType>
+bool GroupOfType<Type,ContKey,ContType>::operator!=(const GroupOfType& a_cM)const
+{
+    const size_t sizeThis = ContType::size();
+    const size_t sizeThat = a_cM.size();
+    if(sizeThis!=sizeThat){return true;}
+    if(!sizeThis){return false;}
+
+    typename ContType::const_iterator thisIter = ContType::begin();
+    typename ContType::const_iterator thatIter = a_cM.begin();
+
+    for(;thisIter != ContType::s_constNullIter;++thisIter,++thatIter){
+        if((thisIter->second)!=(thatIter->second)){
+            return true;
+        }
+    }  //  for(;thisIter != ContType::s_constNullIter;++thisIter,++thatIter){
+
+    return false;
 }
 
 

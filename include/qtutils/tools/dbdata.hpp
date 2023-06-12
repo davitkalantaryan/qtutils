@@ -35,6 +35,7 @@ class SharedPtr : public ::std::shared_ptr<Type>
 public:
     SharedPtr();
     SharedPtr(Type* a_ptr);
+    bool operator!=(const SharedPtr& a_cM)const;
     template<typename... Targs>
     static SharedPtr<Type> fromQVariant(const QVariant& a_qv,Targs... a_args);
     template<typename TypeVM,typename... Targs>
@@ -53,14 +54,14 @@ public:
     GroupOfType(const GroupOfType&)=default;
     GroupOfType(GroupOfType&&)=default;
 
-    GroupOfType& operator=(const GroupOfType& a_cM);
-    GroupOfType& operator=(GroupOfType&& a_mM);
+    GroupOfType& operator=(const GroupOfType&)=default;
+    GroupOfType& operator=(GroupOfType&&)=default;
 
     operator QVariant()const;
     template<typename... Targs>
     static GroupOfType fromQVariant(const QVariant& a_qv,Targs... a_args);
 
-    void TakeFromOtherContainer(GroupOfType& a_mM);
+    bool operator!=(const GroupOfType& a_cM)const;
 };
 
 
