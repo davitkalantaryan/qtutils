@@ -37,8 +37,8 @@ QTUTILS_CORE_NTDT_NSP_P1
 class QTUTILS_EXPORT QtUtilsNetReplyArg : public ::std::shared_ptr<::qtutils::network::Reply>
 {
 public:
-    //using ::std::shared_ptr<::qtutils::network::Reply>::shared_ptr;
-    QtUtilsNetReplyArg(::qtutils::network::Reply* a_pData);
+    using ::std::shared_ptr<::qtutils::network::Reply>::shared_ptr;
+    //QtUtilsNetReplyArg(::qtutils::network::Reply* a_pData);
 };
 Q_DECLARE_METATYPE(QTUTILS_CORE_NTDT_NSP QtUtilsNetReplyArg)
 

@@ -14,19 +14,6 @@
 #include <QThread>
 
 
-QTUTILS_CORE_NTDT_NSP_P1
-
-
-QtUtilsNetReplyArg::QtUtilsNetReplyArg(::qtutils::network::Reply* a_pData)
-    :
-      ::std::shared_ptr<::qtutils::network::Reply>(a_pData,[](::qtutils::network::Reply* a_pData){a_pData->deleteLater();})
-{
-}
-
-
-QTUTILS_CORE_NTDT_NSP_P2
-
-
 namespace qtutils { namespace network {
 
 
@@ -265,8 +252,7 @@ Reply::Reply( QNetworkReply* CPPUTILS_ARG_NN a_networkReply, ReplyContainer* a_p
         const QMetaObject::Connection connFinished = m_connFinished;
         m_connFinished = QMetaObject::Connection();
         disconnect(connFinished);
-        const QTUTILS_CORE_NTDT_NSP QtUtilsNetReplyArg sharedP(this);
-        emit finished(sharedP);
+        emit finished(QTUTILS_CORE_NTDT_NSP QtUtilsNetReplyArg(this,[](::qtutils::network::Reply* a_pTs){a_pTs->deleteLater();}));
         deleteLater();
     });
     
@@ -274,7 +260,7 @@ Reply::Reply( QNetworkReply* CPPUTILS_ARG_NN a_networkReply, ReplyContainer* a_p
         QObject::connect(&m_timeoutTimer,&QTimer::timeout,this,[this](){
             m_bHasTimeout = true;
             Abort();
-            emit finished(QtUtilsNetReplyArg(this));
+            emit finished(QtUtilsNetReplyArg(this,[](::qtutils::network::Reply* a_pTs){a_pTs->deleteLater();}));
         });
         m_timeoutTimer.start(a_timeoutTimer);
     }
