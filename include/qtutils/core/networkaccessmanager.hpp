@@ -9,6 +9,7 @@
 
 #include <qtutils/export_symbols.h>
 #include <stdexcept>
+#include <memory>
 #include <qtutils/disable_utils_warnings.h>
 #include <QTimer>
 #include <QNetworkAccessManager>
@@ -19,13 +20,36 @@
 
 namespace qtutils { namespace network{
 
+#define QTUTILS_NET_REPLY_HAS_AUTO_DELETE   1
 
-class CPPUTILS_DLL_PRIVATE Reply;
-class CPPUTILS_DLL_PRIVATE ReplyContainer;
-class CPPUTILS_DLL_PRIVATE ReplyData;
-class CPPUTILS_DLL_PRIVATE AccessManager;
 
-class CPPUTILS_DLL_PRIVATE Exception final : public ::std::runtime_error
+class QTUTILS_EXPORT Reply;
+class QTUTILS_EXPORT ReplyContainer;
+class QTUTILS_EXPORT ReplyData;
+class QTUTILS_EXPORT AccessManager;
+
+}}  //  namespace qtutils { namespace network{
+
+
+QTUTILS_CORE_NTDT_NSP_P1
+
+
+class QTUTILS_EXPORT QtUtilsNetReplyArg : public ::std::shared_ptr<::qtutils::network::Reply>
+{
+private:
+    using ::std::shared_ptr<::qtutils::network::Reply>::shared_ptr;
+    friend class Reply;
+};
+Q_DECLARE_METATYPE(QTUTILS_CORE_NTDT_NSP QtUtilsNetReplyArg)
+
+
+QTUTILS_CORE_NTDT_NSP_P2
+
+
+namespace qtutils { namespace network{
+
+
+class QTUTILS_EXPORT Exception final : public ::std::runtime_error
 {
 public:
 	Exception(ReplyData* a_pReplyData,const char* a_cpcWhat);
@@ -47,13 +71,6 @@ public:
     Reply* get(ReplyContainer* a_pContainer, const QNetworkRequest &request, ReplyData* a_pData, int a_timeoutMs);
     Reply* head(ReplyContainer* a_pContainer, const QNetworkRequest &request, ReplyData* a_pData, int a_timeoutMs);
     Reply* deleteResource(ReplyContainer* a_pContainer, const QNetworkRequest &request, ReplyData* a_pData, int a_timeoutMs);
-    //Reply* post(ReplyContainer* a_pContainer, const Request &request, HttpMultiPart *multiPart,ReplyData* a_pData);
-    //Reply* deleteResource(ReplyContainer* a_pContainer, const Request &request, ReplyData* a_pData);
-    //Reply* get(ReplyContainer* a_pContainer,const Request &request, ReplyData* a_pData);
-	// new API
-	//Reply* postBA(NetworkRequestCarier* a_carier);
-	//Reply* postMPart(NetworkRequestCarier* a_carier);
-	//Reply* get(NetworkRequestCarier* a_carier);
     
 private:
     QNetworkAccessManager*    m_pQtManager;
@@ -68,6 +85,10 @@ public:
     AccessManager();
     AccessManagerRaw*   accessManagerRaw();
     void   Restart();
+
+private:
+    AccessManager(const AccessManager&)=delete;
+    AccessManager& operator=(const AccessManager&)=delete;
     
 private:
     AccessManagerRaw	m_rawManager;
@@ -107,14 +128,13 @@ class QTUTILS_EXPORT Reply final : public QObject
     Q_OBJECT
 
 private:
+    ~Reply() override;  // don't panic it is deleted automatically :)
     Reply() = delete;
     Reply(const Reply&) = delete;
     Reply(Reply&&) = delete;
-    Reply( QNetworkReply* CPPUTILS_NO_NULL networkReply, ReplyContainer* a_pParentContainer, ReplyData* a_pData=nullptr, int a_timeoutMs=-1);
-
-public:
-    ~Reply() override;
+    Reply( QNetworkReply* CPPUTILS_ARG_NN networkReply, ReplyContainer* a_pParentContainer, ReplyData* a_pData=nullptr, int a_timeoutMs=-1);
     
+public:
     void Abort();
     QNetworkReply* operator->()const;
     QNetworkReply* qtNetworkReply()const;
@@ -124,7 +144,7 @@ public:
     
 private:
 signals:
-    void finished();
+    void finished(QTUTILS_CORE_NTDT_NSP QtUtilsNetReplyArg);
 
 private:
     Reply                   *m_prev, *m_next;
@@ -154,4 +174,4 @@ QTUTILS_EXPORT QString CorectUrl(const QString& a_url);
 QTUTILS_EXPORT QString NetworkErrorCodeString(const QNetworkReply::NetworkError& a_errorCode);
 
 
-}}  // namespace qtutils { namespace network{
+}}  //  namespace qtutils { namespace network{
