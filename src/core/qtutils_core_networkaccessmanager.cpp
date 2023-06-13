@@ -14,6 +14,19 @@
 #include <QThread>
 
 
+QTUTILS_CORE_NTDT_NSP_P1
+
+
+QtUtilsNetReplyArg::QtUtilsNetReplyArg(::qtutils::network::Reply* a_pData)
+    :
+      ::std::shared_ptr<::qtutils::network::Reply>(a_pData,[](::qtutils::network::Reply* a_pData){a_pData->deleteLater();})
+{
+}
+
+
+QTUTILS_CORE_NTDT_NSP_P2
+
+
 namespace qtutils { namespace network {
 
 
@@ -106,6 +119,11 @@ Reply* AccessManagerRaw::deleteResource(ReplyContainer* a_pContainer, const QNet
 
 AccessManager::AccessManager()
 {
+    static int snIsNotInited = 1;
+    if(snIsNotInited){
+        qRegisterMetaType< QTUTILS_CORE_NTDT_NSP QtUtilsNetReplyArg >( "qtutils_QtUtilsNetReplyArg" );
+        snIsNotInited = 0;
+    }
     m_bPendingRestart = false; 
 }
 
@@ -204,7 +222,21 @@ QByteArray ReplyData::postData()const
 
 /*////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
 
-Reply::Reply( QNetworkReply* CPPUTILS_NO_NULL a_networkReply, ReplyContainer* a_pParentContainer, ReplyData* a_pData, int a_timeoutTimer)
+Reply::~Reply()
+{
+    delete m_pData;
+    if(m_connDestroy){
+        disconnect(m_connDestroy);
+    }
+    if(m_pParentContainer){
+        m_pParentContainer->RemoveNetworkReply(this);
+    }
+    Abort();
+    if(m_pNetworkReply){m_pNetworkReply->deleteLater();}
+}
+
+
+Reply::Reply( QNetworkReply* CPPUTILS_ARG_NN a_networkReply, ReplyContainer* a_pParentContainer, ReplyData* a_pData, int a_timeoutTimer)
     :
       m_pNetworkReply(a_networkReply),
       m_pParentContainer(a_pParentContainer),
@@ -226,35 +258,26 @@ Reply::Reply( QNetworkReply* CPPUTILS_NO_NULL a_networkReply, ReplyContainer* a_
 		deleteLater();
 	});
 
-    m_connFinished = ::QObject::connect(m_pNetworkReply,&QNetworkReply::finished,this,[this](){
+    m_connFinished = QObject::connect(m_pNetworkReply,&QNetworkReply::finished,this,[this](){
         if(m_timeoutTimer.isActive()){
             m_timeoutTimer.stop();
         }
-        emit finished();
+        const QMetaObject::Connection connFinished = m_connFinished;
+        m_connFinished = QMetaObject::Connection();
+        disconnect(connFinished);
+        const QTUTILS_CORE_NTDT_NSP QtUtilsNetReplyArg sharedP(this);
+        emit finished(sharedP);
+        deleteLater();
     });
     
     if(a_timeoutTimer>=0){
         QObject::connect(&m_timeoutTimer,&QTimer::timeout,this,[this](){
             m_bHasTimeout = true;
             Abort();
-            emit finished();
+            emit finished(QtUtilsNetReplyArg(this));
         });
         m_timeoutTimer.start(a_timeoutTimer);
     }
-}
-
-
-Reply::~Reply()
-{
-	delete m_pData;
-    if(m_connDestroy){
-        disconnect(m_connDestroy);
-    }
-    if(m_pParentContainer){
-        m_pParentContainer->RemoveNetworkReply(this);
-    }	
-    Abort();
-    if(m_pNetworkReply){m_pNetworkReply->deleteLater();}
 }
 
 

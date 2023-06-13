@@ -38,6 +38,12 @@ QtutilsLogData::QtutilsLogData(QtMsgType a_msgType, const QMessageLogContext& a_
     :
       ::std::shared_ptr<QtutilsLogDataRaw>(new QtutilsLogDataRaw(a_ctx))
 {
+    static int snIsNotInited = 1;
+    if(snIsNotInited){
+        qRegisterMetaType< QTUTILS_CORE_NTDT_NSP QtutilsLogData >( "qtutils_QtutilsLogData" );
+        snIsNotInited = 0;
+    }
+
     QtutilsLogDataRaw* this_p = get();
     this_p->msgType = a_msgType;
     this_p->msg = a_msg;
