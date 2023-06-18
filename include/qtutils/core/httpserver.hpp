@@ -25,11 +25,12 @@ class CPPUTILS_DLL_PRIVATE HttpServer_p;
 class LLFEKTR_EXPORT HttpServer : public QAbstractHttpServer
 {
 public:
-    typedef ::std::function<bool(const QHttpServerRequest& a_request, QHttpServerResponder& a_responder)> TypeClbk;
+    typedef ::std::function<bool(const QHttpServerRequest& a_request, QHttpServerResponder& a_responder)> TypeClbkS;
     typedef ::std::function<bool(const QHttpServerRequest& a_request, const QString& a_fileName, QHttpServerResponder& a_responder)> TypeClbkD;
-    typedef ::std::unordered_map<QString,TypeClbk>      TypeHashS;
+    typedef ::std::function<bool(const QHttpServerRequest& a_request, const QString& a_path, QHttpServerResponder& a_responder)> TypeClbkP;
+    typedef ::std::unordered_map<QString,TypeClbkS>      TypeHashS;
     typedef ::std::unordered_map<QString,TypeClbkD>      TypeHashD;  // directory routes
-    typedef ::std::list<::std::pair<QString,TypeClbk> > TypeListP;
+    typedef ::std::list<::std::pair<QString,TypeClbkP> > TypeListP;
     
 public:
     ~HttpServer() override;
@@ -37,10 +38,14 @@ public:
     
     const TypeHashS& getAllStraightRoutes()const;
     const TypeHashD& getAllDirRoutes()const;
-    const TypeListP& getAllPatternRoutes()const;
-    void AddStraightRoute(const QString& a_path, const TypeClbk& a_clbk);
+    const TypeListP& getAllGlobRegExpRoutes()const;
+    const TypeListP& getAllWildcardRegExpRoutes()const;
+    const TypeListP& getAllAnyAppearanceRoutes()const;
+    void AddStraightRoute(const QString& a_path, const TypeClbkS& a_clbk);
     void AddDirRoute(const QString& a_dirPath, const TypeClbkD& a_clbk);
-    void AddPatternRoute(const QString& a_pattern, const TypeClbk& a_clbk);
+    void AddGlobRegExpRoute(const QString& a_pattern, const TypeClbkP& a_clbk);
+    void AddWildcardRegExpRoute(const QString& a_pattern, const TypeClbkP& a_clbk);
+    void AddAnyAppearanceRoute(const QString& a_pattern, const TypeClbkP& a_clbk);
 
 protected:
     virtual bool handleRequest(const QHttpServerRequest& a_request, QHttpServerResponder& a_responder) override;
