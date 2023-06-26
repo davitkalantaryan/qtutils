@@ -24,5 +24,9 @@
 #endif
 
 
+#ifndef QTUTILS_CORE_EXPORT
+#define QTUTILS_CORE_EXPORT QTUTILS_EXPORT
+#endif
+
 
 #endif  // #ifndef INCLUDE_QTUTILS_EXPORT_SYMBOLS_H

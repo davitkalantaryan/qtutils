@@ -8,7 +8,7 @@ repoRootPath	:= $(shell curDir=`pwd` && cd $(mkfile_dir)/../../.. && pwd && cd $
 
 firstTarget: all
 
-include $(mkfile_dir)/../../common/common_mkfl/unix.common.Makefile
+include $(mkfile_dir)/../../common/common_mkfl/sys_common.unix.Makefile
 
 GTEST_SRC_DIR=$(repoRootPath)/src/tests/googletest
 COMMON_SRC_DIR=$(repoRootPath)/src/core
@@ -24,17 +24,17 @@ LIBS += $(cpputilsRepoRoot)/sys/$(lsbCode)/$(Configuration)/lib/libgtest_main$(n
 LIBS += $(cpputilsRepoRoot)/sys/$(lsbCode)/$(Configuration)/lib/libgtest$(nameExtension).a
 LIBS += -pthread
 
-all: $(repoRootPath)/sys/$(lsbCode)/$(Configuration)/test/$(targetName)
+all: $(artifactRoot)/sys/$(lsbCode)/$(Configuration)/test/$(targetName)
 
-$(repoRootPath)/sys/$(lsbCode)/$(Configuration)/test/$(targetName): \
-			$(GTEST_SRCS:%=$(repoRootPath)/sys/$(lsbCode)/$(Configuration)/.objects/$(targetName)/%.o)	\
-			$(COMMON_SRCS:%=$(repoRootPath)/sys/$(lsbCode)/$(Configuration)/.objects/$(targetName)/%.o)
+$(artifactRoot)/sys/$(lsbCode)/$(Configuration)/test/$(targetName): \
+			$(GTEST_SRCS:%=$(artifactRoot)/sys/$(lsbCode)/$(Configuration)/.objects/$(targetName)/%.o)	\
+			$(COMMON_SRCS:%=$(artifactRoot)/sys/$(lsbCode)/$(Configuration)/.objects/$(targetName)/%.o)
 	@mkdir -p $(@D)
 	@echo !!!! $@
 	@$(LINK) $^ $(LIBS) $(LFLAGS) -o $@
 
 .PHONY: clean
 clean:
-	@rm -rf $(repoRootPath)/sys/$(lsbCode)/$(Configuration)/.objects/$(targetName)
-	@rm -f  $(repoRootPath)/sys/$(lsbCode)/$(Configuration)/test/$(targetName)
-	@echo "  " cleaning of googletest complete !!!
+	@rm -rf $(artifactRoot)/sys/$(lsbCode)/$(Configuration)/.objects/$(targetName)
+	@rm -f  $(artifactRoot)/sys/$(lsbCode)/$(Configuration)/test/$(targetName)
+	@echo "  " cleaning of $(targetName) complete !!!
