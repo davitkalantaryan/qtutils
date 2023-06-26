@@ -9,17 +9,6 @@
 
 message("!!! $${PWD}/sys_common.pri")
 
-isEmpty( qtutilsRepoRoot ) {
-	qtutilsRepoRoot = $${PWD}/../../..
-}
-
-isEmpty( repositoryRoot ) {
-	repositoryRoot = $${qtutilsRepoRoot}
-}
-
+include ( "$${PWD}/resolve_common.pri" )
+include ( "$${cpputilsRepoRoot}/prj/common/common_qt/sys_common.pri" )
 !isEmpty(QTUTILS_MODIFIED_APP_NAME) : TARGET = $${QTUTILS_MODIFIED_APP_NAME}
-
-isEmpty( cpputilsRepoRoot ){
-        cpputilsRepoRoot=$${qtutilsRepoRoot}/contrib/cpputils
-}
-include("$${cpputilsRepoRoot}/prj/common/common_qt/sys_common.pri")
