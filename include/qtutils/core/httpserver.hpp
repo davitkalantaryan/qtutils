@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <kalantaryan/llfrontend/export_symbols.h>
+#include <qtutils/export_symbols.h>
 #include <unordered_map>
 #include <list>
 #include <utility>
@@ -22,7 +22,7 @@ namespace qtutils { namespace core{
 
 class CPPUTILS_DLL_PRIVATE HttpServer_p;
 
-class LLFEKTR_EXPORT HttpServer : public QAbstractHttpServer
+class QTUTILS_CORE_EXPORT HttpServer : public QAbstractHttpServer
 {
 public:
     typedef ::std::function<bool(const QHttpServerRequest& a_request, QHttpServerResponder& a_responder)> TypeClbkS;
