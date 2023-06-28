@@ -8,7 +8,12 @@
 
 
 message("!!! $${PWD}/sys_common.pri")
+qtutilsSysCommonIncluded = 1
 
 include ( "$${PWD}/resolve_common.pri" )
-include ( "$${cpputilsRepoRoot}/prj/common/common_qt/sys_common.pri" )
+isEmpty( cpputilsSysCommonIncluded ) {
+        include ( "$${cpputilsRepoRoot}/prj/common/common_qt/sys_common.pri" )
+        cpputilsSysCommonIncluded = 1
+}
+
 !isEmpty(QTUTILS_MODIFIED_APP_NAME) : TARGET = $${QTUTILS_MODIFIED_APP_NAME}
