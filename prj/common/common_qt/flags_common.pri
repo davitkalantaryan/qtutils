@@ -11,7 +11,11 @@
 message("!!! $${PWD}/flags_common.pri")
 qtutilsFlagsCommonIncluded = 1
 
-include ( "$${PWD}/resolve_common.pri" )
+isEmpty( qtutilsResolveCommonIncluded ) {
+        include("$${PWD}/resolve_common.pri")
+        qtutilsResolveCommonIncluded = 1
+}
+
 isEmpty( cpputilsFlagsCommonIncluded ) {
         include ( "$${cpputilsRepoRoot}/prj/common/common_qt/flags_common.pri" )
         cpputilsFlagsCommonIncluded = 1

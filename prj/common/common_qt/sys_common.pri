@@ -1,4 +1,5 @@
 #
+# repo:                 qtutils
 # name:			sys_common.pri
 # path:			${repositoryRoot}/prj/common/common_qt/sys_common.pri
 # created on:		2022 Jan 16
@@ -10,7 +11,11 @@
 message("!!! $${PWD}/sys_common.pri")
 qtutilsSysCommonIncluded = 1
 
-include ( "$${PWD}/resolve_common.pri" )
+isEmpty( qtutilsResolveCommonIncluded ) {
+        include("$${PWD}/resolve_common.pri")
+        qtutilsResolveCommonIncluded = 1
+}
+
 isEmpty( cpputilsSysCommonIncluded ) {
         include ( "$${cpputilsRepoRoot}/prj/common/common_qt/sys_common.pri" )
         cpputilsSysCommonIncluded = 1
