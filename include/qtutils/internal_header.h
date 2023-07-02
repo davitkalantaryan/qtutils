@@ -37,4 +37,11 @@
 #endif
 
 
+#if !defined(QTUTILS_UI_WC_SYSTRY_NEEDED) && !defined(QTUTILS_UI_WC_SYSTRY_NEEDED_ignored)
+    #if defined(QTUTILS_UI_WC_SYSTRY_NEEDED_needed) || (!defined(CPPUTILS_EMSCRIPTEN_IS_USED))
+        #define QTUTILS_UI_WC_SYSTRY_NEEDED    1
+    #endif
+#endif
+
+
 #endif  // #ifndef INCLUDE_QTUTILS_INTERNAL_HEADER_H

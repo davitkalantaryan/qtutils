@@ -9,9 +9,10 @@
 #pragma once
 
 #include <qtutils/export_symbols.h>
+#include <cpputils/functional.hpp>
 #include <qtutils/disable_utils_warnings.h>
 #include <QAction>
-#ifdef FOCUST_P01_SYSTRY_NEEDED
+#ifdef QTUTILS_UI_WC_SYSTRY_NEEDED
 #include <QSystemTrayIcon>
 #include <QMenu>
 #endif
@@ -19,33 +20,19 @@
 namespace qtutils { namespace ui{
 
 
-class QTUTILS_EXPORT WidgetsContainer;
-typedef QWidget WidgType;
-
-//template <typename WidgType>
-class WCMainWindow : public WidgType
+class QTUTILS_UI_EXPORT WidgetsContainer : public QObject
 {
 public:
-    virtual ~WCMainWindow();
-    WCMainWindow(WidgetsContainer* a_widgsContainer);
+    typedef ::std::function<void(QWidget*)> TypeWCShow;
 
-    virtual void InitAndShow();
-
-protected:
-    WidgetsContainer*const m_pWgtsContainer;
-};
-
-
-class QTUTILS_EXPORT WidgetsContainer : public QObject
-{
 public:
     virtual ~WidgetsContainer() override;
-    template <typename WidgType>
-    WidgetsContainer(QWidget* a_pLoginWnd, WCMainWindow<WidgType>* a_pMainWindow);
+    WidgetsContainer(QWidget* CPPUTILS_ARG_NN a_pLoginWnd, QWidget* CPPUTILS_ARG_NN a_pMainWindow,
+                     const QString& a_logo, const QString& a_tooltip,const QString& a_exitLogo,
+                     const TypeWCShow& a_login_show, const TypeWCShow& a_main_show);
     
     void show();
-    void MainWindowCloseButtonPressed();
-	void SwitchMainWindowToHidden();
+    void SwitchMainWindowToHidden();
 
 private:
 	void SwitchMainWindowToShow();
@@ -54,7 +41,9 @@ private:
 protected:
     QWidget*const           m_pLoginWnd;
     QWidget*const           m_pMainWnd;
-#ifdef FOCUST_P01_SYSTRY_NEEDED
+    const TypeWCShow        m_login_show;
+    const TypeWCShow        m_main_show;
+#ifdef QTUTILS_UI_WC_SYSTRY_NEEDED
     QSystemTrayIcon         m_tryIcon;
     QMenu                   m_contextMenu;
 #endif

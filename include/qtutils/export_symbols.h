@@ -29,4 +29,9 @@
 #endif
 
 
+#ifndef QTUTILS_UI_EXPORT
+#define QTUTILS_UI_EXPORT QTUTILS_EXPORT
+#endif
+
+
 #endif  // #ifndef INCLUDE_QTUTILS_EXPORT_SYMBOLS_H

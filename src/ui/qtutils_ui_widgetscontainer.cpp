@@ -19,24 +19,6 @@
 namespace qtutils { namespace ui{
 
 
-WCMainWindow::~WCMainWindow()
-{
-}
-
-
-WCMainWindow::WCMainWindow(WidgetsContainer* a_widgsContainer)
-    :
-      m_pWgtsContainer(a_widgsContainer)
-{
-}
-
-
-void WCMainWindow::InitAndShow()
-{
-    show();
-}
-
-
 #define MONITOR_TEST_SHOW_MAIN_WND_KEY  "qtutils/widgets_container/mainWnd/isVisible"
 
 
@@ -45,9 +27,14 @@ WidgetsContainer::~WidgetsContainer()
 }
 
 
-WidgetsContainer::WidgetsContainer(WCMainWindow* a_pMainWindow)
+WidgetsContainer::WidgetsContainer(QWidget* CPPUTILS_ARG_NN a_pLoginWnd, QWidget* CPPUTILS_ARG_NN a_pMainWindow,
+                                   const QString& a_logo, const QString& a_tooltip, const QString& a_exitLogo,
+                                   const TypeWCShow& a_login_show, const TypeWCShow& a_main_show)
     :
+      m_pLoginWnd(a_pLoginWnd),
       m_pMainWnd(a_pMainWindow),
+      m_login_show(a_login_show),
+      m_main_show(a_main_show),
       m_actionShow(QIcon(":/qtutils/show_password.png"),"&Show"),
       m_actionHide(QIcon(":/qtutils/hide_password.png"),"&Hide"),
       m_pActionShowOrHide(&m_actionShow)
@@ -57,33 +44,36 @@ WidgetsContainer::WidgetsContainer(WCMainWindow* a_pMainWindow)
     m_flags.wr_all = CPPUTILS_INIT_BITS;    
     m_flags.wr.displayOrNotMainWindows = CPPUTILS_MAKE_BITS_TRUE;
         
-#ifdef FOCUST_P01_SYSTRY_NEEDED
+#ifdef QTUTILS_UI_WC_SYSTRY_NEEDED
 
-    m_tryIcon.setIcon(QIcon(":/focust/focust_logo.png"));
-    m_tryIcon.setToolTip("FocusTeam application " __DATE__ " " __TIME__ );
+    //m_tryIcon.setIcon(QIcon(":/focust/focust_logo.png"));
+    //m_tryIcon.setToolTip("FocusTeam application " __DATE__ " " __TIME__ );
+    m_tryIcon.setIcon(QIcon(a_logo));
+    m_tryIcon.setToolTip(a_tooltip);
     
-    m_contextMenu.addAction( QIcon(":/focust/exit_app.png"),"Exit",pThisApp,[](){
-        focustP01AppBase()->ExitApp();
+    //m_contextMenu.addAction( QIcon(":/focust/exit_app.png"),"Exit",pThisApp,[](){
+    m_contextMenu.addAction( QIcon(a_exitLogo),"Exit",pThisApp,[](){
+        qtutilsUiAppWithLogin()->ExitApp();
     });
     
     m_tryIcon.setContextMenu(&m_contextMenu);
 
-#endif  //  #ifdef FOCUST_P01_SYSTRY_NEEDED
+#endif  //  #ifdef QTUTILS_UI_WC_SYSTRY_NEEDED
 
     ConnectSignals();
 	
 	if(pThisApp->isLoggedIn()){
-        const Settings aSettings(pThisApp->username());
+        const Settings aSettings;
         m_flags.wr.displayOrNotMainWindows = aSettings.value(MONITOR_TEST_SHOW_MAIN_WND_KEY,true).toBool()?
-                    CPPUTILS_MAKE_BITS_TRUE:CPPUTILS_MAKE_BITS_FALSE;
+                    CPPUTILS_BISTATE_MAKE_BITS_TRUE:CPPUTILS_BISTATE_MAKE_BITS_FALSE;
 		if(m_flags.rd.displayOrNotMainWindows_true){            
-#ifdef FOCUST_P01_SYSTRY_NEEDED
+#ifdef QTUTILS_UI_WC_SYSTRY_NEEDED
             m_contextMenu.addAction(&m_actionHide);
 #endif
             m_pActionShowOrHide = &m_actionHide;
 		}
 		else{            
-#ifdef FOCUST_P01_SYSTRY_NEEDED
+#ifdef QTUTILS_UI_WC_SYSTRY_NEEDED
             m_contextMenu.addAction(&m_actionShow);
 #endif
             m_pActionShowOrHide = &m_actionShow;
@@ -93,11 +83,9 @@ WidgetsContainer::WidgetsContainer(WCMainWindow* a_pMainWindow)
 }
 
 
-void WidgetsContainerBase::ConnectSignals()
+void WidgetsContainer::ConnectSignals()
 {
-    ApplicationBase*const pThisApp = focustP01AppBase();
-
-    //
+    ApplicationWithLogin*const pThisApp = qtutilsUiAppWithLogin();
 
     connect(&m_actionShow,&QAction::triggered,this,[this](){
         SwitchMainWindowToShow();
@@ -107,8 +95,8 @@ void WidgetsContainerBase::ConnectSignals()
         SwitchMainWindowToHidden();
     });
 
-#ifdef FOCUST_P01_SYSTRY_NEEDED
-    connect(&m_tryIcon,&QSystemTrayIcon::activated,&m_mainWnd,[this](QSystemTrayIcon::ActivationReason a_reason){
+#ifdef QTUTILS_UI_WC_SYSTRY_NEEDED
+    connect(&m_tryIcon,&QSystemTrayIcon::activated,m_pMainWnd,[this](QSystemTrayIcon::ActivationReason a_reason){
         switch(a_reason){
         case QSystemTrayIcon::Context:{
             //QMenu aMenu;
@@ -118,7 +106,7 @@ void WidgetsContainerBase::ConnectSignals()
             //aMenu.exec();
         }break;
         case QSystemTrayIcon::DoubleClick:{
-            Application* pThisApp = monitorApp();
+            ApplicationWithLogin*const pThisApp = qtutilsUiAppWithLogin();
             if(pThisApp->isLoggedIn()){
                 if(m_flags.rd.displayOrNotMainWindows_false){
                     SwitchMainWindowToShow();
@@ -129,41 +117,33 @@ void WidgetsContainerBase::ConnectSignals()
             break;
         }
     });
-#endif  //  #ifdef FOCUST_P01_SYSTRY_NEEDED
+#endif  //  #ifdef QTUTILS_UI_WC_SYSTRY_NEEDED
 
-    connect(m_pMainWnd,&MainWindowBase::ClosedSignal,m_pMainWnd,[this](){
-        SwitchMainWindowToHidden();
-    });
-
-
-    //
-
-    QObject::connect(pThisApp,&ApplicationBase::aboutToQuit,pThisApp,[this](){
-#ifdef FOCUST_P01_SYSTRY_NEEDED
+    QObject::connect(pThisApp,&ApplicationWithLogin::aboutToQuit,pThisApp,[this](){
+#ifdef QTUTILS_UI_WC_SYSTRY_NEEDED
         m_contextMenu.hide();
         m_tryIcon.hide();
 #endif
         m_pMainWnd->hide();
-        m_loginWnd.hide();
+        m_pLoginWnd->hide();
     });
 
 
-    QObject::connect(pThisApp,&ApplicationBase::AppGoingToExitSignal,pThisApp,[this](){
-#ifdef FOCUST_P01_SYSTRY_NEEDED
+    QObject::connect(pThisApp,&ApplicationWithLogin::AppGoingToExitSignal,pThisApp,[this](){
+#ifdef QTUTILS_UI_WC_SYSTRY_NEEDED
         m_contextMenu.hide();
         m_tryIcon.hide();
 #endif
         m_pMainWnd->hide();
-        m_loginWnd.hide();
+        m_pLoginWnd->hide();
     });
 
-    QObject::connect(pThisApp,&ApplicationBase::LoginSucceedSignal,m_pMainWnd,[this](){
-        ApplicationBase*const pThisApp = focustP01AppBase();
-        const Settings aSettings(pThisApp->username());
+    QObject::connect(pThisApp,&ApplicationWithLogin::LoginSucceedSignal,m_pMainWnd,[this](){
+        const Settings aSettings;
         m_flags.wr.displayOrNotMainWindows = aSettings.value(MONITOR_TEST_SHOW_MAIN_WND_KEY,true).toBool()?
                     CPPUTILS_MAKE_BITS_TRUE:CPPUTILS_MAKE_BITS_FALSE;
 
-        if(m_loginWnd.isVisible()){m_loginWnd.hide();}
+        if(m_pLoginWnd->isVisible()){m_pLoginWnd->hide();}
         if(m_pMainWnd->isHidden()){
             if(m_flags.rd.displayOrNotMainWindows_true){
                 SwitchMainWindowToShow();
@@ -174,21 +154,21 @@ void WidgetsContainerBase::ConnectSignals()
         }
     });
 
-    QObject::connect(pThisApp,&ApplicationBase::LoggedOutSignal,m_pMainWnd,[this](bool a_isAppExit){
+    QObject::connect(pThisApp,&ApplicationWithLogin::LoggedOutSignal,m_pMainWnd,[this](bool a_isAppExit){
         if(m_pMainWnd->isVisible()){m_pMainWnd->hide();}
         if(a_isAppExit){
-            if(m_loginWnd.isVisible()){m_loginWnd.hide();}
+            if(m_pLoginWnd->isVisible()){m_pLoginWnd->hide();}
         }
         else{
-            if(m_loginWnd.isHidden()){m_loginWnd.InitAndShow();}
+            if(m_pLoginWnd->isHidden()){m_login_show(m_pLoginWnd);}
         }        
-#ifdef FOCUST_P01_SYSTRY_NEEDED
+#ifdef QTUTILS_UI_WC_SYSTRY_NEEDED
         m_contextMenu.removeAction(m_pActionShowOrHide);
 #endif
     });
 
 
-    QObject::connect(pThisApp,&ApplicationBase::LoginFailedSignal,m_pMainWnd,[](QString a_errorDetails){
+    QObject::connect(pThisApp,&ApplicationWithLogin::LoginFailedSignal,m_pMainWnd,[](QString a_errorDetails){
         const QString title = "Login failed";
         const QString text = a_errorDetails;
         ::qtutils::ui::ShowMessageBox(QMessageBox::Critical,title,text);
@@ -196,35 +176,33 @@ void WidgetsContainerBase::ConnectSignals()
 }
 
 
-void WidgetsContainerBase::show()
+void WidgetsContainer::show()
 {
-    ApplicationBase*const pThisApp = focustP01AppBase();
+    ApplicationWithLogin*const pThisApp = qtutilsUiAppWithLogin();
 
-#ifdef FOCUST_P01_SYSTRY_NEEDED
+#ifdef QTUTILS_UI_WC_SYSTRY_NEEDED
     m_tryIcon.show();
 #endif
 	
 	if(pThisApp->isLoggedIn()){
-		m_loginWnd.hide();
+        m_pLoginWnd->hide();
 		if(m_flags.rd.displayOrNotMainWindows_true){            
-            m_pMainWnd->InitAndShow();
+            m_main_show(m_pMainWnd);
 		}
 	}
 	else{
         m_pMainWnd->hide();
-        m_loginWnd.InitAndShow();
-	}
-	
+        m_login_show(m_pLoginWnd);
+	}	
 }
 
 
-void WidgetsContainerBase::SwitchMainWindowToHidden()
+void WidgetsContainer::SwitchMainWindowToHidden()
 {
-    ApplicationBase*const pThisApp = focustP01AppBase();
-    Settings aSettings(pThisApp->username());
+    Settings aSettings;
 	aSettings.setValue(MONITOR_TEST_SHOW_MAIN_WND_KEY,false);
 	m_flags.wr.displayOrNotMainWindows = CPPUTILS_MAKE_BITS_FALSE;    
-#ifdef FOCUST_P01_SYSTRY_NEEDED
+#ifdef QTUTILS_UI_WC_SYSTRY_NEEDED
     m_contextMenu.removeAction(m_pActionShowOrHide);
     m_contextMenu.addAction(&m_actionShow);
 #endif
@@ -233,19 +211,18 @@ void WidgetsContainerBase::SwitchMainWindowToHidden()
 }
 
 
-void WidgetsContainerBase::SwitchMainWindowToShow()
+void WidgetsContainer::SwitchMainWindowToShow()
 {
-    ApplicationBase*const pThisApp = focustP01AppBase();
-    Settings aSettings(pThisApp->username());
+    Settings aSettings;
 	aSettings.setValue(MONITOR_TEST_SHOW_MAIN_WND_KEY,true);
 	m_flags.wr.displayOrNotMainWindows = CPPUTILS_MAKE_BITS_TRUE;    
-#ifdef FOCUST_P01_SYSTRY_NEEDED
+#ifdef QTUTILS_UI_WC_SYSTRY_NEEDED
     m_contextMenu.removeAction(m_pActionShowOrHide);
     m_contextMenu.addAction(&m_actionHide);
 #endif
     m_pActionShowOrHide = &m_actionHide;    
-    m_pMainWnd->InitAndShow();
+    m_main_show(m_pMainWnd);
 }
 
 
-}}}  //  namespace focust { namespace p01 { namespace ui{
+}}  //  namespace qtutils { namespace ui{
