@@ -34,10 +34,13 @@ public:
     virtual bool shouldLoginSpinn()const = 0;
     virtual void ShowSettingsWnd(const QPoint& a_glbPos) = 0;
     virtual void ShowLogsWnd(const QPoint& a_glbPos) = 0;
+    virtual QString loginBaseUrl()const = 0;
+    virtual void SetLoginBaseUrl(const QString& a_newUrl) = 0;
 		
 private:
 signals:
     void AppGoingToExitSignal();
+    void LoginBaseUrlChangedSignal(QString a_newUrl);
     void LoginSucceedSignal();
     void LoggedOutSignal(bool a_isAppExit);
     void LoginFailedSignal(QString errorString);
