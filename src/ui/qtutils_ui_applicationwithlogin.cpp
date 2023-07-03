@@ -6,7 +6,7 @@
 // created by:		Davit Kalantaryan (davit.kalantaryan@gmail.com)
 //
 
-#include <qtutils/ui/applicationwithlogin.hpp>
+#include <qtutils/ui/applicationwithloginqu.hpp>
 
 
 namespace qtutils { namespace ui {

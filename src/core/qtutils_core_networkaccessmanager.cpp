@@ -5,7 +5,7 @@
 // created by:		Davit Kalantaryan (davit.kalantaryan@gmail.com)
 //
 
-#include <qtutils/core/networkaccessmanager.hpp>
+#include <qtutils/core/networkaccessmanagerqu.hpp>
 #include <qtutils/core/invokeblocked.hpp>
 #include <qtutils/core/utils.hpp>
 #include <qtutils/disable_utils_warnings.h>

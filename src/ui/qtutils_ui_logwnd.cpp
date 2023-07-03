@@ -6,7 +6,7 @@
 //
 
 
-#include <qtutils/ui/logwnd.hpp>
+#include <qtutils/ui/logwndqu.hpp>
 #include <qtutils/core/settings.hpp>
 #include <cpputils/hash/dllhash.hpp>
 #include <list>

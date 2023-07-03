@@ -7,7 +7,7 @@
 //
 
 #include <qtutils/ui/widgetscontainer.hpp>
-#include <qtutils/ui/applicationwithlogin.hpp>
+#include <qtutils/ui/applicationwithloginqu.hpp>
 #include <qtutils/core/settings.hpp>
 #include <qtutils/core/logger.hpp>
 #include <qtutils/ui/global_functions.hpp>
