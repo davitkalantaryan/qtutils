@@ -39,6 +39,7 @@ protected:
 protected:
     SpinnerBox	m_spinnerBox;
 	int			m_margins;
+    int         m_shouldSpin;
 };
 
 

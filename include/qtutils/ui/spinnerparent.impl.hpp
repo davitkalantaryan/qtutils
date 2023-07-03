@@ -26,6 +26,7 @@ SpinnerParent<WidgetType>::SpinnerParent(Targs... a_args)
 {
 	// static_assert( ::std::is_base_of<Node,ParentType>(), "ParentType should be child of Node" );
 	m_margins = 0;
+    m_shouldSpin = 0;
 	TakeFrameOfWindow(&m_spinnerBox);
 	if(m_spinnerBox.isVisible()){m_spinnerBox.hide();}
 	m_spinnerBox.setParent(this);
@@ -51,18 +52,22 @@ void SpinnerParent<WidgetType>::SetSpinnerMargins(int a_margins)
 template <typename WidgetType >
 void SpinnerParent<WidgetType>::StartSpinning()
 {
-	if(!m_spinnerBox.isVisible()){
-		m_spinnerBox.show();
-		m_spinnerBox.StartSpinning();
-		m_spinnerBox.CenterSpinner(this,m_margins);
-		m_spinnerBox.raise();
-	}
+    m_shouldSpin = 1;
+    if(WidgetType::isVisible()){
+        if(!m_spinnerBox.isVisible()){
+            m_spinnerBox.show();
+            m_spinnerBox.StartSpinning();
+            m_spinnerBox.CenterSpinner(this,m_margins);
+            m_spinnerBox.raise();
+        }
+    }
 }
 
 
 template <typename WidgetType >
 void SpinnerParent<WidgetType>::StopSpinning()
 {
+    m_shouldSpin = 0;
 	if(m_spinnerBox.isVisible()){
 		m_spinnerBox.StopSpinning();
 		m_spinnerBox.hide();
@@ -97,11 +102,7 @@ void SpinnerParent<WidgetType>::moveEvent(QMoveEvent* a_event)
 template <typename WidgetType >
 void SpinnerParent<WidgetType>::hideEvent(QHideEvent* a_event)
 {
-	if(m_spinnerBox.isVisible()){
-		m_spinnerBox.StopSpinning();
-		m_spinnerBox.hide();
-	}
-	
+    StopSpinning();
 	WidgetType::hideEvent(a_event);
 }
 
@@ -110,9 +111,10 @@ template <typename WidgetType >
 void SpinnerParent<WidgetType>::showEvent(QShowEvent* a_event)
 {
 	WidgetType::showEvent(a_event);
-	if(m_spinnerBox.isVisible()){
-		m_spinnerBox.hide();
-	}
+    m_spinnerBox.hide();
+    if(m_shouldSpin){
+        StartSpinning();
+    }
 }
 
 

@@ -31,6 +31,7 @@ public:
     virtual void Login(const QString& a_username, const QString& a_password) =0;
     virtual void Logout() = 0;
     virtual bool isLoggedIn()const = 0;
+    virtual bool shouldLoginSpinn()const = 0;
     virtual void ShowSettingsWnd(const QPoint& a_glbPos) = 0;
     virtual void ShowLogsWnd(const QPoint& a_glbPos) = 0;
 		
