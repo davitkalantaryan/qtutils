@@ -23,6 +23,10 @@
 
 namespace qtutils { namespace ui{
 
+#ifndef QTUTILS_RSZ_WND_INIT_AND_SHOW_OVERRIDE
+#define QTUTILS_RSZ_WND_INIT_AND_SHOW_OVERRIDE
+#endif
+
 
 template <typename WidgetType>
 class ResizibleWindowRaw : public WidgetType
@@ -33,7 +37,7 @@ public:
     virtual ~ResizibleWindowRaw() override;
     
     const QString& settingsKey()const;
-	void InitAndShow();
+	void InitAndShow() QTUTILS_RSZ_WND_INIT_AND_SHOW_OVERRIDE;
 	void Init2(); 
 	    
 protected:

@@ -16,6 +16,7 @@
 #include <qtutils/disable_utils_warnings.h>
 #include <QAbstractHttpServer>
 #include <QString>
+#include <QRegularExpression>
 
 
 namespace qtutils { namespace core{
@@ -27,7 +28,7 @@ class QTUTILS_CORE_EXPORT HttpServer : public QAbstractHttpServer
 public:
     typedef ::std::function<bool(const QHttpServerRequest& a_request, QHttpServerResponder& a_responder)> TypeClbkS;
     typedef ::std::function<bool(const QHttpServerRequest& a_request, const QString& a_fileName, QHttpServerResponder& a_responder)> TypeClbkD;
-    typedef ::std::function<bool(const QHttpServerRequest& a_request, const QString& a_path, QHttpServerResponder& a_responder)> TypeClbkP;
+    typedef ::std::function<bool(const QHttpServerRequest& a_request, const QString& a_path, const QRegularExpression&,QHttpServerResponder& a_responder)> TypeClbkP;
     typedef ::std::unordered_map<QString,TypeClbkS>      TypeHashS;
     typedef ::std::unordered_map<QString,TypeClbkD>      TypeHashD;  // directory routes
     typedef ::std::list<::std::pair<QString,TypeClbkP> > TypeListP;

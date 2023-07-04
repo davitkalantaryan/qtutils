@@ -57,6 +57,12 @@ WidgetsContainer::WidgetsContainer(QWidget* CPPUTILS_ARG_NN a_pLoginWnd, QWidget
     });
     
     m_tryIcon.setContextMenu(&m_contextMenu);
+    
+#else
+    
+    static_cast<void>(a_logo);
+    static_cast<void>(a_tooltip);
+    static_cast<void>(a_exitLogo);
 
 #endif  //  #ifdef QTUTILS_UI_WC_SYSTRY_NEEDED
 
