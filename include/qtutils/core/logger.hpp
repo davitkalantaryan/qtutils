@@ -44,6 +44,7 @@ public:
     Logger& operator=(Logger&&)=delete;
 
     void SetNewLogger(const TypeLogger& a_logger, void* a_pOwner=nullptr);
+    void SetLoggerToDefault();
 
     static QtMessageHandler DefaultHandler();
     static QString          FileAndLineString(const char* a_fileName, int a_line);
