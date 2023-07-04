@@ -1,7 +1,8 @@
 //
-// file:            resizible_window.impl.hpp
-// path:			include/focust/ui/resizible_window.impl.hpp
-// created on:		2022 Jan 18
+// repo:            qtutils
+// file:            webstylelogintypewindow.hpp
+// path:			include/qtutils/ui/webstylelogintypewindow.hpp
+// created on:		2023 Jul 04
 // created by:		Davit Kalantaryan (davit.kalantaryan@gmail.com)
 //
 
