@@ -29,7 +29,8 @@ public:
     HttpServer::TypeHashD   dirRoutes;
     HttpServer::TypeListRE  globRegExpRoutes;
     HttpServer::TypeListRE  wildcardRegExpRoutes;
-    HttpServer::TypeListAM  anyAppearanceRoutes;
+    HttpServer::TypeListAA  anyAppearanceRoutes;
+    HttpServer::TypeListAnM anyMatcherRoutes;
 };
 
 
@@ -65,7 +66,7 @@ bool HttpServer::handleRequest(const QHttpServerRequest& a_request, QHttpServerR
     const QString dirPath = aPath.left(liOfDirPlus1);
     TypeHashD::const_iterator citerHD = m_server_data->dirRoutes.find(dirPath);
     if(citerHD!=m_server_data->dirRoutes.cend()){
-        return citerHD->second(a_request,aPath.mid(liOfDirPlus1),a_responder);
+        return citerHD->second(a_request,a_responder,aPath.mid(liOfDirPlus1));
     }
     
     // 3. try glob reg exp
@@ -75,7 +76,7 @@ bool HttpServer::handleRequest(const QHttpServerRequest& a_request, QHttpServerR
         const QRegularExpression reg(citerLREG->first);
         const QRegularExpressionMatch matchg = reg.match(aPath);
         if(matchg.hasMatch()){
-            return citerLREG->second(a_request, aPath,matchg, a_responder);
+            return citerLREG->second(a_request, a_responder,matchg);
         }
     }
     
@@ -87,17 +88,28 @@ bool HttpServer::handleRequest(const QHttpServerRequest& a_request, QHttpServerR
         const QRegularExpression rew = QRegularExpression::fromWildcard(citerLREW->first,Qt::CaseSensitive,QRegularExpression::UnanchoredWildcardConversion);
         const QRegularExpressionMatch matchw = rew.match(aPath);
         if(matchw.hasMatch()){
-            return citerLREW->second(a_request, aPath,matchw, a_responder);
+            return citerLREW->second(a_request, a_responder,matchw);
         }
     }
     
     
     // 5. any apperance
-    TypeListAM::const_iterator citerLAA = m_server_data->anyAppearanceRoutes.cbegin();
-    const TypeListAM::const_iterator citerLAAEnd = m_server_data->anyAppearanceRoutes.cend();
+    TypeListAA::const_iterator citerLAA = m_server_data->anyAppearanceRoutes.cbegin();
+    const TypeListAA::const_iterator citerLAAEnd = m_server_data->anyAppearanceRoutes.cend();
     for(;citerLAA!=citerLAAEnd;++citerLAA){
         if(aPath.contains(citerLAA->first)){
-            return citerLAA->second(a_request, aPath, a_responder);
+            return citerLAA->second(a_request, a_responder, aPath);
+        }
+    }
+    
+    
+    // 6. any matcher
+    TypeListAnM::const_iterator citerLAM = m_server_data->anyMatcherRoutes.cbegin();
+    const TypeListAnM::const_iterator citerLAMEnd = m_server_data->anyMatcherRoutes.cend();
+    for(;citerLAM!=citerLAMEnd;++citerLAM){
+        const ::std::tuple<TypeHasMatch,void*,TypeClbkAnM>& aItem = *citerLAM;
+        if( (::std::get<0>(aItem))(aUrl,::std::get<1>(aItem)) ){
+            return (::std::get<2>(aItem))(a_request, a_responder, ::std::get<1>(aItem));
         }
     }
     
@@ -137,7 +149,7 @@ const HttpServer::TypeListRE& HttpServer::getAllWildcardRegExpRoutes()const
 }
 
 
-const HttpServer::TypeListAM& HttpServer::getAllAnyAppearanceRoutes()const
+const HttpServer::TypeListAA& HttpServer::getAllAnyAppearanceRoutes()const
 {
     return m_server_data->anyAppearanceRoutes;
 }
@@ -167,9 +179,15 @@ void HttpServer::AddWildcardRegExpRoute(const QString& a_pattern, const TypeClbk
 }
 
 
-void HttpServer::AddAnyAppearanceRoute(const QString& a_pattern, const TypeClbkAM& a_clbk)
+void HttpServer::AddAnyAppearanceRoute(const QString& a_pattern, const TypeClbkAA& a_clbk)
 {
-    m_server_data->anyAppearanceRoutes.push_back(::std::pair<QString,TypeClbkAM>(a_pattern,a_clbk));
+    m_server_data->anyAppearanceRoutes.push_back(::std::pair<QString,TypeClbkAA>(a_pattern,a_clbk));
+}
+
+
+void HttpServer::AddAnyMatcherRoute(const TypeHasMatch& a_hasMatch, void* a_ud, const TypeClbkAnM& a_clbk)
+{
+    m_server_data->anyMatcherRoutes.push_back(::std::tuple<TypeHasMatch,void*,TypeClbkAnM>(a_hasMatch,a_ud,a_clbk));
 }
 
 
