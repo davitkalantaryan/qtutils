@@ -7,8 +7,6 @@
 
 #include <qtutils/core/httpserver.hpp>
 #include <qtutils/disable_utils_warnings.h>
-#include <QHttpServerRequest>
-#include <QHttpServerResponder>
 #include <QHttpServerResponse>
 #include <QUrl>
 #include <QRegularExpression>

@@ -15,6 +15,8 @@
 #include <functional>
 #include <tuple>
 #include <qtutils/disable_utils_warnings.h>
+#include <QHttpServerRequest>
+#include <QHttpServerResponder>
 #include <QAbstractHttpServer>
 #include <QString>
 #include <QRegularExpressionMatch>
@@ -40,7 +42,7 @@ public:
     typedef ::std::list<::std::tuple<TypeHasMatch,void*,TypeClbkAnM> >  TypeListAnM;
     
 public:
-    ~HttpServer() override;
+    virtual ~HttpServer() override;
     HttpServer();
     
     const TypeHashS&  getAllStraightRoutes()const;

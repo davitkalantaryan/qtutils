@@ -69,6 +69,25 @@ Reply* AccessManagerRaw::post(ReplyContainer* a_pContainer, const QNetworkReques
 }
 
 
+Reply* AccessManagerRaw::put(ReplyContainer* a_pContainer, const QNetworkRequest& a_request, const QByteArray& a_data,  ReplyData* a_pData, int a_timeoutMs)
+{
+    QNetworkReply* pNetworkReply = m_pQtManager->put(a_request,a_data);
+    if(pNetworkReply){
+		return new Reply(pNetworkReply,a_pContainer,a_pData, a_timeoutMs);
+    }
+    //return nullptr;
+	throw Exception(a_pData,"Unable to create Network Reply object");
+}
+
+
+Reply* AccessManagerRaw::put(ReplyContainer* a_pContainer, const QNetworkRequest& a_request, const QVariantMap& a_data,  ReplyData* a_pData, int a_timeoutMs)
+{
+    const QJsonDocument dataJsonDoc = QJsonDocument(QJsonObject::fromVariantMap(a_data));
+    const QByteArray dataBA = dataJsonDoc.toJson(QJsonDocument::Compact);
+    return put(a_pContainer,a_request,dataBA,a_pData,a_timeoutMs);
+}
+
+
 Reply* AccessManagerRaw::get(ReplyContainer* a_pContainer, const QNetworkRequest& a_request, ReplyData* a_pData, int a_timeoutMs)
 {
     QNetworkReply* pNetworkReply = m_pQtManager->get(a_request);
