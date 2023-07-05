@@ -109,7 +109,7 @@ bool HttpServer::handleRequest(const QHttpServerRequest& a_request, QHttpServerR
     for(;citerLAM!=citerLAMEnd;++citerLAM){
         const ::std::tuple<TypeHasMatch,void*,TypeClbkAnM>& aItem = *citerLAM;
         if( (::std::get<0>(aItem))(aUrl,::std::get<1>(aItem)) ){
-            return (::std::get<2>(aItem))(a_request, a_responder, ::std::get<1>(aItem));
+            return (::std::get<2>(aItem))(a_request, a_responder, aPath,::std::get<1>(aItem));
         }
     }
     
