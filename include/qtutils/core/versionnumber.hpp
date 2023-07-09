@@ -7,6 +7,8 @@
 //
 
 
+#pragma once
+
 #include <qtutils/export_symbols.h>
 #include <qtutils/disable_utils_warnings.h>
 #include <QVersionNumber>
@@ -29,6 +31,7 @@ public:
     VersionNumber& operator=(VersionNumber&& a_mM);
     void CopyFrom(const VersionNumber& a_cM);
     void ReplaceWithOther(VersionNumber* CPPUTILS_ARG_NN a_pmM);
+    void ReplaceWithOther(VersionNumber&& a_mM);
     QVersionNumber* qVersionNumber()const;
     QVersionNumber* operator->()const;
     const QVersionNumber& operator*()const;

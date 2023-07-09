@@ -80,6 +80,14 @@ void VersionNumber::ReplaceWithOther(VersionNumber* CPPUTILS_ARG_NN a_pmM)
 }
 
 
+void VersionNumber::ReplaceWithOther(VersionNumber&& a_mM)
+{
+    QVersionNumber*const pThisQVN = m_vn_data_p;
+    m_vn_data_p = a_mM.m_vn_data_p;
+    a_mM.m_vn_data_p = pThisQVN;
+}
+
+
 QVersionNumber* VersionNumber::qVersionNumber()const
 {
     return m_vn_data_p;
