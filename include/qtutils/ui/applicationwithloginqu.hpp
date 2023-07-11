@@ -36,8 +36,9 @@ public:
     virtual void ShowLogsWnd(const QPoint& a_glbPos) = 0;
     virtual QString loginBaseUrl()const = 0;
     virtual void SetLoginBaseUrl(const QString& a_newUrl) = 0;
+    virtual bool isVisible()const;
 		
-private:
+protected:
 signals:
     void AppGoingToExitSignal();
     void LoginBaseUrlChangedSignal(QString a_newUrl);
@@ -46,6 +47,8 @@ signals:
     void LoginFailedSignal(QString errorString);
     void StartLoginSpinnngSignal();
     void StopLoginSpinnngSignal();
+    void SwitchingToVisibleSignal();
+    void SwitchingToHidenSignal();
 };
 
 

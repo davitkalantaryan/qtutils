@@ -93,9 +93,7 @@ void WidgetsContainer::ConnectSignals()
 {
     ApplicationWithLogin*const pThisApp = qtutilsUiAppWithLogin();
 
-    connect(&m_actionShow,&QAction::triggered,this,[this](){
-        SwitchMainWindowToShow();
-    });
+    connect(&m_actionShow,&QAction::triggered,this,&WidgetsContainer::SwitchMainWindowToShow);
 
     connect(&m_actionHide,&QAction::triggered,this,[this](){
         SwitchMainWindowToHidden();
@@ -125,52 +123,45 @@ void WidgetsContainer::ConnectSignals()
     });
 #endif  //  #ifdef QTUTILS_UI_WC_SYSTRY_NEEDED
 
-    QObject::connect(pThisApp,&ApplicationWithLogin::aboutToQuit,pThisApp,[this](){
-#ifdef QTUTILS_UI_WC_SYSTRY_NEEDED
-        m_contextMenu.hide();
-        m_tryIcon.hide();
-#endif
-        m_pMainWnd->hide();
-        m_pLoginWnd->hide();
-    });
+    QObject::connect(pThisApp,&ApplicationWithLogin::aboutToQuit,this,&WidgetsContainer::hide);
+    QObject::connect(pThisApp,&ApplicationWithLogin::AppGoingToExitSignal,this,&WidgetsContainer::hide);
+    QObject::connect(pThisApp,&ApplicationWithLogin::SwitchingToHidenSignal,this,&WidgetsContainer::hide);
 
-
-    QObject::connect(pThisApp,&ApplicationWithLogin::AppGoingToExitSignal,pThisApp,[this](){
-#ifdef QTUTILS_UI_WC_SYSTRY_NEEDED
-        m_contextMenu.hide();
-        m_tryIcon.hide();
-#endif
-        m_pMainWnd->hide();
-        m_pLoginWnd->hide();
-    });
+    QObject::connect(pThisApp,&ApplicationWithLogin::SwitchingToVisibleSignal,this,&WidgetsContainer::show);
 
     QObject::connect(pThisApp,&ApplicationWithLogin::LoginSucceedSignal,m_pMainWnd,[this](){
-        const Settings aSettings;
-        m_flags.wr.displayOrNotMainWindows = aSettings.value(MONITOR_TEST_SHOW_MAIN_WND_KEY,true).toBool()?
-                    CPPUTILS_MAKE_BITS_TRUE:CPPUTILS_MAKE_BITS_FALSE;
+        ApplicationWithLogin*const pThisApp = qtutilsUiAppWithLogin();
+        if(pThisApp->isVisible()){
+            const Settings aSettings;
+            m_flags.wr.displayOrNotMainWindows = aSettings.value(MONITOR_TEST_SHOW_MAIN_WND_KEY,true).toBool()?
+                        CPPUTILS_MAKE_BITS_TRUE:CPPUTILS_MAKE_BITS_FALSE;
 
-        if(m_pLoginWnd->isVisible()){m_pLoginWnd->hide();}
-        if(m_pMainWnd->isHidden()){
-            if(m_flags.rd.displayOrNotMainWindows_true){
-                SwitchMainWindowToShow();
-            }
-            else{
-                SwitchMainWindowToHidden();
+            if(m_pLoginWnd->isVisible()){m_pLoginWnd->hide();}
+            if(m_pMainWnd->isHidden()){
+                if(m_flags.rd.displayOrNotMainWindows_true){
+                    SwitchMainWindowToShow();
+                }
+                else{
+                    SwitchMainWindowToHidden();
+                }
             }
         }
     });
 
     QObject::connect(pThisApp,&ApplicationWithLogin::LoggedOutSignal,m_pMainWnd,[this](bool a_isAppExit){
-        if(m_pMainWnd->isVisible()){m_pMainWnd->hide();}
-        if(a_isAppExit){
-            if(m_pLoginWnd->isVisible()){m_pLoginWnd->hide();}
+        ApplicationWithLogin*const pThisApp = qtutilsUiAppWithLogin();
+        if(pThisApp->isVisible()){
+            if(m_pMainWnd->isVisible()){m_pMainWnd->hide();}
+            if(a_isAppExit){
+                if(m_pLoginWnd->isVisible()){m_pLoginWnd->hide();}
+            }
+            else{
+                if(m_pLoginWnd->isHidden()){m_login_show(m_pLoginWnd);}
+            }
+    #ifdef QTUTILS_UI_WC_SYSTRY_NEEDED
+            m_contextMenu.removeAction(m_pActionShowOrHide);
+    #endif
         }
-        else{
-            if(m_pLoginWnd->isHidden()){m_login_show(m_pLoginWnd);}
-        }        
-#ifdef QTUTILS_UI_WC_SYSTRY_NEEDED
-        m_contextMenu.removeAction(m_pActionShowOrHide);
-#endif
     });
 
 
@@ -186,20 +177,33 @@ void WidgetsContainer::show()
 {
     ApplicationWithLogin*const pThisApp = qtutilsUiAppWithLogin();
 
+    if(pThisApp->isVisible()){
+
 #ifdef QTUTILS_UI_WC_SYSTRY_NEEDED
-    m_tryIcon.show();
+        m_tryIcon.show();
+#endif	
+        if(pThisApp->isLoggedIn()){
+            m_pLoginWnd->hide();
+            if(m_flags.rd.displayOrNotMainWindows_true){
+                m_main_show(m_pMainWnd);
+            }
+        }
+        else{
+            m_pMainWnd->hide();
+            m_login_show(m_pLoginWnd);
+        }
+    }
+}
+
+
+void WidgetsContainer::hide()
+{
+#ifdef QTUTILS_UI_WC_SYSTRY_NEEDED
+        m_contextMenu.hide();
+        m_tryIcon.hide();
 #endif
-	
-	if(pThisApp->isLoggedIn()){
-        m_pLoginWnd->hide();
-		if(m_flags.rd.displayOrNotMainWindows_true){            
-            m_main_show(m_pMainWnd);
-		}
-	}
-	else{
         m_pMainWnd->hide();
-        m_login_show(m_pLoginWnd);
-	}	
+        m_pLoginWnd->hide();
 }
 
 

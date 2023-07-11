@@ -31,7 +31,9 @@ public:
                      const QString& a_logo, const QString& a_tooltip,const QString& a_exitLogo,
                      const TypeWCShow& a_login_show, const TypeWCShow& a_main_show);
     
+public slots:
     void show();
+    void hide();
     void SwitchMainWindowToHidden();
 
 private:

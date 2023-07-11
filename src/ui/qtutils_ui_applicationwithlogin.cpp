@@ -24,4 +24,10 @@ ApplicationWithLogin::ApplicationWithLogin(int& a_argc, char** a_argv)
 }
 
 
+bool ApplicationWithLogin::isVisible()const
+{
+    return true;
+}
+
+
 }}  //  namespace qtutils { namespace ui {
