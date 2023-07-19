@@ -8,7 +8,6 @@
 
 #include <qtutils/ui/widgetscontainerlogin.hpp>
 #include <qtutils/ui/applicationwithloginqu.hpp>
-#include <qtutils/core/settings.hpp>
 #include <qtutils/core/logger.hpp>
 #include <qtutils/ui/global_functions.hpp>
 #include <cinternal/flagshelper02.h>

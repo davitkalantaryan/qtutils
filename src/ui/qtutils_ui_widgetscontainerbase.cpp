@@ -81,8 +81,8 @@ void WidgetsContainerBase::AddNewWidget(QObject* a_pWidget,
     m_vWidgets.push_back(pNextWidget);
     const size_t cunIndex = m_vWidgets.size();
     const QString visKey = QTUTILS_UI_WIDGETS_CONTAINER_IS_VIS_KEY_BEG + QString::number(cunIndex) + QTUTILS_UI_WIDGETS_CONTAINER_IS_VIS_KEY_END;
-    ::qtutils::Settings aSetings;
-    const bool isVisible = aSetings.value(visKey,true).toBool();
+    ::qtutils::Settings aSettings;
+    const bool isVisible = aSettings.value(visKey,true).toBool();
     pNextWidget->flags.wr.isVisible = isVisible?CPPUTILS_BISTATE_MAKE_BITS_TRUE:CPPUTILS_BISTATE_MAKE_BITS_FALSE;
     if(m_index<0){
         SwitchToWidgetPrivate(0,false);
@@ -95,8 +95,8 @@ void WidgetsContainerBase::SetWidgetVisible(size_t a_index, bool a_isVisible)
     SWidget* const pWidget = m_vWidgets[a_index];
     pWidget->flags.wr.isVisible = a_isVisible?CPPUTILS_BISTATE_MAKE_BITS_TRUE:CPPUTILS_BISTATE_MAKE_BITS_FALSE;
     const QString visKey = QTUTILS_UI_WIDGETS_CONTAINER_IS_VIS_KEY_BEG + QString::number(a_index) + QTUTILS_UI_WIDGETS_CONTAINER_IS_VIS_KEY_END;
-    ::qtutils::Settings aSetings;
-    aSetings.setValue(visKey,a_isVisible);
+    ::qtutils::Settings aSettings;
+    aSettings.setValue(visKey,a_isVisible);
     if(a_index==static_cast<size_t>(m_index)){
         if(a_isVisible){
             if(m_flags.rd.isVisible_true){
@@ -270,12 +270,20 @@ void WidgetsContainerBase::ConnectSignalsQuBase()
             if(m_flags.rd.isVisible_true){
                 (pCurWidget->m_show)(pCurWidget->pWidget);
             }
+
+            const QString visKey = QTUTILS_UI_WIDGETS_CONTAINER_IS_VIS_KEY_BEG + QString::number(m_index) + QTUTILS_UI_WIDGETS_CONTAINER_IS_VIS_KEY_END;
+            ::qtutils::Settings aSettings;
+            aSettings.setValue(visKey,true);
         }
         else{
             pCurWidget->flags.wr.isVisible = CPPUTILS_BISTATE_MAKE_BITS_FALSE;
             m_actionShowOrHide.setText("&Show");
             m_actionShowOrHide.setIcon(QIcon(":/qtutils/show_password.png"));
             (pCurWidget->m_hide)(pCurWidget->pWidget);
+
+            const QString visKey = QTUTILS_UI_WIDGETS_CONTAINER_IS_VIS_KEY_BEG + QString::number(m_index) + QTUTILS_UI_WIDGETS_CONTAINER_IS_VIS_KEY_END;
+            ::qtutils::Settings aSettings;
+            aSettings.setValue(visKey,true);
         }
     });
 
@@ -321,6 +329,16 @@ void WidgetsContainerBase::show()
     const ptrdiff_t cunWidgsCount = static_cast<ptrdiff_t>(m_vWidgets.size());
     if((m_index<0) || (m_index>=cunWidgsCount)){
         return;
+    }
+
+    bool isVisible;
+    ::qtutils::Settings aSettings;
+    QString visKey;
+    const size_t cunCount = m_vWidgets.size();
+    for(size_t unIndex(0); unIndex<cunCount;++unIndex){
+        visKey = QTUTILS_UI_WIDGETS_CONTAINER_IS_VIS_KEY_BEG + QString::number(unIndex) + QTUTILS_UI_WIDGETS_CONTAINER_IS_VIS_KEY_END;
+        isVisible = aSettings.value(visKey,true).toBool();
+        m_vWidgets[unIndex]->flags.wr.isVisible = isVisible?CPPUTILS_BISTATE_MAKE_BITS_TRUE:CPPUTILS_BISTATE_MAKE_BITS_FALSE;
     }
 
     SwitchToWidgetPrivate(m_index,false);
