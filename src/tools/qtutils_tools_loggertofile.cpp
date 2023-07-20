@@ -67,7 +67,7 @@ LoggerToFile::LoggerToFile()
     :
       m_logger_data_p(new LoggerToFile_p())
 {
-    const QDir dbDir = QDir(QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation));;
+    const QDir dbDir = QDir(QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation));
     QFileInfo aFileInfo02(dbDir,"logs");
 
     m_logger_data_p->m_logsDir.setPath(aFileInfo02.filePath());

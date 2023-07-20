@@ -6,6 +6,9 @@
 //
 
 #include <qtutils/ui/global_functions.hpp>
+#if defined(CPPUTILS_EMSCRIPTEN_IS_USED) || defined(QTUTILS_UI_FORCE_WEB_STYLE)
+#include <qtutils/ui/webdialog.hpp>
+#endif
 //#include <qtutils/disable_utils_warnings.h>
 
 

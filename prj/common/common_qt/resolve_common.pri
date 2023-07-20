@@ -1,4 +1,5 @@
 #
+# repo:                 qtutils
 # name:			sys_common.pri
 # path:			${repositoryRoot}/prj/common/common_qt/sys_common.pri
 # created on:		2022 Jan 16
@@ -8,6 +9,7 @@
 
 
 message("!!! $${PWD}/resolve_common.pri")
+qtutilsResolveCommonIncluded = 1
 
 isEmpty( qtutilsRepoRoot ) {
         qtutilsRepoRoot = $$(qtutilsRepoRoot)

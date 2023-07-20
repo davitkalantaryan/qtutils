@@ -27,6 +27,12 @@ static void MessageHandlerStaticForNull(void*,QtMsgType, const QMessageLogContex
 {
 }
 
+static void MessageHandlerStaticForDefault(void* a_def,QtMsgType a_msgType, const QMessageLogContext& a_ctx,const QString& a_msg)
+{
+    const QtMessageHandler defhand = (QtMessageHandler)a_def;
+    defhand(a_msgType,a_ctx,a_msg);
+}
+
 
 /*////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
 
@@ -64,8 +70,20 @@ Logger::~Logger()
 
 void Logger::SetNewLogger(const TypeLogger& a_logger, void* a_pOwner)
 {
+    ::std::lock_guard<::cpputils::mutex_ml> aGuard(s_logsMutex);
     m_logger_data_p->m_logger = a_logger?a_logger:&MessageHandlerStaticForNull;
     m_logger_data_p->m_pOwner = a_pOwner;
+}
+
+
+void Logger::SetLoggerToDefault()
+{
+    ::std::lock_guard<::cpputils::mutex_ml> aGuard(s_logsMutex);
+
+    if(s_defaultHandler){
+        m_logger_data_p->m_logger = &MessageHandlerStaticForDefault;
+        m_logger_data_p->m_pOwner = (void*)s_defaultHandler;
+    }
 }
 
 

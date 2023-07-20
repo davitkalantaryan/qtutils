@@ -6,7 +6,7 @@
 //
 
 
-#include <qtutils/ui/logwnd.hpp>
+#include <qtutils/ui/logwndqu.hpp>
 #include <qtutils/core/settings.hpp>
 #include <cpputils/hash/dllhash.hpp>
 #include <list>
@@ -22,21 +22,46 @@
 namespace qtutils{ namespace ui{
 
 class CPPUTILS_DLL_PRIVATE CategoryData;
-
-class CPPUTILS_DLL_PRIVATE QtutilsUiLogwndIniter{
-public:
-    QtutilsUiLogwndIniter();
-}static s_qtutilsUiLogwndIniter;
-
 typedef ::cpputils::hash::DllHash<QString,::std::shared_ptr<CategoryData> >    HashCategories;
 
-static constexpr size_t s_cunNumberOfLogTypes = static_cast<size_t>(LogTypes::Count);
-static QColor           s_defaultColors[s_cunNumberOfLogTypes] = {
-    QColor(0,0,190),
-    QColor(0,190,0),
-    QColor(100,100,0),
-    QColor(190,0,0),
+static constexpr size_t     s_cunNumberOfLogTypes = static_cast<size_t>(LogTypes::Count);
+static QColor*              s_defaultColors = nullptr;
+
+static const char* s_setKeyNameExt[s_cunNumberOfLogTypes] = {
+    "/Debug/",
+    "/Info/",
+    "/Warning/",
+    "/Error/"
 };
+
+
+static inline void QtutilsUiLogwndInitializeInline(void){
+    if(s_defaultColors){return;}
+    ::qtutils::Settings aSettings;
+    s_defaultColors = new QColor[s_cunNumberOfLogTypes];
+    s_defaultColors[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Debug)]    = aSettings.value("QtutilsUiLogwndGlobalColors/Debug",   QColor(0,0,190))  .value<QColor>();
+    s_defaultColors[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Info)]     = aSettings.value("QtutilsUiLogwndGlobalColors/Info",    QColor(0,190,0))  .value<QColor>();
+    s_defaultColors[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Warning)]  = aSettings.value("QtutilsUiLogwndGlobalColors/Warning", QColor(100,100,0)).value<QColor>();
+    s_defaultColors[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Error)]    = aSettings.value("QtutilsUiLogwndGlobalColors/Error",   QColor(190,0,0))  .value<QColor>();
+
+    s_setKeyNameExt[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Debug)]   = "/Debug/";
+    s_setKeyNameExt[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Info)]    = "/Info/";
+    s_setKeyNameExt[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Warning)] = "/Warning/";
+    s_setKeyNameExt[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Error)]   = "/Error/";
+
+}
+
+QTUTILS_UI_EXPORT void QtutilsUiLogwndInitialize(void)
+{
+    QtutilsUiLogwndInitializeInline();
+}
+
+
+QTUTILS_UI_EXPORT void QtutilsUiLogwndCleanup(void)
+{
+    delete [] s_defaultColors;
+    s_defaultColors = nullptr;
+}
 
 
 //#define QTUTILS_UI_LOGWND_BIT_VALUE(_val,_bitNum)   ( ((_val)>>(static_cast<uint32_t>(_bitNum)))&1 )
@@ -341,6 +366,7 @@ LogWnd_p::LogWnd_p(LogWnd* a_pParent)
       m_pParent(a_pParent),
       m_edit(a_pParent)
 {
+    QtutilsUiLogwndInitializeInline();
     m_flags.all = 0;
     m_flags.b.instanceNumber = ms_nInstances++;
     m_unMaxNumberOfLogs = QTUTILS_UI_LOGWND_DEFAULT_MAX_NUMBER_OF_LOGS;
@@ -535,14 +561,6 @@ CategoryData::CategoryData(const QString& a_categoryName, LogWnd_p* a_logwnd_dat
 }
 
 
-static const char* s_setKeyNameExt[s_cunNumberOfLogTypes] = {
-    "/Debug/",
-    "/Info/",
-    "/Warning/",
-    "/Error/"
-};
-
-
 inline void CategoryData::SetTypeEnable(const LogTypes& a_type, bool a_isEnable)
 {
     const bool isChecked = QTUTILS_UI_LOGWND_BIT_VALUE(m_flags.b.isEnabledVect,a_type);
@@ -587,23 +605,6 @@ void CategoryData::ConnectSignals()
     });
 }
 
-
-/*/////////////////////////////////////////////////////////////////////////////////*/
-
-QtutilsUiLogwndIniter::QtutilsUiLogwndIniter()
-{
-    ::qtutils::Settings aSettings;
-    s_defaultColors[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Debug)]    = aSettings.value("QtutilsUiLogwndGlobalColors/Debug",   QColor(0,0,190))  .value<QColor>();
-    s_defaultColors[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Info)]     = aSettings.value("QtutilsUiLogwndGlobalColors/Info",    QColor(0,190,0))  .value<QColor>();
-    s_defaultColors[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Warning)]  = aSettings.value("QtutilsUiLogwndGlobalColors/Warning", QColor(100,100,0)).value<QColor>();
-    s_defaultColors[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Error)]    = aSettings.value("QtutilsUiLogwndGlobalColors/Error",   QColor(190,0,0))  .value<QColor>();
-
-    s_setKeyNameExt[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Debug)]   = "/Debug/";
-    s_setKeyNameExt[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Info)]    = "/Info/";
-    s_setKeyNameExt[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Warning)] = "/Warning/";
-    s_setKeyNameExt[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Error)]   = "/Debug/";
-
-}
 
 
 }}  //  namespace qtutils{ namespace ui{

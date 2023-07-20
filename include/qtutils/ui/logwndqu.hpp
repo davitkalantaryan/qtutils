@@ -21,6 +21,9 @@
 namespace qtutils{ namespace ui{
 
 
+QTUTILS_UI_EXPORT void QtutilsUiLogwndInitialize(void);
+QTUTILS_UI_EXPORT void QtutilsUiLogwndCleanup(void);
+
 enum class LogTypes {
     Debug = 0,
     Info = 1,
