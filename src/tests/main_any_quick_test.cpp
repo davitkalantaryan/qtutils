@@ -5,10 +5,10 @@
 // created by:		Davit Kalantaryan (davit.kalantaryan@gmail.com)
 //
 
-#include <qtutils/qtutils_internal_header.h>
+#include <qtutils/export_symbols.h>
 
 
-int main()
+int main(void)
 {
 	return 0;
 }

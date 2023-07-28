@@ -13,10 +13,81 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="repo_files">
+      <UniqueIdentifier>{8a099eef-ecea-4e4f-bcf7-1846ea23f6c3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="repo_files\prj">
+      <UniqueIdentifier>{c5995aac-27a5-49d9-8795-fd53d89f14ff}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="repo_files\prj\common">
+      <UniqueIdentifier>{ddb79588-660b-4e94-a88d-16261dc1080c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="repo_files\prj\common\common_qt">
+      <UniqueIdentifier>{018e63bb-b577-4888-a17a-b25428297acb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="repo_files\prj\common\common_mkfl">
+      <UniqueIdentifier>{33d1ae7d-196c-4d63-958f-5297a166b1ce}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="files">
+      <UniqueIdentifier>{e8c81f86-f4f0-479d-9664-f182102f928c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\utils\entry_qtutils_overall.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\.gitattributes">
+      <Filter>repo_files</Filter>
+    </None>
+    <None Include="..\..\.gitignore">
+      <Filter>repo_files</Filter>
+    </None>
+    <None Include="..\..\.gitmodules">
+      <Filter>repo_files</Filter>
+    </None>
+    <None Include="..\..\LICENSE">
+      <Filter>repo_files</Filter>
+    </None>
+    <None Include="..\..\README.md">
+      <Filter>repo_files</Filter>
+    </None>
+    <None Include="..\qtutils_all_mkfl\qtutils_all.unix.Makefile">
+      <Filter>files</Filter>
+    </None>
+    <None Include="..\qtutils_all_qt\qtutils_all.pro">
+      <Filter>files</Filter>
+    </None>
+    <None Include="..\..\prj\common\common_qt\flagsandsys_common.pri">
+      <Filter>repo_files\prj\common\common_qt</Filter>
+    </None>
+    <None Include="..\..\prj\common\common_qt\flagsandsys_common_private.pri">
+      <Filter>repo_files\prj\common\common_qt</Filter>
+    </None>
+    <None Include="..\..\prj\common\common_mkfl\flagsandsys_common.unix.Makefile">
+      <Filter>repo_files\prj\common\common_mkfl</Filter>
+    </None>
+    <None Include="..\..\prj\common\common_mkfl\flagsandsys_common.windows.Makefile">
+      <Filter>repo_files\prj\common\common_mkfl</Filter>
+    </None>
+    <None Include="..\..\prj\common\common_mkfl\flagsandsys_common_private.unix.Makefile">
+      <Filter>repo_files\prj\common\common_mkfl</Filter>
+    </None>
+    <None Include="..\..\prj\common\common_mkfl\flagsandsys_common_private.windows.Makefile">
+      <Filter>repo_files\prj\common\common_mkfl</Filter>
+    </None>
+    <None Include="..\..\prj\common\common_mkfl\flagsandsys_common_private_pure.unix.Makefile">
+      <Filter>repo_files\prj\common\common_mkfl</Filter>
+    </None>
+    <None Include="..\..\prj\common\common_mkfl\flagsandsys_common_private_pure.windows.Makefile">
+      <Filter>repo_files\prj\common\common_mkfl</Filter>
+    </None>
+    <None Include="..\..\prj\common\common_mkfl\flagsandsys_common_pure.unix.Makefile">
+      <Filter>repo_files\prj\common\common_mkfl</Filter>
+    </None>
+    <None Include="..\..\prj\common\common_mkfl\flagsandsys_common_pure.windows.Makefile">
+      <Filter>repo_files\prj\common\common_mkfl</Filter>
+    </None>
   </ItemGroup>
 </Project>
