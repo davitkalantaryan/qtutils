@@ -1,6 +1,3 @@
-[submodule "contrib/cpputils"]
-	path = contrib/cpputils
-	url = https://github.com/davitkalantaryan/cpputils.git
 [submodule "contrib/emsutils"]
 	path = contrib/emsutils
 	url = https://github.com/davitkalantaryan/emsutils.git
