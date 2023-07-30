@@ -34,6 +34,12 @@
     <Filter Include="repo_files\scripts">
       <UniqueIdentifier>{b8801093-9172-4cbb-a0bd-f425789d2844}</UniqueIdentifier>
     </Filter>
+    <Filter Include="repo_files\.github">
+      <UniqueIdentifier>{1ed3f32e-3de0-488e-93b8-b386fd107978}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="repo_files\.github\workflows">
+      <UniqueIdentifier>{68a0c56f-36c6-41cf-8caa-195388b38bc8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\utils\entry_qtutils_overall.cpp">
@@ -124,6 +130,9 @@
     </None>
     <None Include="..\..\scripts\windows_set_vs_toolset_and_run.bat">
       <Filter>repo_files\scripts</Filter>
+    </None>
+    <None Include="..\..\.github\workflows\test_pull_to_master.yml">
+      <Filter>repo_files\.github\workflows</Filter>
     </None>
   </ItemGroup>
 </Project>
