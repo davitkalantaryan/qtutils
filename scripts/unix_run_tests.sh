@@ -1,7 +1,15 @@
 #!/bin/bash
-# script to run test stuff
 
-# in mac short directory calculation based on n'readlink' or 'realpath' will not work
+# script to prepare developer host, to work with the code on this repo
+
+#scriptFileFullPath=`readlink -f ${0}`
+#scriptDirectory=`dirname ${scriptFileFullPath}`
+#cd ${scriptDirectory}/../..
+#repositoryRoot=`pwd`
+
+# in mac os above short calculation will not work
+# also realpath utilit is missing in mac
+
 scriptDirectory=`dirname "${0}"`
 scriptFileName=`basename "${0}"`
 cd "${scriptDirectory}"
@@ -13,17 +21,17 @@ do
 	cd "${scriptDirectory}"
 	fileOrigin=`readlink "${scriptFileName}"`  || :
 done
-cd ../..
+cd ..
 repositoryRoot=`pwd`
 echo repositoryRoot=$repositoryRoot
 
 
-if [ $# -gt 0 ]; then
-	Configuration=$1
-else
-	Configuration=Debug
-fi
+# https://intoli.com/blog/exit-on-errors-in-bash-scripts/
+# exit when any command fails
+set -e
 
+# keep track of the last executed command
+trap 'last_command=$current_command; current_command=$BASH_COMMAND' DEBUG
 
 # thanks to https://stackoverflow.com/questions/3466166/how-to-check-if-running-in-cygwin-mac-or-linux
 if [[ "$(uname)" == "Darwin" ]]; then
@@ -41,5 +49,7 @@ elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]]; then
 #else
 fi
 
-cd ${repositoryRoot}/sys/${lsbCode}/${Configuration}/test
-./unittest
+
+cd ${repositoryRoot}/sys/${lsbCode}/Debug/test
+
+./cpputils_unit_test

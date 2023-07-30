@@ -31,6 +31,9 @@
     <Filter Include="files">
       <UniqueIdentifier>{e8c81f86-f4f0-479d-9664-f182102f928c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="repo_files\scripts">
+      <UniqueIdentifier>{b8801093-9172-4cbb-a0bd-f425789d2844}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\utils\entry_qtutils_overall.cpp">
@@ -88,6 +91,39 @@
     </None>
     <None Include="..\..\prj\common\common_mkfl\flagsandsys_common_pure.windows.Makefile">
       <Filter>repo_files\prj\common\common_mkfl</Filter>
+    </None>
+    <None Include="..\..\scripts\_unix_compile_qt_as_wasm.sh">
+      <Filter>repo_files\scripts</Filter>
+    </None>
+    <None Include="..\..\scripts\unix_build_all.sh">
+      <Filter>repo_files\scripts</Filter>
+    </None>
+    <None Include="..\..\scripts\unix_compile_some_qt_tests_for_wasm.sh">
+      <Filter>repo_files\scripts</Filter>
+    </None>
+    <None Include="..\..\scripts\unix_prepare_host.sh">
+      <Filter>repo_files\scripts</Filter>
+    </None>
+    <None Include="..\..\scripts\unix_prepare_repository.sh">
+      <Filter>repo_files\scripts</Filter>
+    </None>
+    <None Include="..\..\scripts\unix_run_tests.sh">
+      <Filter>repo_files\scripts</Filter>
+    </None>
+    <None Include="..\..\scripts\windows_build_all.bat">
+      <Filter>repo_files\scripts</Filter>
+    </None>
+    <None Include="..\..\scripts\windows_prepare_host.bat">
+      <Filter>repo_files\scripts</Filter>
+    </None>
+    <None Include="..\..\scripts\windows_prepare_repository.bat">
+      <Filter>repo_files\scripts</Filter>
+    </None>
+    <None Include="..\..\scripts\windows_run_tests.bat">
+      <Filter>repo_files\scripts</Filter>
+    </None>
+    <None Include="..\..\scripts\windows_set_vs_toolset_and_run.bat">
+      <Filter>repo_files\scripts</Filter>
     </None>
   </ItemGroup>
 </Project>

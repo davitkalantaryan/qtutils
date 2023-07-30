@@ -294,6 +294,17 @@
     <None Include="..\..\prj\common\common_qt\flagsandsys_common.pri" />
     <None Include="..\..\prj\common\common_qt\flagsandsys_common_private.pri" />
     <None Include="..\..\README.md" />
+    <None Include="..\..\scripts\unix_build_all.sh" />
+    <None Include="..\..\scripts\unix_compile_some_qt_tests_for_wasm.sh" />
+    <None Include="..\..\scripts\unix_prepare_host.sh" />
+    <None Include="..\..\scripts\unix_prepare_repository.sh" />
+    <None Include="..\..\scripts\unix_run_tests.sh" />
+    <None Include="..\..\scripts\windows_build_all.bat" />
+    <None Include="..\..\scripts\windows_prepare_host.bat" />
+    <None Include="..\..\scripts\windows_prepare_repository.bat" />
+    <None Include="..\..\scripts\windows_run_tests.bat" />
+    <None Include="..\..\scripts\windows_set_vs_toolset_and_run.bat" />
+    <None Include="..\..\scripts\_unix_compile_qt_as_wasm.sh" />
     <None Include="..\qtutils_all_mkfl\qtutils_all.unix.Makefile" />
     <None Include="..\qtutils_all_qt\qtutils_all.pro" />
   </ItemGroup>
