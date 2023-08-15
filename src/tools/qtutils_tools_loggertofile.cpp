@@ -29,6 +29,7 @@ public:
 public:
     void MessageHandler(QtMsgType a_msgType, const QMessageLogContext& a_ctx, const QString& a_msg);
     inline ::std::shared_ptr<QFile> CreateLogFileInline();
+    inline void CreateLogFileNoCheckNoLockInline();
 };
 
 
@@ -77,9 +78,12 @@ LoggerToFile::LoggerToFile()
 }
 
 
-::std::shared_ptr<QFile> LoggerToFile::CreateLogFile()
+void LoggerToFile::RecreateLogFile()
 {
-    return m_logger_data_p->CreateLogFileInline();
+    //return m_logger_data_p->CreateLogFileInline();
+    ::std::lock_guard<::cpputils::mutex_ml> aGuard(m_logger_data_p->m_mutex);
+    m_logger_data_p->m_logFile = ::std::shared_ptr<QFile>();
+    m_logger_data_p->CreateLogFileNoCheckNoLockInline();
 }
 
 
@@ -155,6 +159,29 @@ void LoggerToFile_p::MessageHandler(QtMsgType a_msgType, const QMessageLogContex
 }
 
 
+inline void LoggerToFile_p::CreateLogFileNoCheckNoLockInline()
+{
+    if(!m_currentDate.isValid()){
+        m_currentDate = QDate::currentDate();
+    }
+
+    if(!m_logsDir.exists()){
+        m_logsDir.mkpath(m_logsDir.path());
+    }
+
+    const QFileInfo aFileInfo(m_logsDir,"log_" + m_currentDate.toString("yyyy.MM.dd.txt"));
+    QFile*const pfFileRet_p = new QFile(aFileInfo.filePath());
+    pfFileRet_p->open(QIODevice::Append);
+    if(!pfFileRet_p->isOpen()){
+        delete pfFileRet_p;
+        m_logFile = ::std::shared_ptr<QFile>();
+        return;
+    }
+
+    m_logFile = ::std::shared_ptr<QFile>(pfFileRet_p);
+}
+
+
 inline ::std::shared_ptr<QFile> LoggerToFile_p::CreateLogFileInline()
 {
     ::std::shared_ptr<QFile> pfFileRet = m_logFile;
@@ -162,26 +189,8 @@ inline ::std::shared_ptr<QFile> LoggerToFile_p::CreateLogFileInline()
 
     if(!pfFileRet_p){
         ::std::lock_guard<::cpputils::mutex_ml> aGuard(m_mutex);
-
-        if(!m_currentDate.isValid()){
-            m_currentDate = QDate::currentDate();
-        }
-
-        if(!m_logsDir.exists()){
-            m_logsDir.mkpath(m_logsDir.path());
-        }
-
-        const QFileInfo aFileInfo(m_logsDir,"log_" + m_currentDate.toString("yyyy.MM.dd.txt"));
-        pfFileRet_p = new QFile(aFileInfo.filePath());
-        pfFileRet_p->open(QIODevice::Append);
-        if(!pfFileRet_p->isOpen()){
-            delete pfFileRet_p;
-            return ::std::shared_ptr<QFile>();
-        }
-
-        pfFileRet = ::std::shared_ptr<QFile>(pfFileRet_p);
-        m_logFile = pfFileRet;
-
+        CreateLogFileNoCheckNoLockInline();
+        pfFileRet = m_logFile;
     }  // if(!pfFileRet_p){
 
     return pfFileRet;
