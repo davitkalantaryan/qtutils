@@ -27,7 +27,7 @@ public:
     ApplicationWithLogin(int& a_argc, char** a_argv);
 
     virtual QString username()const = 0;
-    virtual void ExitApp() = 0;
+    virtual void ExitApp(const QString& a_reason) = 0;
     virtual void Login(const QString& a_username, const QString& a_password) =0;
     virtual void Logout() = 0;
     virtual bool isLoggedIn()const = 0;
