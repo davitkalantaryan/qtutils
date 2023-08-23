@@ -16,7 +16,8 @@ jobs:
           matrix:
             os: [ubuntu-20.04, ubuntu-22.04, macos-latest]
         steps:
-            - uses: actions/checkout@v3
+            - name: Checking out repository
+              uses: actions/checkout@v3
            
             - name: Preparing host for ${{ matrix.os }}
               run: ./scripts/unix_prepare_host.sh
@@ -35,7 +36,8 @@ jobs:
     windows:
         runs-on: windows-latest
         steps:
-            - uses: actions/checkout@v3
+            - name: Checking out repository
+              uses: actions/checkout@v3
 
             - name: Setup MSBuild.exe
               uses: microsoft/setup-msbuild@v1.1
@@ -46,15 +48,15 @@ jobs:
               #    toolset: v142
 
             - name: Preparing host for windows
-              run: .\scripts\windows_prepare_host.bat
+              run: cmd /C .\scripts\windows_prepare_host.bat
 
             - name: Preparing repository for windows
-              run: .\scripts\windows_prepare_repository.bat
+              run: cmd /C .\scripts\windows_prepare_repository.bat
               #working-directory: blabla
 
             - name: Compiling for windows
-              run: ./scripts/windows_build_all.bat
+              run: cmd /C .\scripts\windows_build_all.bat
               #working-directory: blabla
 
             - name: running unittest for windows
-              run: ./scripts/windows_run_tests.bat
+              run: cmd /C .\scripts\windows_run_tests.bat
