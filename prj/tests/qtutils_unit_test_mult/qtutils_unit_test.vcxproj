@@ -38,7 +38,7 @@
     <ClCompile Include="..\..\..\contrib\emsutils\contrib\cinternal\src\core\cinternal_core_logger.c" />
     <ClCompile Include="..\..\..\contrib\emsutils\contrib\cinternal\src\core\cinternal_core_unit_test_checks.c" />
     <ClCompile Include="..\..\..\contrib\emsutils\contrib\cinternal\src\core\cinternal_core_unit_test_main.c" />
-    <ClCompile Include="..\..\..\src\tests\googletest\0000_initial.cpp" />
+    <ClCompile Include="..\..\..\src\tests\unit_test\0000_initial.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\include\cpputils\bigint.hpp" />

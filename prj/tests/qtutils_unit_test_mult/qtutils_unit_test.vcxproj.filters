@@ -19,9 +19,6 @@
     <Filter Include="Source Files\tests">
       <UniqueIdentifier>{139ee4ad-4dfe-44b9-aacb-6652b0957ba5}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\tests\googletest">
-      <UniqueIdentifier>{e40682fe-cd27-40fd-87fa-c1fb675fb8a4}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\incude">
       <UniqueIdentifier>{3033059e-d64c-4cf6-8d6a-78278f262a93}</UniqueIdentifier>
     </Filter>
@@ -31,11 +28,11 @@
     <Filter Include="Source Files\core">
       <UniqueIdentifier>{429adb94-1d6f-4f99-911e-a8c82285230a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\tests\unit_test">
+      <UniqueIdentifier>{e40682fe-cd27-40fd-87fa-c1fb675fb8a4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\src\tests\googletest\0000_initial.cpp">
-      <Filter>Source Files\tests\googletest</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\contrib\emsutils\contrib\cinternal\src\core\cinternal_core_logger.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -44,6 +41,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\contrib\emsutils\contrib\cinternal\src\core\cinternal_core_unit_test_main.c">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\tests\unit_test\0000_initial.cpp">
+      <Filter>Source Files\tests\unit_test</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
