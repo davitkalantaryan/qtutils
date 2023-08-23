@@ -1,5 +1,5 @@
 #
-# repo:		cpputils
+# repo:		qtutils
 # file:		flagsandsys_common.windows.Makefile
 # created on:	2020 Dec 14
 # created by:	Davit Kalantaryan (davit.kalantaryan@desy.de)
@@ -8,12 +8,12 @@
 
 
 !IFNDEF cpputilsRepoRoot
-cpputilsRepoRoot	= $(MAKEDIR)\..\..\..
+qtutilsRepoRoot	= $(MAKEDIR)\..\..\..
 !ENDIF
-!include <$(cpputilsRepoRoot)\prj\common\common_mkfl\flagsandsys_common_pure.windows.Makefile>
+!include <$(qtutilsRepoRoot)\prj\common\common_mkfl\flagsandsys_common_pure.windows.Makefile>
 
 
-!IFNDEF cinternalRepoRoot
-cinternalRepoRoot	= $(cpputilsRepoRoot)\contrib\cinternal
+!IFNDEF emsutilsRepoRoot
+emsutilsRepoRoot	= $(qtutilsRepoRoot)\contrib\emsutils
 !ENDIF
-!include <$(cinternalRepoRoot)\prj\common\common_mkfl\flagsandsys_common_pure.windows.Makefile>
+!include <$(emsutilsRepoRoot)\prj\common\common_mkfl\flagsandsys_common_pure.windows.Makefile>

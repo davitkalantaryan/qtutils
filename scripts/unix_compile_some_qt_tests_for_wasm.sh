@@ -34,7 +34,7 @@ cd ..
 repositoryRoot=`pwd`
 echo repositoryRoot=$repositoryRoot
 
-source ./scripts/unix_per_session.sh ./scripts/unix_per_session.sh 1
+#source ./scripts/unix_per_session.sh ./scripts/unix_per_session.sh 1
 cd ${repositoryRoot}
 
 ${repositoryRoot}/scripts/.raw/_unix_compile_qt_as_wasm.sh				\

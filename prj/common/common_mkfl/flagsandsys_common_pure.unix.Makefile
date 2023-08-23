@@ -1,5 +1,5 @@
 #
-# repo:		    cpputils
+# repo:		    qtutils
 # file:		    flagsandsys_common_pure.unix.Makefile
 # created on:	    2020 Dec 14
 # created by:	    Davit Kalantaryan (davit.kalantaryan@desy.de)
@@ -12,7 +12,7 @@ mkfile_dir		=  $(shell dirname $(mkfile_path))
 cpputilsRepoRoot	:= $(shell curDir=`pwd` && cd $(mkfile_dir)/../../.. && pwd && cd ${curDir})
 
 ifndef artifactRoot
-        artifactRoot	= $(cpputilsRepoRoot)
+        artifactRoot	= $(qtutilsRepoRoot)
 endif
 
-COMMON_FLAGS	+= -I$(cpputilsRepoRoot)/include
+COMMON_FLAGS	+= -I$(qtutilsRepoRoot)/include

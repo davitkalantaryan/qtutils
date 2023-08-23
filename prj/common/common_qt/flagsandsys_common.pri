@@ -1,5 +1,5 @@
 #
-# repo:			cpputils
+# repo:			qtutils
 # name:			flagsandsys_common.pri
 # path:			prj/common/common_qt/flagsandsys_common.pri
 # created on:   2023 Jun 21
@@ -19,9 +19,9 @@ isEmpty(qtutilsFlagsAndSysCommonIncluded){
     isEmpty(artifactRoot) {
         artifactRoot = $$(artifactRoot)
 		isEmpty(artifactRoot) {
-			artifactRoot = $${cpputilsRepoRoot}
+			artifactRoot = $${qtutilsRepoRoot}
 		}
     }
 
-    INCLUDEPATH += $${cpputilsRepoRoot}/include
+    INCLUDEPATH += $${qtutilsRepoRoot}/include
 }

@@ -62,12 +62,12 @@ do
 	cd "${scriptDirectory}"
 	fileOrigin=`readlink "${scriptFileName}"`  || :
 done
-cd ../..
+cd ..
 # now we are in the repository root
 if [ -z "$repositoryRoot" ]; then
 	repositoryRoot=`pwd`
 fi
-source ./scripts/unix_per_session.sh ./scripts/unix_per_session.sh 1
+#source ./scripts/unix_per_session.sh ./scripts/unix_per_session.sh 1
 
 if [ -z "$QT_ROOT_DIR" ]; then
 	echo "QT_ROOT_DIR environment variable is not set"
