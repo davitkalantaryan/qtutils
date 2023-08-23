@@ -60,7 +60,7 @@ for %%p in (%PlatformTarget%) do (
 	for %%c in (%Configuration%) do (
 		echo "!!!!!!!!!!!! !!!!!!!!!!!! compiling for configuration %%c"
 		rem call msbuild "%repositoryRoot%workspaces\cpputils_all_vs\cpputils_all.sln" /t:!ActionConfirm! /p:Configuration=%%c /p:Platform=%%p
-		call msbuild "%repositoryRoot%workspaces\cpputils_all_vs\cpputils_all.sln" /t:!ActionConfirm! /p:Configuration=%%c /p:Platform=%%p
+		call msbuild "%repositoryRoot%workspaces\qtutils_all_vs\qtutils_all.sln" /t:!ActionConfirm! /p:Configuration=%%c /p:Platform=%%p
 		if not "!ERRORLEVEL!"=="0" (exit /b !ERRORLEVEL!)
 		call nmake -f cpputils_unit_test.windows.Makefile /e Platform=%%p /e Configuration=%%c
 		if not "!ERRORLEVEL!"=="0" (exit /b !ERRORLEVEL!)
