@@ -36,6 +36,15 @@
     <ClCompile Include="..\..\..\src\tests\googletest\0000_initial.cpp">
       <Filter>Source Files\tests\googletest</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\contrib\emsutils\contrib\cinternal\src\core\cinternal_core_logger.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\contrib\emsutils\contrib\cinternal\src\core\cinternal_core_unit_test_checks.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\contrib\emsutils\contrib\cinternal\src\core\cinternal_core_unit_test_main.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\include\cpputils\internal_header.h">

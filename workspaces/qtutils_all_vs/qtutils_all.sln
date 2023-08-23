@@ -15,6 +15,9 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "projects", "projects", "{3450024D-401A-4483-9668-9C47449C6371}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "qtutils_unit_test", "..\..\prj\tests\qtutils_unit_test_mult\qtutils_unit_test.vcxproj", "{E6F8B6C2-4CA9-4B3A-9A00-83D011DE88FA}"
+	ProjectSection(ProjectDependencies) = postProject
+		{C0D41E3C-2BF2-40B0-BC52-9686247700E5} = {C0D41E3C-2BF2-40B0-BC52-9686247700E5}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
