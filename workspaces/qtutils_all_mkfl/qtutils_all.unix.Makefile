@@ -11,11 +11,11 @@ endif
 
 
 all:
-	$(MAKE) -f $(qtutilsRepoRoot)/prj/tests/qtutils_unit_test_mult/cpputils_unit_test.unix.Makefile			&& \
+	$(MAKE) -f $(qtutilsRepoRoot)/prj/tests/qtutils_unit_test_mult/qtutils_unit_test.unix.Makefile			&& \
 	$(MAKE) -f $(qtutilsRepoRoot)/prj/tests/any_quick_test_mkfl/any_quick_test.unix.Makefile
 
 .PHONY: clean
 clean:
-	$(MAKE) -f $(qtutilsRepoRoot)/prj/tests/cpputils_unit_test_mult/cpputils_unit_test.unix.Makefile clean
+	$(MAKE) -f $(qtutilsRepoRoot)/prj/tests/qtutils_unit_test_mult/qtutils_unit_test.unix.Makefile clean
 	$(MAKE) -f $(qtutilsRepoRoot)/prj/tests/any_quick_test_mkfl/any_quick_test.unix.Makefile clean
 	
