@@ -35,10 +35,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config.locked" />
-    <None Include="windows.Makefile" />
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="..\..\..\src\tests\googletest\0000_initial.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -58,6 +54,11 @@
     <ClInclude Include="..\..\..\include\cpputils\sharedptr.hpp" />
     <ClInclude Include="..\..\..\include\cpputils\sharedptr.impl.hpp" />
     <ClInclude Include="..\..\..\include\cpputils\internal_header.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="qtutils_unit_test.pro" />
+    <None Include="qtutils_unit_test.unix.Makefile" />
+    <None Include="qtutils_unit_test.windows.Makefile" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <GoogleTestConfiguration Condition="'$(Configuration)'=='Debug'">d</GoogleTestConfiguration>

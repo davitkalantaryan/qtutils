@@ -33,14 +33,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="windows.Makefile">
-      <Filter>files</Filter>
-    </None>
-    <None Include="packages.config.locked">
-      <Filter>files</Filter>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="..\..\..\src\tests\googletest\0000_initial.cpp">
       <Filter>Source Files\tests\googletest</Filter>
     </ClCompile>
@@ -94,5 +86,16 @@
     <ClInclude Include="..\..\..\include\cpputils\sharedptr.impl.hpp">
       <Filter>Header Files\incude\cpputils</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="qtutils_unit_test.pro">
+      <Filter>files</Filter>
+    </None>
+    <None Include="qtutils_unit_test.unix.Makefile">
+      <Filter>files</Filter>
+    </None>
+    <None Include="qtutils_unit_test.windows.Makefile">
+      <Filter>files</Filter>
+    </None>
   </ItemGroup>
 </Project>

@@ -32,6 +32,9 @@
     <None Include="..\any_quick_test_qt\any_quick_test.pro">
       <Filter>files</Filter>
     </None>
+    <None Include="..\any_quick_test_mkfl\any_quick_test.unix.Makefile">
+      <Filter>files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\include\qtutils\qtutils_internal_header.h">

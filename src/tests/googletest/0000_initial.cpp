@@ -3,7 +3,7 @@
 // created on:		2021 Feb 02
 //
 
-#include "gtest/gtest.h"
+#include <cinternal/unit_test.h>
 #include <stdio.h>
 
 static int s_handler_execution_number = 2;

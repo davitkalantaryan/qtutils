@@ -7,7 +7,7 @@
 #
 
 
-!IFNDEF cpputilsRepoRoot
+!IFNDEF qtutilsRepoRoot
 qtutilsRepoRoot	= $(MAKEDIR)\..\..\..
 !ENDIF
 !include <$(qtutilsRepoRoot)\prj\common\common_mkfl\flagsandsys_common_pure.windows.Makefile>
