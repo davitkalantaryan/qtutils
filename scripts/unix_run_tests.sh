@@ -52,4 +52,4 @@ fi
 
 cd ${repositoryRoot}/sys/${lsbCode}/Debug/test
 
-./cpputils_unit_test
+./qtutils_unit_test

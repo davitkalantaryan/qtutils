@@ -11,6 +11,7 @@ include $(mkfile_dir)/../../common/common_mkfl/flagsandsys_common_private.unix.M
 UNIT_TEST_SRCS_DIR=$(qtutilsRepoRoot)/src/tests/unit_test
 UNIT_TEST_SRCS	= $(shell find $(UNIT_TEST_SRCS_DIR) -name "*.cpp")
 
+COMMON_FLAGS += -DCINTERNAL_UNIT_TEST_USE_GTEST_LIKE_MACROSES
 CPPFLAGS += -std=c++11
 
 LIBS += -pthread
