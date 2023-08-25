@@ -8,7 +8,7 @@ firstTarget: all
 
 include $(mkfile_dir)/../../common/common_mkfl/flagsandsys_common_private.unix.Makefile
 
-UNIT_TEST_SRCS_DIR=$(repoRootPath)/src/tests/unit_test
+UNIT_TEST_SRCS_DIR=$(qtutilsRepoRoot)/src/tests/unit_test
 UNIT_TEST_SRCS	= $(shell find $(UNIT_TEST_SRCS_DIR) -name "*.cpp")
 
 CPPFLAGS += -std=c++11

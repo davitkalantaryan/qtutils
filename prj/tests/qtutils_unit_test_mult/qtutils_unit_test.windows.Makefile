@@ -26,7 +26,7 @@ Objects					=	$(Objects) ..\contrib\emsutils\contrib\cinternal\src\core\cinterna
 #DirectoriesToCompile	= $(DirectoriesToCompile) nr-build\gen\cpp\sss\ssslang\antlr
 DirectoriesToCompile	=
 DirectoriesToCompile	= tests\unit_test
-DirectoriesToCompile	= $(DirectoriesToCompile) core
+#DirectoriesToCompile	= $(DirectoriesToCompile) core
 
 default: unittest
 
