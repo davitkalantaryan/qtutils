@@ -288,10 +288,10 @@
     <None Include="..\..\prj\common\common_mkfl\flagsandsys_common.windows.Makefile" />
     <None Include="..\..\prj\common\common_mkfl\flagsandsys_common_private.unix.Makefile" />
     <None Include="..\..\prj\common\common_mkfl\flagsandsys_common_private.windows.Makefile" />
-    <None Include="..\..\prj\common\common_mkfl\flagsandsys_common_private_pure.unix.Makefile" />
-    <None Include="..\..\prj\common\common_mkfl\flagsandsys_common_private_pure.windows.Makefile" />
-    <None Include="..\..\prj\common\common_mkfl\flagsandsys_common_pure.unix.Makefile" />
-    <None Include="..\..\prj\common\common_mkfl\flagsandsys_common_pure.windows.Makefile" />
+    <None Include="..\..\prj\common\common_mkfl\raw\flagsandsys_common_private_raw.unix.Makefile" />
+    <None Include="..\..\prj\common\common_mkfl\raw\flagsandsys_common_private_raw.windows.Makefile" />
+    <None Include="..\..\prj\common\common_mkfl\raw\flagsandsys_common_raw.unix.Makefile" />
+    <None Include="..\..\prj\common\common_mkfl\raw\flagsandsys_common_raw.windows.Makefile" />
     <None Include="..\..\prj\common\common_qt\flagsandsys_common.pri" />
     <None Include="..\..\prj\common\common_qt\flagsandsys_common_private.pri" />
     <None Include="..\..\README.md" />

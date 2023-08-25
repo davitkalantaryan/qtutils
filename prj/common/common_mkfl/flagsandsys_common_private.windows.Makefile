@@ -6,13 +6,10 @@
 # purpose:	This file can be only as include
 #
 
+!IFNDEF qtutilsPrivateFlagsAndSysCommonIncluded
+qtutilsPrivateFlagsAndSysCommonIncluded		= 1
 !IFNDEF qtutilsRepoRoot
 qtutilsRepoRoot	= $(MAKEDIR)\..\..\..
 !ENDIF
-!include <$(qtutilsRepoRoot)\prj\common\common_mkfl\flagsandsys_common_private_pure.windows.Makefile>
-
-
-!IFNDEF emsutilsRepoRoot
-emsutilsRepoRoot	= $(qtutilsRepoRoot)\contrib\emsutils
+!include <$(qtutilsRepoRoot)\prj\common\common_mkfl\raw\flagsandsys_common_private_raw.windows.Makefile>
 !ENDIF
-!include <$(emsutilsRepoRoot)\prj\common\common_mkfl\flagsandsys_common_pure.windows.Makefile>

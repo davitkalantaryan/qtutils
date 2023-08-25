@@ -6,9 +6,8 @@
 # purpose:	This file can be only as include
 #
 
-
 !IFNDEF MakeFileDir
-MakeFileDir			= $(MAKEDIR)
+MakeFileDir			= $(MAKEDIR)\..
 !ENDIF
 
 !IFNDEF qtutilsRepoRoot
@@ -19,4 +18,9 @@ qtutilsRepoRoot	= $(MakeFileDir)\..\..\..
 artifactRoot	= $(qtutilsRepoRoot)
 !ENDIF
 
+!IFNDEF emsutilsRepoRoot
+emsutilsRepoRoot	= $(qtutilsRepoRoot)\contrib\emsutils
+!ENDIF
+
+!include <$(emsutilsRepoRoot)\prj\common\common_mkfl\flagsandsys_common.windows.Makefile>
 CFLAGS				= $(CFLAGS) /I"$(qtutilsRepoRoot)\include"

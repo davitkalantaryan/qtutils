@@ -49,7 +49,7 @@
 /src/gen
 
 /sys
-/prj/*/*/*
+/prj/*/*/*/*
 /workspaces/*/*
 
 
@@ -64,6 +64,7 @@
 !/prj/*/*_vs/*.props
 #
 !/prj/*/*_mkfl/*Makefile*
+!/prj/*/*_mkfl/raw/*Makefile*
 #
 !/prj/*/*_mult/*Makefile
 !/prj/*/*_mult/*.sln

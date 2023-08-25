@@ -6,7 +6,9 @@
 # purpose:	    This file can be only as include
 #
 
-mkfile_path		=  $(abspath $(lastword $(MAKEFILE_LIST)))
-mkfile_dir		=  $(shell dirname $(mkfile_path))
-include $(mkfile_dir)/flagsandsys_common_private_pure.unix.Makefile
-include $(qtutilsRepoRoot)/contrib/cinternal/prj/common/common_mkfl/flagsandsys_common_pure.unix.Makefile
+ifndef qtutilsPrivateFlagsAndSysCommonIncluded
+    qtutilsPrivateFlagsAndSysCommonIncluded  = 1
+    mkfile_path		=  $(abspath $(lastword $(MAKEFILE_LIST)))
+    mkfile_dir		=  $(shell dirname $(mkfile_path))
+    include $(mkfile_dir)/raw/flagsandsys_common_private_raw.unix.Makefile
+endif

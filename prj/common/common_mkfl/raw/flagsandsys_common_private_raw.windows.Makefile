@@ -7,8 +7,8 @@
 #
 
 !IFNDEF qtutilsRepoRoot
-qtutilsRepoRoot	= $(MAKEDIR)\..\..\..
+qtutilsRepoRoot	= $(MAKEDIR)\..\..\..\..
 !ENDIF
-!include <$(qtutilsRepoRoot)\prj\common\common_mkfl\flagsandsys_common_pure.windows.Makefile>
+!include <$(qtutilsRepoRoot)\prj\common\common_mkfl\flagsandsys_common.windows.Makefile>
 
 CFLAGS				= $(CFLAGS) /I"$(qtutilsRepoRoot)\src\include"
