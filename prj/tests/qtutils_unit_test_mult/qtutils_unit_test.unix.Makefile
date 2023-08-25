@@ -11,6 +11,10 @@ include $(mkfile_dir)/../../common/common_mkfl/flagsandsys_common_private.unix.M
 UNIT_TEST_SRCS_DIR=$(qtutilsRepoRoot)/src/tests/unit_test
 UNIT_TEST_SRCS	= $(shell find $(UNIT_TEST_SRCS_DIR) -name "*.cpp")
 
+EXTRA_SOURCSES += $(cinternalRepoRoot)/src/core/cinternal_core_unit_test_checks.c
+EXTRA_SOURCSES += $(cinternalRepoRoot)/src/core/cinternal_core_unit_test_main.c
+EXTRA_SOURCSES += $(cinternalRepoRoot)/src/core/cinternal_core_logger.c
+
 COMMON_FLAGS += -DCINTERNAL_UNIT_TEST_USE_GTEST_LIKE_MACROSES
 CPPFLAGS += -std=c++11
 
@@ -19,6 +23,7 @@ LIBS += -pthread
 all: $(artifactRoot)/sys/$(lsbCode)/$(Configuration)/test/$(targetName)
 
 $(artifactRoot)/sys/$(lsbCode)/$(Configuration)/test/$(targetName): \
+			$(EXTRA_SOURCSES:%=$(artifactRoot)/sys/$(lsbCode)/$(Configuration)/.objects/$(targetName)/%.o)		\
 			$(UNIT_TEST_SRCS:%=$(artifactRoot)/sys/$(lsbCode)/$(Configuration)/.objects/$(targetName)/%.o)
 	@mkdir -p $(@D)
 	@echo !!!! $@
