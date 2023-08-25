@@ -16,6 +16,6 @@ ifndef artifactRoot
         artifactRoot	= $(qtutilsRepoRoot)
 endif
 
-include $(qtutilsRepoRoot)/contrib/emsutils/prj/common/common_mkfl/flagsandsys_common_pure.unix.Makefile
+include $(qtutilsRepoRoot)/contrib/emsutils/prj/common/common_mkfl/flagsandsys_common.unix.Makefile
 
 COMMON_FLAGS	+= -I$(qtutilsRepoRoot)/include
