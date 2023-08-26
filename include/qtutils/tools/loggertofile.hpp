@@ -27,7 +27,7 @@ class QTUTILS_EXPORT LoggerToFile
 public:
     ~LoggerToFile();
     LoggerToFile();
-    ::std::shared_ptr<QFile>    CreateLogFile();
+    void                        RecreateLogFile();
     void                        SetExtraLogger(const Logger::TypeLogger& a_logger, void* a_pOwner=nullptr);
     void                        SetCurrentDate(const QDate& a_newDate);
     void                        SetLogsDir(const QDir& a_logsDir);
