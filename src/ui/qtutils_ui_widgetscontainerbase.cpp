@@ -10,7 +10,6 @@
 #include <qtutils/core/settings.hpp>
 #include <qtutils/core/logger.hpp>
 #include <qtutils/ui/global_functions.hpp>
-#include <cinternal/flagshelper02.h>
 #include <qtutils/disable_utils_warnings.h>
 #include <QCoreApplication>
 

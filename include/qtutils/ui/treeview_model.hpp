@@ -12,6 +12,8 @@
 
 
 #include <qtutils/export_symbols.h>
+#ifdef CPPUTILS_HASHTBL_DEFINED
+
 #include <type_traits>
 #include <stdint.h>
 #include <qtutils/disable_utils_warnings.h>
@@ -169,5 +171,7 @@ public:
 #include "treeview_model.impl.hpp"
 #endif
 
+
+#endif  //  #ifdef CPPUTILS_HASHTBL_DEFINED
 
 #endif  // #ifndef QTUTILS_INCLUDE_QTUTILS_UI_TREEVIEW_MODEL_HPP

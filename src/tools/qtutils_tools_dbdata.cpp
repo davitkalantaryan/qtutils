@@ -5,6 +5,10 @@
 // created by:		Davit Kalantaryan (davit.kalantaryan@gmail.com)
 //
 
+#include <qtutils/export_symbols.h>
+
+#ifdef CPPUTILS_HASH_VHASH_DEFINED
+
 #include <qtutils/tools/dbdata.hpp>
 #include <qtutils/disable_utils_warnings.h>
 #include <QJsonDocument>
@@ -40,3 +44,5 @@ QTUTILS_EXPORT const QVariantMap& TypeVmToVariantMap(const QVariantMap& a_vm)
 
 
 }}  //  namespace qtutils{ namespace tools{
+
+#endif  //  #ifdef CPPUTILS_HASH_VHASH_DEFINED

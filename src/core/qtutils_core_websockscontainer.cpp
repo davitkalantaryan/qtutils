@@ -9,8 +9,6 @@
 #include <qtutils/core/websockscontainer.hpp>
 #include <qtutils/core/threadobject.hpp>
 #include <qtutils/core/threadls.hpp>
-#include <cpputils/inscopecleaner.hpp>
-#include <cpputils/unnamedsemaphore.hpp>
 #include <list>
 #include <mutex>
 #include <assert.h>

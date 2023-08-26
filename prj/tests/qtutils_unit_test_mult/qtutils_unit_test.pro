@@ -31,8 +31,13 @@ SRC_DIR=$${qtutilsRepoRoot}/src/tests/unit_test
 SOURCES += $$files($${SRC_DIR}/*.cpp,true)
 #SOURCES += $$files($${repoRootPath}/src/core/*.cpp,true)
 
-HEADERS =  $$files($${qtutilsRepoRoot}/include/*.h,true)
-HEADERS += $$files($${qtutilsRepoRoot}/include/*.hpp,true)
+SOURCES +=  \
+    "$${cinternalRepoRoot}/src/core/cinternal_core_logger.c"				\
+    "$${cinternalRepoRoot}/src/core/cinternal_core_unit_test_checks.c"			\
+    "$${cinternalRepoRoot}/src/core/cinternal_core_unit_test_main.c"
+
+#HEADERS =  $$files($${qtutilsRepoRoot}/include/*.h,true)
+#HEADERS += $$files($${qtutilsRepoRoot}/include/*.hpp,true)
 HEADERS += $$files($${SRC_DIR}/*.h,true)
 HEADERS += $$files($${SRC_DIR}/*.hpp,true)
 OTHER_FILES += $$files($${PWD}/*.Makefile,false)

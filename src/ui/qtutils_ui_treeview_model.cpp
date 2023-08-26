@@ -5,6 +5,9 @@
 // created by:		Davit Kalantaryan (davit.kalantaryan@gmail.com)
 //
 
+#include <qtutils/export_symbols.h>
+#ifdef CPPUTILS_HASHTBL_DEFINED
+
 #include <qtutils/ui/treeview_model.hpp>
 #include <cpputils/hashtbl.hpp>
 #include <assert.h>
@@ -435,3 +438,6 @@ QVariant NodeIcon::data(int a_role) const
 
 
 }}}  // namespace qtutils { namespace ui{ namespace treeview{
+
+
+#endif  //  #ifdef CPPUTILS_HASHTBL_DEFINED

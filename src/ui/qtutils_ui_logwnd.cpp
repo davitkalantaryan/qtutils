@@ -8,7 +8,7 @@
 
 #include <qtutils/ui/logwndqu.hpp>
 #include <qtutils/core/settings.hpp>
-#include <cpputils/hash/dllhash.hpp>
+#include <unordered_map>
 #include <list>
 #include <memory>
 #include <stdint.h>
@@ -22,7 +22,7 @@
 namespace qtutils{ namespace ui{
 
 class CPPUTILS_DLL_PRIVATE CategoryData;
-typedef ::cpputils::hash::DllHash<QString,::std::shared_ptr<CategoryData> >    HashCategories;
+typedef ::std::unordered_map<QString,::std::shared_ptr<CategoryData> >    HashCategories;
 
 static constexpr size_t     s_cunNumberOfLogTypes = static_cast<size_t>(LogTypes::Count);
 static QColor*              s_defaultColors = nullptr;
@@ -225,7 +225,7 @@ void LogWnd::SetDefaultColor(const LogTypes& a_type, const QColor& a_newColor)
 void LogWnd::SetCategoryColors(const QString& a_categoryName, const QColor* a_newColors, size_t a_count, size_t a_offset)
 {
     const HashCategories::const_iterator citer = m_logwnd_data_p->m_categories.find(a_categoryName);
-    if(citer==HashCategories::s_constNullIter){return;}
+    if(citer==m_logwnd_data_p->m_categories.end()){return;}
     CategoryData* pCategoryData = citer->second.get();
 
     SetColorsInline(a_newColors,a_count,a_offset,pCategoryData->m_colors);
@@ -238,7 +238,7 @@ void LogWnd::SetCategoryColors(const QString& a_categoryName, const LogTypes& a_
     assert(cunIndex<QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Count));
 
     const HashCategories::const_iterator citer = m_logwnd_data_p->m_categories.find(a_categoryName);
-    if(citer==HashCategories::s_constNullIter){return;}
+    if(citer==m_logwnd_data_p->m_categories.end()){return;}
     CategoryData* pCategoryData = citer->second.get();
 
     pCategoryData->m_colors[cunIndex] = a_newColor;
@@ -247,12 +247,11 @@ void LogWnd::SetCategoryColors(const QString& a_categoryName, const LogTypes& a_
 
 void LogWnd::AddLogCategory(const QString& a_categoryName, bool a_defaultEnable)
 {
-    size_t unHash;
-    const HashCategories::const_iterator citer = m_logwnd_data_p->m_categories.find(a_categoryName,&unHash);
-    if(citer!=HashCategories::s_constNullIter){return;} // category is already there
+    const HashCategories::const_iterator citer = m_logwnd_data_p->m_categories.find(a_categoryName);
+    if(citer!=m_logwnd_data_p->m_categories.end()){return;} // category is already there
 
     ::std::shared_ptr<CategoryData> aCategoryData = ::std::shared_ptr<CategoryData>(new CategoryData(a_categoryName,m_logwnd_data_p,a_defaultEnable));
-    m_logwnd_data_p->m_categories.AddEntryWithKnownHashC(::std::pair<QString,::std::shared_ptr<CategoryData> >(a_categoryName,aCategoryData),unHash);
+    m_logwnd_data_p->m_categories.insert(::std::pair<QString,::std::shared_ptr<CategoryData> >(a_categoryName,aCategoryData));
     ApplyNewSize(size());
 
 }
@@ -261,11 +260,11 @@ void LogWnd::AddLogCategory(const QString& a_categoryName, bool a_defaultEnable)
 void LogWnd::RemoveCategory(const QString& a_categoryName)
 {
     const HashCategories::const_iterator citer = m_logwnd_data_p->m_categories.find(a_categoryName);
-    if(citer==HashCategories::s_constNullIter){return;} // category is not there
+    if(citer==m_logwnd_data_p->m_categories.end()){return;} // category is not there
     CategoryData* pCategoryData = citer->second.get();
 
     pCategoryData->m_flags.b.shouldKeep = 0;
-    m_logwnd_data_p->m_categories.RemoveEntryRaw(citer);
+    m_logwnd_data_p->m_categories.erase(citer);
     m_logwnd_data_p->CategoryVisibilityChanged(m_logwnd_data_p->m_logs.cbegin());
     ApplyNewSize(size());
 }
@@ -274,7 +273,7 @@ void LogWnd::RemoveCategory(const QString& a_categoryName)
 void LogWnd::EnableCategoryType(const QString& a_categoryName, const LogTypes& a_type)
 {
     const HashCategories::const_iterator citer = m_logwnd_data_p->m_categories.find(a_categoryName);
-    if(citer==HashCategories::s_constNullIter){return;}
+    if(citer==m_logwnd_data_p->m_categories.end()){return;}
     CategoryData* pCategoryData = citer->second.get();
     pCategoryData->SetTypeEnable(a_type,true);
 }
@@ -283,7 +282,7 @@ void LogWnd::EnableCategoryType(const QString& a_categoryName, const LogTypes& a
 void LogWnd::DisableCategoryType(const QString& a_categoryName, const LogTypes& a_type)
 {
     const HashCategories::const_iterator citer = m_logwnd_data_p->m_categories.find(a_categoryName);
-    if(citer==HashCategories::s_constNullIter){return;}
+    if(citer==m_logwnd_data_p->m_categories.end()){return;}
     CategoryData* pCategoryData = citer->second.get();
     pCategoryData->SetTypeEnable(a_type,false);
 }
@@ -292,7 +291,7 @@ void LogWnd::DisableCategoryType(const QString& a_categoryName, const LogTypes& 
 bool LogWnd::isEnabledCategoryType(const QString& a_categoryName, const LogTypes& a_type)
 {
     const HashCategories::const_iterator citer = m_logwnd_data_p->m_categories.find(a_categoryName);
-    if(citer==HashCategories::s_constNullIter){return false;}
+    if(citer==m_logwnd_data_p->m_categories.end()){return false;}
     CategoryData* pCategoryData = citer->second.get();
     return QTUTILS_UI_LOGWND_BIT_VALUE(pCategoryData->m_flags.b.isEnabledVect,a_type);
 }
@@ -334,7 +333,7 @@ void LogWnd::AddLog(QtMsgType a_msgType, const QMessageLogContext& a_ctx, const 
     const QString categoryName = QString(a_ctx.category);
 
     const HashCategories::const_iterator citer = m_logwnd_data_p->m_categories.find(categoryName);
-    if(citer==HashCategories::s_constNullIter){return;}
+    if(citer==m_logwnd_data_p->m_categories.end()){return;}
     const CategoryData* pCategoryData = citer->second.get();
 
     const size_t cunIndex = QtMsgTypeToIndex(a_msgType);
@@ -442,8 +441,9 @@ inline void LogWnd_p::ApplyNewSize(const QSize& a_newSize)
     int nY = 3;
     CategoryData* pCategoryData;
     HashCategories::const_iterator citer = m_categories.begin();
+	const HashCategories::const_iterator citerEnd = m_categories.end();
 
-    for(;citer!=HashCategories::s_constNullIter;++citer){
+    for(;citer!=citerEnd;++citer){
         pCategoryData = citer->second.get();
         pCategoryData->m_categoryControlWgt.move(3,nY);
         nY += pCategoryData->m_categoryControlWgt.height();

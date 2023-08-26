@@ -7,8 +7,8 @@
 
 
 #include <qtutils/core/logger.hpp>
-#include <cpputils/inscopecleaner.hpp>
-#include <cpputils/mutex_ml.hpp>
+#define cinternal_lw_recursive_mutex_create_needed
+#include <cinternal/lw_mutex_recursive.h>
 #include <mutex>
 #include <qtutils/disable_utils_warnings.h>
 #include <QFileInfo>
@@ -17,9 +17,22 @@
 
 namespace qtutils{
 
+
+class CPPUTILS_DLL_PRIVATE mutex_ml final{
+public:
+	mutex_ml();
+	~mutex_ml();
+	void lock();
+	void unlock();
+	
+private:
+	cinternal_lw_recursive_mutex_t m_mutex;
+};
+
+
 static QtMessageHandler s_defaultHandler    = nullptr;
 static Logger_p* s_pFirstLogger             = nullptr;
-static ::cpputils::mutex_ml s_logsMutex;
+static mutex_ml s_logsMutex;
 
 static void MessageHandlerStatic(QtMsgType a_type, const QMessageLogContext& a_context,const QString& a_message);
 
@@ -70,7 +83,7 @@ Logger::~Logger()
 
 void Logger::SetNewLogger(const TypeLogger& a_logger, void* a_pOwner)
 {
-    ::std::lock_guard<::cpputils::mutex_ml> aGuard(s_logsMutex);
+    ::std::lock_guard<mutex_ml> aGuard(s_logsMutex);
     m_logger_data_p->m_logger = a_logger?a_logger:&MessageHandlerStaticForNull;
     m_logger_data_p->m_pOwner = a_pOwner;
 }
@@ -78,7 +91,7 @@ void Logger::SetNewLogger(const TypeLogger& a_logger, void* a_pOwner)
 
 void Logger::SetLoggerToDefault()
 {
-    ::std::lock_guard<::cpputils::mutex_ml> aGuard(s_logsMutex);
+    ::std::lock_guard<mutex_ml> aGuard(s_logsMutex);
 
     if(s_defaultHandler){
         m_logger_data_p->m_logger = &MessageHandlerStaticForDefault;
@@ -92,7 +105,7 @@ QtMessageHandler Logger::DefaultHandler()
     QtMessageHandler retHandler = nullptr;
 
     {  //  start lock
-        ::std::lock_guard<::cpputils::mutex_ml> aGuard(s_logsMutex);
+        ::std::lock_guard<mutex_ml> aGuard(s_logsMutex);
 
         if(s_defaultHandler){
             retHandler = s_defaultHandler;
@@ -166,7 +179,7 @@ Logger_p::Logger_p(const Logger::TypeLogger& a_logger, void* a_pOwner)
       m_pOwner(a_pOwner),
       m_logger(a_logger)
 {
-    ::std::lock_guard<::cpputils::mutex_ml> aGuard(s_logsMutex);
+    ::std::lock_guard<mutex_ml> aGuard(s_logsMutex);
 
     if(s_pFirstLogger){
         s_pFirstLogger->m_prev = this;
@@ -184,7 +197,7 @@ Logger_p::Logger_p(const Logger::TypeLogger& a_logger, void* a_pOwner)
 
 Logger_p::~Logger_p()
 {
-    ::std::lock_guard<::cpputils::mutex_ml> aGuard(s_logsMutex);
+    ::std::lock_guard<mutex_ml> aGuard(s_logsMutex);
 
     if(m_prev){m_prev->m_next = m_next;}
     if(m_next){m_next->m_prev = m_prev;}
@@ -199,12 +212,35 @@ Logger_p::~Logger_p()
 static void MessageHandlerStatic(QtMsgType a_type, const QMessageLogContext& a_context,const QString& a_message)
 {
     Logger_p* pLogger;
-    ::std::lock_guard<::cpputils::mutex_ml> aGuard(s_logsMutex);
+    ::std::lock_guard<mutex_ml> aGuard(s_logsMutex);
     pLogger = s_pFirstLogger;
     while(pLogger){
         pLogger->MessageHandler(a_type,a_context,a_message);
         pLogger = pLogger->m_next;
     }
+}
+
+
+/*////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
+
+mutex_ml::mutex_ml()
+{
+	cinternal_lw_recursive_mutex_create(&m_mutex);
+}
+
+mutex_ml::~mutex_ml()
+{
+	cinternal_lw_recursive_mutex_destroy(&m_mutex);
+}
+
+void mutex_ml::lock()
+{
+	cinternal_lw_recursive_mutex_lock(&m_mutex);
+}
+
+void mutex_ml::unlock()
+{
+	cinternal_lw_recursive_mutex_unlock(&m_mutex);
 }
 
 

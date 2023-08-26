@@ -11,6 +11,7 @@
 #define QTUTILS_INCLUDE_QTUTILS_TOOLS_DBDATA_HPP
 
 #include <qtutils/export_symbols.h>
+#ifdef CPPUTILS_HASH_VHASH_DEFINED
 #include <cpputils/hash/vhash.hpp>
 #include <memory>
 #include <qtutils/disable_utils_warnings.h>
@@ -103,5 +104,7 @@ static inline TypeSharedPtr FromQVariant(const QVariant& a_qv, int* a_pnChanges=
 #ifndef QTUTILS_INCLUDE_QTUTILS_TOOLS_DBDATA_IMPL_HPP
 #include "dbdata.impl.hpp"
 #endif
+
+#endif  //  #ifdef CPPUTILS_HASH_VHASH_DEFINED
 
 #endif  //  #ifndef QTUTILS_INCLUDE_QTUTILS_TOOLS_DBDATA_HPP
