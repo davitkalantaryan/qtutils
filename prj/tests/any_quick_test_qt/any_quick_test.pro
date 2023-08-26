@@ -5,22 +5,21 @@
 # created by:	Davit Kalantaryan
 #
 
-include ( "$${PWD}/../../common/common_qt/sys_common.pri" )
-include ( "$${PWD}/../../common/common_qt/flags_common.pri" )
+message("!!! $${_PRO_FILE_}")
+
+include ( "$${PWD}/../../common/common_qt/flagsandsys_common.pri" )
+DESTDIR     = "$${artifactRoot}/sys/$${CODENAME}/$$CONFIGURATION/test"
 
 #QT -= gui
 #QT -= core
 #QT -= widgets
 #CONFIG -= qt
 
-LIBS += -pthread
+win32{
+} else {
+	LIBS += -pthread
+}
 
-
-INCLUDEPATH += "$${qtutilsRepoRoot}/include"
-INCLUDEPATH += "$${cpputilsRepoRoot}/include"
-INCLUDEPATH += "$${cpputilsRepoRoot}/contrib/googletest/googletest/include"
-
-DEFINES += QTGUTILS_USING_STATIC_LIB_OR_OBJECTS
 
 SOURCES	+=		\
 	"$${qtutilsRepoRoot}/src/tests/main_any_quick_test.cpp"

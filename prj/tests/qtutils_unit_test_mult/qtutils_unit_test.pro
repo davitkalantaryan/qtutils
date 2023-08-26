@@ -5,28 +5,28 @@
 # created by:		Davit Kalantaryan
 #
 
-include ( "$${PWD}/../../common/common_qt/sys_common.pri" )
+message("!!! $${_PRO_FILE_}")
 
-# we reevaluate this
-DESTDIR = "$${PRJ_PWD}/$${SYSTEM_PATH}/test"
+include ( "$${PWD}/../../common/common_qt/flagsandsys_common_private.pri" )
+DESTDIR     = "$${artifactRoot}/sys/$${CODENAME}/$$CONFIGURATION/test"
 
-QT += gui
-#QT -= core
+QT += svg
+QT += charts
+QT += sql
 QT += widgets
-#CONFIG -= qt
+QT += network
+QT += websockets
+QT += httpserver
 
 win32{
 } else {
-	LIBS += "$${cpputilsRepoRoot}/sys/$$CODENAME/$$CONFIGURATION/lib/libgtest_main$${nameExtension}.a"
-	LIBS += "$${cpputilsRepoRoot}/sys/$$CODENAME/$$CONFIGURATION/lib/libgtest$${nameExtension}.a"
 	LIBS += -pthread
 }
 
-SRC_DIR=$${qtutilsRepoRoot}/src/tests/googletest
+DEFINES += CINTERNAL_UNIT_TEST_USE_GTEST_LIKE_MACROSES
 
-INCLUDEPATH += "$${qtutilsRepoRoot}/include"
-INCLUDEPATH += "$${cpputilsRepoRoot}/include"
-INCLUDEPATH += "$${cpputilsRepoRoot}/contrib/googletest/googletest/include"
+SRC_DIR=$${qtutilsRepoRoot}/src/tests/unit_test
+
 
 SOURCES += $$files($${SRC_DIR}/*.cpp,true)
 #SOURCES += $$files($${repoRootPath}/src/core/*.cpp,true)
@@ -35,8 +35,4 @@ HEADERS =  $$files($${qtutilsRepoRoot}/include/*.h,true)
 HEADERS += $$files($${qtutilsRepoRoot}/include/*.hpp,true)
 HEADERS += $$files($${SRC_DIR}/*.h,true)
 HEADERS += $$files($${SRC_DIR}/*.hpp,true)
-
-OTHER_FILES +=	\
-	"$${PWD}/unix.Makefile"										\
-	"$${PWD}/windows.Makefile"									\
-	"$${PWD}/packages.config"
+OTHER_FILES += $$files($${PWD}/*.Makefile,false)

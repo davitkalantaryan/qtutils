@@ -14,7 +14,7 @@ isEmpty(qtutilsFlagsAndSysCommonIncluded){
     qtutilsFlagsAndSysCommonIncluded = 1
 
     qtutilsRepoRoot = $${PWD}/../../..
-	include("$${qtutilsRepoRoot}/contrib/cinternal/prj/common/common_qt/flagsandsys_common.pri")
+	include("$${qtutilsRepoRoot}/contrib/emsutils/prj/common/common_qt/flagsandsys_common.pri")
 
     isEmpty(artifactRoot) {
         artifactRoot = $$(artifactRoot)
