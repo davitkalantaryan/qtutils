@@ -50,6 +50,7 @@
 
 /sys
 /prj/*/*/*
+!/prj/common/common_mkfl/raw
 /workspaces/*/*
 
 
@@ -64,7 +65,6 @@
 !/prj/*/*_vs/*.props
 #
 !/prj/*/*_mkfl/*Makefile*
-!/prj/*/*_mkfl/raw/*Makefile*
 #
 !/prj/*/*_mult/*Makefile
 !/prj/*/*_mult/*.sln
