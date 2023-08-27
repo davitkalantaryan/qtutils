@@ -50,7 +50,6 @@
 
 /sys
 /prj/*/*/*
-!/prj/common/common_mkfl/raw
 /workspaces/*/*
 
 
@@ -64,6 +63,7 @@
 !/prj/*/*_vs/*.vcxproj.filters
 !/prj/*/*_vs/*.props
 #
+!/prj/*/*_mkfl/raw
 !/prj/*/*_mkfl/*Makefile*
 #
 !/prj/*/*_mult/*Makefile
