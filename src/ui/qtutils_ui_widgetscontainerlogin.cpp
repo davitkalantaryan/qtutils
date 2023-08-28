@@ -19,7 +19,7 @@ namespace qtutils { namespace ui{
 
 
 static void AppExiterForRestApps(void){
-    qtutilsUiAppWithLogin()->ExitApp();
+    qtutilsUiAppWithLogin()->ExitApp("AppExiterForRestApps");
 }
 
 
