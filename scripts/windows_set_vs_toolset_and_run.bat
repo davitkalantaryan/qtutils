@@ -2,6 +2,7 @@
 @echo off
 
 rem
+rem repository:		qtutils
 rem file:			windows_set_vs_toolset_and_run.bat
 rem path:			scripts/windows_set_vs_toolset_and_run.bat
 rem created on:		2023 May 18
@@ -22,6 +23,6 @@ set "PlatformToolsetVar=v%PlatformToolsetVarMid%%PlatformToolsetVarEnd%"
 echo PlatformToolsetVar=%PlatformToolsetVar%
 
 
-devenv workspaces\cinternal_all_vs\cinternal_all.sln
+devenv workspaces\qtutils_all_vs\qtutils_all.sln
 
 endlocal
