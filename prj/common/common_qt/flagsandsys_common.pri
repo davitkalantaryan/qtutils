@@ -24,4 +24,9 @@ isEmpty(qtutilsFlagsAndSysCommonIncluded){
     }
 
     INCLUDEPATH += $${qtutilsRepoRoot}/include
+
+    LIBS	+= -L$${qtutilsRepoRoot}/sys/$${CODENAME}/$$CONFIGURATION/lib
+    LIBS	+= -L$${qtutilsRepoRoot}/sys/$${CODENAME}/$$CONFIGURATION/tlib
+
+    OTHER_FILES += $$files($${PWD}/../common_mkfl/*.Makefile,true)
 }
