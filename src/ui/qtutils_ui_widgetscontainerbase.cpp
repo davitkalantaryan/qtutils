@@ -226,9 +226,14 @@ bool WidgetsContainerBase::isVisible()const
 
 
 void WidgetsContainerBase::SetIconstForContextMenu(const QString& a_logo, const QString& a_tooltip,const QString& a_exitLogo)
-{
+{    
+#ifdef QTUTILS_UI_WC_SYSTRY_NEEDED
     m_tryIcon.setIcon(QIcon(a_logo));
     m_tryIcon.setToolTip(a_tooltip);
+#else
+    CPPUTILS_STATIC_CAST(void,a_logo);
+    CPPUTILS_STATIC_CAST(void,a_tooltip);
+#endif
     m_actionExit.setIcon(QIcon(a_exitLogo));
 }
 
