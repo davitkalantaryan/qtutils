@@ -207,7 +207,7 @@ void ReplyContainer::Clear()
         pReply->m_pParentContainer = nullptr;
         pReplyTmp = pReply->m_next;
         pReply->Abort();
-        delete pReply;
+        pReply->deleteLater();
         pReply = pReplyTmp;
     }
 }
@@ -340,10 +340,12 @@ QTUTILS_EXPORT void PrepareHeadersRaw(const QByteArray& a_contTypeHeader, QNetwo
     a_pRequet->setHeader(QNetworkRequest::UserAgentHeader, a_agent);  // each browser has its own agent
 
     {
+        // todo: comment below 3 lines
         QSslConfiguration conf = a_pRequet->sslConfiguration();
         conf.setPeerVerifyMode(QSslSocket::VerifyNone);
         a_pRequet->setSslConfiguration(conf);
     }
+    
 #endif
 }
 
@@ -380,10 +382,12 @@ QTUTILS_EXPORT void PrepareMPartHeaders(QNetworkRequest* a_pRequet, const QStrin
     a_pRequet->setHeader(QNetworkRequest::UserAgentHeader, a_agent);  // each browser has its own agent
 
     {
+        // todo: comment below 3 lines
         QSslConfiguration conf = a_pRequet->sslConfiguration();
         conf.setPeerVerifyMode(QSslSocket::VerifyNone);
         a_pRequet->setSslConfiguration(conf);
     }
+    
 #endif
 
     a_pRequet->setRawHeader("Accept", "*/*");
