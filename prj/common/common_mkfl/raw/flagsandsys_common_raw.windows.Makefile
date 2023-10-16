@@ -23,4 +23,8 @@ emsutilsRepoRoot	= $(qtutilsRepoRoot)\contrib\emsutils
 !ENDIF
 
 !include <$(emsutilsRepoRoot)\prj\common\common_mkfl\flagsandsys_common.windows.Makefile>
+
 CFLAGS				= $(CFLAGS) /I"$(qtutilsRepoRoot)\include"
+
+LFLAGS				= $(LFLAGS) /LIBPATH:"$(qtutilsRepoRoot)\sys\win_$(Platform)\$(Configuration)\lib"
+LFLAGS				= $(LFLAGS) /LIBPATH:"$(qtutilsRepoRoot)\sys\win_$(Platform)\$(Configuration)\tlib"
