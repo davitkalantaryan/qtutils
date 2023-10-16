@@ -15,7 +15,7 @@
 #include "resiziblewindow.hpp"
 #endif
 
-#include <cpputils/flagshelper.h>
+#include <cinternal/bistateflags.h>
 #include <qtutils/core/settings.hpp>
 #include <typeinfo>
 #ifdef QTUTILS_MAKE_DEBUG
@@ -42,7 +42,7 @@ ResizibleWindowRaw<WidgetType>::ResizibleWindowRaw(Targs... a_args)
 	:
 	  WidgetType(a_args...)
 {
-    m_flags.all = CPPUTILS_INIT_BITS;
+    m_flags.all = CPPUTILS_BISTATE_MAKE_ALL_BITS_FALSE;
 	m_flags.b.instanceNumber = (sn_numberOfInstances++);
 }
 
@@ -58,7 +58,7 @@ template <typename WidgetType>
 void ResizibleWindowRaw<WidgetType>::Init2()
 {
 	if(m_flags.b.initNotCalled){
-        m_flags.b2.initCalledOrNot = CPPUTILS_MAKE_BITS_TRUE;
+        m_flags.b2.initCalledOrNot = CPPUTILS_BISTATE_MAKE_BITS_TRUE;
 		m_settingsKey = typeid(*this).name()+QString::number(m_flags.b.instanceNumber);
 		this->InitRaw();
 	}
@@ -87,7 +87,7 @@ inline bool ResizibleWindowRaw<WidgetType>::InitAndShowBase()
     bool bIsMinimized = false;
     if(m_flags.b.initNotCalled){
         bIsMinimized = true;
-        m_flags.b2.initCalledOrNot = CPPUTILS_MAKE_BITS_TRUE;
+        m_flags.b2.initCalledOrNot = CPPUTILS_BISTATE_MAKE_BITS_TRUE;
         m_settingsKey = typeid(*this).name()+QString::number(m_flags.b.instanceNumber);
         this->InitRaw();
     }
@@ -154,7 +154,7 @@ inline void ResizibleWindowRaw<WidgetType>::HideCloseEvent()
             aSettings.setValue(m_settingsKey+QTUTILS_RSBL_WND_IS_MINIMIZED_KEY,false);
             aSettings.setValue(m_settingsKey+QTUTILS_RSBL_WND_SIZE_KEY,WidgetType::size());
         }
-        m_flags.b2.hideCalledOrNot =  CPPUTILS_MAKE_BITS_TRUE;
+        m_flags.b2.hideCalledOrNot =  CPPUTILS_BISTATE_MAKE_BITS_TRUE;
     }
 }
 
