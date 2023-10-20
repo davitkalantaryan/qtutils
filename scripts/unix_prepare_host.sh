@@ -25,4 +25,7 @@ cd ..
 qtutilsRepoRoot=`pwd`
 echo qtutilsRepoRoot=$qtutilsRepoRoot
 
+git submodule sync --recursive
+git submodule update --init --recursive
+
 ./contrib/emsutils/scripts/unix_prepare_host.sh
