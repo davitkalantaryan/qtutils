@@ -30,4 +30,9 @@ isEmpty(qtutilsFlagsAndSysCommonIncluded){
     LIBS	+= -L$${qtutilsRepoRoot}/sys/$${CODENAME}/$$CONFIGURATION/tlib
 
     OTHER_FILES += $$files($${PWD}/../common_mkfl/*.Makefile,true)
+    win32 {
+            isEmpty( DO_NOT_DISABLE_QT_SPECIFIC_VARNINGS_V ){
+	            QMAKE_CXXFLAGS += /FI"qtutils/disable_utils_warnings.h"
+	    }
+    }
 }
