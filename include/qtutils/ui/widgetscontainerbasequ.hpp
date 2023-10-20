@@ -9,8 +9,8 @@
 #pragma once
 
 #include <qtutils/export_symbols.h>
-#include <cpputils/functional.hpp>
-#include <cinternal/flagshelper.h>
+#include <cinternal/bistateflags.h>
+#include <functional>
 #include <vector>
 #include <qtutils/disable_utils_warnings.h>
 #include <QObject>

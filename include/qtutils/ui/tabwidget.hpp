@@ -11,6 +11,9 @@
 #define QTUTILS_INCLUDE_QTUTILS_UI_TABWIDGET_HPP
 
 #include <qtutils/export_symbols.h>
+
+#ifdef CPPUTILS_HASH_VHASH_DEFINED
+
 #include <cpputils/hash/vhash.hpp>
 #include <qtutils/disable_utils_warnings.h>
 #include <QWidget>
@@ -126,6 +129,8 @@ private:
 #ifndef QTUTILS_INCLUDE_QTUTILS_UI_TABWIDGET_IMPL_HPP
 #include "tabwidget.impl.hpp"
 #endif
+
+#endif  //  #ifdef CPPUTILS_HASH_VHASH_DEFINED
 
 
 #endif  //  #ifndef QTUTILS_INCLUDE_QTUTILS_UI_TABWIDGET_HPP

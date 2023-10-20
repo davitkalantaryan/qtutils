@@ -11,7 +11,15 @@
 #define QTUTILS_INCLUDE_QTUTILS_TOOLS_DBDATA_HPP
 
 #include <qtutils/export_symbols.h>
+#ifdef CPPUTILS_HASH_VHASH_DEFINED
 #include <cpputils/hash/vhash.hpp>
+#define QTUTILS_DBDATA_DEF_CONTAINER        =::cpputils::hash::VHash<ContKey,Type>
+#define QTUTILS_DBDATA_DEF_CONTAINER_KEY    =int
+//#include <cinternal/hash/vhash.h>
+#else
+#define QTUTILS_DBDATA_DEF_CONTAINER
+#define QTUTILS_DBDATA_DEF_CONTAINER_KEY
+#endif
 #include <memory>
 #include <qtutils/disable_utils_warnings.h>
 #include <QVariantMap>
@@ -43,7 +51,7 @@ public:
 };
 
 
-template <typename Type, typename ContKey=int,typename ContType=::cpputils::hash::VHash<ContKey,Type> >
+template <typename Type, typename ContKey QTUTILS_DBDATA_DEF_CONTAINER_KEY ,typename ContType QTUTILS_DBDATA_DEF_CONTAINER >
 class GroupOfType : public ContType
 {
 public:

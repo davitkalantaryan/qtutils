@@ -5,6 +5,7 @@
 // created by:		Davit Kalantaryan (davit.kalantaryan@gmail.com)
 //
 
+#include <qtutils/export_symbols.h>
 #include <qtutils/tools/dbdata.hpp>
 #include <qtutils/disable_utils_warnings.h>
 #include <QJsonDocument>

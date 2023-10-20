@@ -12,7 +12,7 @@
 
 #include <qtutils/export_symbols.h>
 #include <qtutils/ui/spinnerbox.hpp>
-#include <cpputils/flagshelper.h>
+#include <cinternal/bistateflags.h>
 
 
 namespace qtutils { namespace ui{

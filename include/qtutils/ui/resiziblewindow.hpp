@@ -12,7 +12,7 @@
 
 
 #include <qtutils/export_symbols.h>
-#include <cpputils/flagshelper.h>
+#include <cinternal/bistateflags.h>
 #include <stdint.h>
 #include <qtutils/disable_utils_warnings.h>
 #include <QCloseEvent>

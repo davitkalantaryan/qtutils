@@ -6,7 +6,7 @@
 //
 
 
-#include <qtutils/ui/pushbutton01.hpp>
+#include <qtutils/ui/pushbutton01qu.hpp>
 
 
 namespace qtutils{ namespace ui{

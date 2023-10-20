@@ -16,42 +16,47 @@ jobs:
           matrix:
             os: [ubuntu-20.04, ubuntu-22.04, macos-latest]
         steps:
-            - uses: actions/checkout@v3
+            - name: Checking out repository
+              uses: actions/checkout@v3
            
-            - name: Preparing 3rd party libraries for ${{ matrix.os }}
-              run: ./scripts/.cicd/unix_prebuild.sh
+            - name: Preparing host for ${{ matrix.os }}
+              run: ./scripts/unix_prepare_host.sh
+
+            - name: Preparing repository for ${{ matrix.os }}
+              run: ./scripts/unix_prepare_repository.sh
 
             - name: Compiling for ${{ matrix.os }}
-              #run: ./scripts/.cicd/unix_test_pull_to_master_build.sh CPPUTILS_DEBUG=1
-              run: ./scripts/.cicd/unix_test_pull_to_master_build.sh CPPUTILS_DEBUG=1
+              run: ./scripts/unix_build_all.sh
               #working-directory: blabla
 
             - name: running unittest for ${{ matrix.os }}
-              run: ./scripts/.cicd/unix_test_pull_to_master_unittest.sh	Debug
+              run: ./scripts/unix_run_tests.sh
             
     # This is for windows
     windows:
-        runs-on: windows-2019
+        runs-on: windows-latest
         steps:
-            - uses: actions/checkout@v3
+            - name: Checking out repository
+              uses: actions/checkout@v3
 
             - name: Setup MSBuild.exe
               uses: microsoft/setup-msbuild@v1.1
-              with:
-                  vs-version: 16.10.4
 
             - name: Setup developer command prompt
               uses: ilammy/msvc-dev-cmd@v1
               #with:
               #    toolset: v142
 
-            - name: Preparing 3rd party libraries for windows
-              run: .\scripts\.cicd\windows_prebuild.bat
+            - name: Preparing host for windows
+              run: cmd /C "call .\scripts\windows_prepare_host.bat"
 
-            #- name: Compiling for windows
-              #run: .\scripts\.cicd\windows_test_pull_to_master_build.bat
+            - name: Preparing repository for windows
+              run: cmd /C "call .\scripts\windows_prepare_repository.bat"
               #working-directory: blabla
 
-            #- name: running unittest for windows
-              #run: .\scripts\.cicd\windows_test_pull_to_master_unittest.bat
+            - name: Compiling for windows
+              run: cmd /C "call .\scripts\windows_build_all.bat"
+              #working-directory: blabla
 
+            - name: running unittest for windows
+              run: cmd /C "call .\scripts\windows_run_tests.bat"

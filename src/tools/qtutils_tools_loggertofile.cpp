@@ -6,7 +6,8 @@
 //
 
 #include <qtutils/tools/loggertofile.hpp>
-#include <cpputils/mutex_ml.hpp>
+#define cinternal_lw_recursive_mutex_create_needed
+#include <cinternal/lw_mutex_recursive.h>
 #include <mutex>
 #include <qtutils/disable_utils_warnings.h>
 #include <QFileInfo>
@@ -16,10 +17,22 @@
 namespace qtutils{ namespace tools{
 
 
+class CPPUTILS_DLL_PRIVATE mutex_ml final{
+public:
+	mutex_ml();
+	~mutex_ml();
+	void lock();
+	void unlock();
+	
+private:
+	cinternal_lw_recursive_mutex_t m_mutex;
+};
+
+
 class CPPUTILS_DLL_PRIVATE LoggerToFile_p final
 {
 public:
-    ::cpputils::mutex_ml        m_mutex;
+    mutex_ml					m_mutex;
     Logger::TypeLogger          m_extraLoggerClbk;
     void*                       m_pOwner;
     ::std::shared_ptr<QFile>    m_logFile;
@@ -81,7 +94,7 @@ LoggerToFile::LoggerToFile()
 void LoggerToFile::RecreateLogFile()
 {
     //return m_logger_data_p->CreateLogFileInline();
-    ::std::lock_guard<::cpputils::mutex_ml> aGuard(m_logger_data_p->m_mutex);
+    ::std::lock_guard<mutex_ml> aGuard(m_logger_data_p->m_mutex);
     m_logger_data_p->m_logFile = ::std::shared_ptr<QFile>();
     m_logger_data_p->CreateLogFileNoCheckNoLockInline();
 }
@@ -96,21 +109,21 @@ void LoggerToFile::SetExtraLogger(const Logger::TypeLogger& a_logger, void* a_pO
 
 void LoggerToFile::SetCurrentDate(const QDate& a_newDate)
 {
-    ::std::lock_guard<::cpputils::mutex_ml> aGuard(m_logger_data_p->m_mutex);
+    ::std::lock_guard<mutex_ml> aGuard(m_logger_data_p->m_mutex);
     m_logger_data_p->m_currentDate = a_newDate;
 }
 
 
 void LoggerToFile::SetLogsDir(const QDir& a_logsDir)
 {
-    ::std::lock_guard<::cpputils::mutex_ml> aGuard(m_logger_data_p->m_mutex);
+    ::std::lock_guard<mutex_ml> aGuard(m_logger_data_p->m_mutex);
     m_logger_data_p->m_logsDir = a_logsDir;
 }
 
 
 QDate LoggerToFile::currentDate()const
 {
-    ::std::lock_guard<::cpputils::mutex_ml> aGuard(m_logger_data_p->m_mutex);
+    ::std::lock_guard<mutex_ml> aGuard(m_logger_data_p->m_mutex);
     return m_logger_data_p->m_currentDate;
 }
 
@@ -129,7 +142,7 @@ void* LoggerToFile::extraLogUserData()const
 
 QDir LoggerToFile::logsDir()const
 {
-    ::std::lock_guard<::cpputils::mutex_ml> aGuard(m_logger_data_p->m_mutex);
+    ::std::lock_guard<mutex_ml> aGuard(m_logger_data_p->m_mutex);
     return m_logger_data_p->m_logsDir;
 }
 
@@ -188,12 +201,35 @@ inline ::std::shared_ptr<QFile> LoggerToFile_p::CreateLogFileInline()
     QFile* pfFileRet_p = pfFileRet.get();
 
     if(!pfFileRet_p){
-        ::std::lock_guard<::cpputils::mutex_ml> aGuard(m_mutex);
+        ::std::lock_guard<mutex_ml> aGuard(m_mutex);
         CreateLogFileNoCheckNoLockInline();
         pfFileRet = m_logFile;
     }  // if(!pfFileRet_p){
 
     return pfFileRet;
+}
+
+
+/*////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
+
+mutex_ml::mutex_ml()
+{
+	cinternal_lw_recursive_mutex_create(&m_mutex);
+}
+
+mutex_ml::~mutex_ml()
+{
+	cinternal_lw_recursive_mutex_destroy(&m_mutex);
+}
+
+void mutex_ml::lock()
+{
+	cinternal_lw_recursive_mutex_lock(&m_mutex);
+}
+
+void mutex_ml::unlock()
+{
+	cinternal_lw_recursive_mutex_unlock(&m_mutex);
 }
 
 

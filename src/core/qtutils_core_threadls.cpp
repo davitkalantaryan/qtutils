@@ -10,8 +10,9 @@
 
 #ifndef QTUTILS_NOT_USE_THREADLS
 
-#include <cpputils/inscopecleaner.hpp>
-#include <cpputils/unnamedsemaphore.hpp>
+#define cinternal_unnamed_sema_wait_ms_needed
+#include <cinternal/unnamed_semaphore.h>
+#include <memory>
 
 
 namespace qtutils{
@@ -25,7 +26,7 @@ class CPPUTILS_DLL_PRIVATE ThreadLS_p final : public QThread
 public:
     ThreadLS_p(const ThreadLS::TypeConstruct& a_construct, const ThreadLS::TypeDestruct& a_destruct, void* a_pData);
 public:
-    cpputils::UnnamedSemaphore* m_pSema;
+    cinternal_unnamed_sema_t	m_sema;
 private:
     const ThreadLS::TypeConstruct     m_construct;
     const ThreadLS::TypeDestruct      m_destruct;
@@ -57,9 +58,8 @@ ThreadLS::ThreadLS(const TypeConstruct& a_construct, const TypeDestruct& a_destr
       m_thr_data_p(new ThreadLS_p(a_construct,a_destruct,a_pData))
 {
     m_thr_data_p->start();
-    m_thr_data_p->m_pSema->Wait();
-    delete m_thr_data_p->m_pSema;
-    m_thr_data_p->m_pSema = nullptr;
+    cinternal_unnamed_sema_wait(&(m_thr_data_p->m_sema));
+    cinternal_unnamed_sema_destroy(&(m_thr_data_p->m_sema));
 }
 
 
@@ -93,22 +93,26 @@ QThread* ThreadLS::qThread()const
 
 ThreadLS_p::ThreadLS_p(const ThreadLS::TypeConstruct& a_construct, const ThreadLS::TypeDestruct& a_destruct, void* a_pData)
     :
-      m_pSema(new ::cpputils::UnnamedSemaphore()),
       m_construct(a_construct?a_construct:(&StaticConstruct)),
       m_destruct(a_destruct?a_destruct:(&StaticDestruct)),
       m_userData(a_pData)
 {
+	cinternal_unnamed_sema_create(&(this->m_sema),0);
 }
 
 
 void ThreadLS_p::run()
 {   
-    cpputils::InScopeCleaner aCleaner([this](void*){
-        m_destruct(m_userData);
-    });
-
+    //cpputils::InScopeCleaner aCleaner([this](void*){
+    //    m_destruct(m_userData);
+    //});
+	
+	std::unique_ptr<ThreadLS_p, void(*)(ThreadLS_p*)> aCleaner(this, [](ThreadLS_p* a_this){
+		a_this->m_destruct(a_this->m_userData);
+	});
+	
     m_construct(m_userData);
-    m_pSema->Post();
+    cinternal_unnamed_sema_post(&(this->m_sema));
 
     QThread::exec();
 }

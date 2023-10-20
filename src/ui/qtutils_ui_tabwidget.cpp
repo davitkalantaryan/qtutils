@@ -5,6 +5,10 @@
 // created by:		Davit Kalantaryan (davit.kalantaryan@gmail.com)
 //
 
+#include <qtutils/export_symbols.h>
+
+#ifdef CPPUTILS_HASH_VHASH_DEFINED
+
 #include <qtutils/ui/tabwidget.hpp>
 #include <assert.h>
 #include <qtutils/disable_utils_warnings.h>
@@ -292,3 +296,6 @@ void Tab::SetStyleSheetNonSelected(const QString& a_newVal)
 
 
 }} // namespace qtutils { namespace ui{namespace qtutils { namespace ui{
+
+
+#endif  //  #ifdef CPPUTILS_HASH_VHASH_DEFINED
