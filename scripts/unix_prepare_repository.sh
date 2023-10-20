@@ -22,8 +22,8 @@ do
 	fileOrigin=`readlink "${scriptFileName}"`  || :
 done
 cd ..
-repositoryRoot=`pwd`
-echo repositoryRoot=$repositoryRoot
+qtutilsRepoRoot=`pwd`
+echo qtutilsRepoRoot=$qtutilsRepoRoot
 git submodule sync --recursive
 git submodule update --init --recursive
 
