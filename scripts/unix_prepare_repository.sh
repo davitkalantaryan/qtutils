@@ -26,3 +26,5 @@ repositoryRoot=`pwd`
 echo repositoryRoot=$repositoryRoot
 git submodule sync --recursive
 git submodule update --init --recursive
+
+./contrib/emsutils/scripts/unix_prepare_repository.sh

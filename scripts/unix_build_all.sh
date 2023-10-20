@@ -21,11 +21,13 @@ do
 	cd "${scriptDirectory}"
 	fileOrigin=`readlink "${scriptFileName}"`  || :
 done
-cd ..
-repositoryRoot=`pwd`
-echo repositoryRoot=$repositoryRoot
+scriptDirectory=`pwd`
 
-cd workspaces/qtutils_all_mkfl
+echo scriptDirectory=$scriptDirectory
+
+source ${scriptDirectory}/unix_source_per_session.sh ${scriptDirectory}/unix_source_per_session.sh ${scriptDirectory}/unix_source_per_session.sh
+
+cd ${qtutilsRepoRoot}/workspaces/qtutils_all_mkfl
 unset CPPUTILS_DEBUG
 make -f qtutils_all.unix.Makefile CPPUTILS_RELEASE=1
 unset CPPUTILS_RELEASE

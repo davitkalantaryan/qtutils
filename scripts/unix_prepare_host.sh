@@ -24,3 +24,5 @@ done
 cd ..
 repositoryRoot=`pwd`
 echo repositoryRoot=$repositoryRoot
+
+./contrib/emsutils/scripts/unix_prepare_host.sh

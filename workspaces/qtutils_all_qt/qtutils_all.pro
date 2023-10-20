@@ -4,7 +4,6 @@ message("!!! $${_PRO_FILE_}")
 TEMPLATE = subdirs
 #CONFIG += ordered
 
-
 include ( "$${PWD}/../../prj/common/common_qt/flagsandsys_common_private.pri" )
 
 QT += widgets
