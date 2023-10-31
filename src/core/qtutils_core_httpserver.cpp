@@ -60,11 +60,15 @@ bool HttpServer::handleRequest(const QHttpServerRequest& a_request, QHttpServerR
     }
     
     // 2. try directory correspondance
-    const qsizetype	liOfDirPlus1 = aPath.lastIndexOf('/')+1;
-    const QString dirPath = aPath.left(liOfDirPlus1);
-    TypeHashD::const_iterator citerHD = m_server_data->dirRoutes.find(dirPath);
-    if(citerHD!=m_server_data->dirRoutes.cend()){
-        return citerHD->second(a_request,a_responder,aPath.mid(liOfDirPlus1));
+    QString dirPath = aPath;
+    qsizetype liOfDir = aPath.lastIndexOf('/');
+    while(liOfDir>=0){
+        dirPath = dirPath.left(liOfDir);
+        TypeHashD::const_iterator citerHD = m_server_data->dirRoutes.find(dirPath);
+        if(citerHD!=m_server_data->dirRoutes.cend()){
+            return citerHD->second(a_request,a_responder,aPath.mid(liOfDir+1));
+        }
+        liOfDir = dirPath.lastIndexOf('/');
     }
     
     // 3. try glob reg exp
@@ -77,8 +81,7 @@ bool HttpServer::handleRequest(const QHttpServerRequest& a_request, QHttpServerR
             return citerLREG->second(a_request, a_responder,matchg);
         }
     }
-    
-    
+     
     // 4. try wildcard reg exp
     TypeListRE::const_iterator citerLREW = m_server_data->wildcardRegExpRoutes.cbegin();
     const TypeListRE::const_iterator citerLREWEnd = m_server_data->wildcardRegExpRoutes.cend();
@@ -90,7 +93,6 @@ bool HttpServer::handleRequest(const QHttpServerRequest& a_request, QHttpServerR
         }
     }
     
-    
     // 5. any apperance
     TypeListAA::const_iterator citerLAA = m_server_data->anyAppearanceRoutes.cbegin();
     const TypeListAA::const_iterator citerLAAEnd = m_server_data->anyAppearanceRoutes.cend();
@@ -99,7 +101,6 @@ bool HttpServer::handleRequest(const QHttpServerRequest& a_request, QHttpServerR
             return citerLAA->second(a_request, a_responder, aPath);
         }
     }
-    
     
     // 6. any matcher
     TypeListAnM::const_iterator citerLAM = m_server_data->anyMatcherRoutes.cbegin();
