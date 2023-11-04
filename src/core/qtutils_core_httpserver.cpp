@@ -98,7 +98,7 @@ bool HttpServer::handleRequest(const QHttpServerRequest& a_request, QHttpServerR
     const TypeListAA::const_iterator citerLAAEnd = m_server_data->anyAppearanceRoutes.cend();
     for(;citerLAA!=citerLAAEnd;++citerLAA){
         if(aPath.contains(citerLAA->first)){
-            return citerLAA->second(a_request, a_responder, aPath);
+            return citerLAA->second(a_request, a_responder);
         }
     }
     
@@ -108,7 +108,7 @@ bool HttpServer::handleRequest(const QHttpServerRequest& a_request, QHttpServerR
     for(;citerLAM!=citerLAMEnd;++citerLAM){
         const ::std::tuple<TypeHasMatch,void*,TypeClbkAnM>& aItem = *citerLAM;
         if( (::std::get<0>(aItem))(aUrl,::std::get<1>(aItem)) ){
-            return (::std::get<2>(aItem))(a_request, a_responder, aPath,::std::get<1>(aItem));
+            return (::std::get<2>(aItem))(a_request, a_responder,::std::get<1>(aItem));
         }
     }
     

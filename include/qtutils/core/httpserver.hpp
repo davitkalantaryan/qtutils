@@ -33,8 +33,8 @@ public:
     typedef ::std::function<bool(const QHttpServerRequest& a_request, QHttpServerResponder& a_responder)> TypeClbkS;
     typedef ::std::function<bool(const QHttpServerRequest& a_request, QHttpServerResponder& a_responder, const QString& a_fileName)> TypeClbkD;
     typedef ::std::function<bool(const QHttpServerRequest& a_request, QHttpServerResponder& a_responder, const QRegularExpressionMatch& a_reMatch)> TypeClbkRE;
-    typedef ::std::function<bool(const QHttpServerRequest& a_request, QHttpServerResponder& a_responder, const QString& a_path)> TypeClbkAA;
-    typedef ::std::function<bool(const QHttpServerRequest& a_request, QHttpServerResponder& a_responder, const QString& a_path, void* a_ud)> TypeClbkAnM;
+    typedef ::std::function<bool(const QHttpServerRequest& a_request, QHttpServerResponder& a_responder)> TypeClbkAA;
+    typedef ::std::function<bool(const QHttpServerRequest& a_request, QHttpServerResponder& a_responder, void* a_ud)> TypeClbkAnM;
     typedef ::std::unordered_map<QString,TypeClbkS>                     TypeHashS;
     typedef ::std::unordered_map<QString,TypeClbkD>                     TypeHashD;  // directory routes
     typedef ::std::list<::std::pair<QString,TypeClbkRE> >               TypeListRE;
