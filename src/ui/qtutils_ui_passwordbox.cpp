@@ -74,13 +74,13 @@ void PswWndLabel::EyeIconClicked()
     PasswordBox* pParent = static_cast<PasswordBox*>(parentWidget());
     if(m_isPswVisible){
         setToolTip("Show password");
-        setPixmap( QPixmap( ":/qtutils/show_password.png" ) );
+        setPixmap( QPixmap( ":/qtutils/hide_password.png" ) );
         pParent->setEchoMode(QLineEdit::Password);
         m_isPswVisible = false;
     }
     else{
         setToolTip("Hide password");
-        setPixmap( QPixmap( ":/qtutils/hide_password.png" ) );
+        setPixmap( QPixmap( ":/qtutils/show_password.png" ) );
         pParent->setEchoMode(QLineEdit::Normal);
         m_isPswVisible = true;
     }
