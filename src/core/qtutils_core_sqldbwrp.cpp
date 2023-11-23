@@ -104,6 +104,14 @@ void SqlDbWrp::unlock()
 }
 
 
+void SqlDbWrp::Commit()
+{
+    if(m_db_data_p->m_type=="QSQLITE"){
+        m_db_data_p->m_db.commit();
+    }
+}
+
+
 void SqlDbWrp::PrintErrorStatRaw(const QString& a_extraText, const char* a_file, int a_line, const char* a_function)
 {
     const QSqlError sqlErr = m_db_data_p->m_db.lastError();
@@ -114,15 +122,6 @@ void SqlDbWrp::PrintErrorStatRaw(const QString& a_extraText, const char* a_file,
     QMessageLogger(a_file, a_line, a_function).critical()<< "> Error type" << sqlErr.type();
 }
 
-
-/*/////////////////////////////////////////////////////////////////////////////////////////*/
-
-void SqlDbWrp_p::Commit()
-{
-    if(m_type=="QSQLITE"){
-        m_db.commit();
-    }
-}
 
 
 }}  // namespace qtutils { namespace core{

@@ -19,10 +19,7 @@ namespace qtutils { namespace core{
 
 
 class QTUTILS_EXPORT SqlDbWrp_p
-{
-public:
-    void Commit();
-    
+{   
 public:
     cinternal_lw_recursive_mutex_t  m_mutex;
     SqlDatabase                     m_db;
