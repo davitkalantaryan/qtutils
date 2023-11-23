@@ -18,6 +18,9 @@
 namespace qtutils { namespace core{
 
 
+#define QUSqlPrintErrorStat(_extraText)  PrintErrorStatRaw((_extraText),__FILE__,__LINE__,__FUNCTION__)
+
+
 typedef QSqlDatabase    SqlDatabase;
 typedef QSqlQuery       SqlQuery;
 
@@ -39,6 +42,8 @@ public:
     const SqlDatabase& getQtSqlDb()const;
     SqlDatabase& getQtSqlDb();
     void Commit();
+
+    void PrintErrorStatRaw(const QString& a_extraText, const char* a_file, int a_line, const char* a_function);
     
     void lock();
     void unlock();

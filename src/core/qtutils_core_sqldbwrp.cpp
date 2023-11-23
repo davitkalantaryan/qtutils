@@ -7,6 +7,9 @@
 
 #include <qtutils/core/sqldbwrp_p.hpp>
 #include <mutex>
+#include <qtutils/disable_utils_warnings.h>
+#include <QSqlError>
+#include <QMessageLogger>
 
 
 namespace qtutils { namespace core{
@@ -98,6 +101,17 @@ void SqlDbWrp::lock()
 void SqlDbWrp::unlock()
 {
     cinternal_lw_recursive_mutex_unlock(&(m_db_data_p->m_mutex));
+}
+
+
+void SqlDbWrp::PrintErrorStatRaw(const QString& a_extraText, const char* a_file, int a_line, const char* a_function)
+{
+    const QSqlError sqlErr = m_db_data_p->m_db.lastError();
+    QMessageLogger(a_file, a_line, a_function).critical()<< a_extraText << sqlErr.text();
+    QMessageLogger(a_file, a_line, a_function).critical()<< "> Database error:" << sqlErr.databaseText();
+    QMessageLogger(a_file, a_line, a_function).critical()<< "> Driver error:" << sqlErr.driverText();
+    QMessageLogger(a_file, a_line, a_function).critical()<< "> Native error code:" << sqlErr.nativeErrorCode();
+    QMessageLogger(a_file, a_line, a_function).critical()<< "> Error type" << sqlErr.type();
 }
 
 
