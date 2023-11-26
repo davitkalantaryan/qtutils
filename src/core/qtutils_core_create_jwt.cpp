@@ -57,14 +57,14 @@ QTUTILS_EXPORT QByteArray CreateJWT(const QString& a_alg, const QVariantMap& a_p
     
     const QJsonDocument payloadJsonDoc = QJsonDocument(QJsonObject::fromVariantMap(a_payloadVM));
     const QByteArray payloadBA = payloadJsonDoc.toJson(QJsonDocument::Compact);
-    const QByteArray payloadBABase64 = payloadBA.toBase64();
+    const QByteArray payloadBABase64 = payloadBA.toBase64(QByteArray::Base64UrlEncoding | QByteArray::OmitTrailingEquals);
     const QVariantMap headerVM = {
         {"alg", a_alg},
         {"typ", QString("JWT")},
     };
     const QJsonDocument headerJsonDoc = QJsonDocument(QJsonObject::fromVariantMap(headerVM));
     const QByteArray headerBA = headerJsonDoc.toJson(QJsonDocument::Compact);
-    const QByteArray headerBABase64 = headerBA.toBase64();
+    const QByteArray headerBABase64 = headerBA.toBase64(QByteArray::Base64UrlEncoding | QByteArray::OmitTrailingEquals);
     const QByteArray headerAndPayload = headerBABase64 + "." + payloadBABase64;
     const QByteArray signatureBA = QMessageAuthenticationCode::hash(headerAndPayload, a_secret, algEnm);
     if(a_pSignatureBase64){
