@@ -14,12 +14,14 @@
 #include <QString>
 #include <QByteArray>
 #include <QVariantMap>
+#include <QCryptographicHash>
 
 
 namespace qtutils { namespace core{
 
 
 QTUTILS_EXPORT QByteArray GenerateJwtSecret01(void);
+QTUTILS_EXPORT QByteArray CalculateJwtSignatureCrt(const QByteArray& a_headerAndPayloadBase64,const QByteArray& a_secret, const QCryptographicHash::Algorithm& a_algEnm);
 QTUTILS_EXPORT QByteArray CreateJWT(const QString& a_alg, const QVariantMap& a_payload, const QByteArray& a_secret, QByteArray* a_pSignatureBase64);
 
 

@@ -21,6 +21,12 @@
 namespace qtutils { namespace core{
 
 
+static inline QByteArray CalculateJwtSignatureCrtInline(const QByteArray& a_headerAndPayloadBase64,const QByteArray& a_secret, const QCryptographicHash::Algorithm& a_algEnm){
+    const QByteArray signatureBA = QMessageAuthenticationCode::hash(a_headerAndPayloadBase64, a_secret, a_algEnm);
+    return signatureBA.toBase64(QByteArray::Base64UrlEncoding | QByteArray::OmitTrailingEquals);
+}
+
+
 QTUTILS_EXPORT QByteArray GenerateJwtSecret01(void)
 {
     QByteArray retByte;
@@ -65,13 +71,18 @@ QTUTILS_EXPORT QByteArray CreateJWT(const QString& a_alg, const QVariantMap& a_p
     const QJsonDocument headerJsonDoc = QJsonDocument(QJsonObject::fromVariantMap(headerVM));
     const QByteArray headerBA = headerJsonDoc.toJson(QJsonDocument::Compact);
     const QByteArray headerBABase64 = headerBA.toBase64(QByteArray::Base64UrlEncoding | QByteArray::OmitTrailingEquals);
-    const QByteArray headerAndPayload = headerBABase64 + "." + payloadBABase64;
-    const QByteArray signatureBA = QMessageAuthenticationCode::hash(headerAndPayload, a_secret, algEnm);
+    const QByteArray headerAndPayloadBase64 = headerBABase64 + "." + payloadBABase64;
     if(a_pSignatureBase64){
-        *a_pSignatureBase64 = signatureBA.toBase64(QByteArray::Base64UrlEncoding | QByteArray::OmitTrailingEquals);
-        return headerAndPayload + "." + (*a_pSignatureBase64);
+        *a_pSignatureBase64 = CalculateJwtSignatureCrtInline(headerAndPayloadBase64,a_secret,algEnm);
+        return headerAndPayloadBase64 + "." + (*a_pSignatureBase64);
     }
-    return headerAndPayload + "." + signatureBA.toBase64(QByteArray::Base64UrlEncoding | QByteArray::OmitTrailingEquals);
+    return headerAndPayloadBase64 + "." + CalculateJwtSignatureCrtInline(headerAndPayloadBase64,a_secret,algEnm);
+}
+
+
+QTUTILS_EXPORT QByteArray CalculateJwtSignatureCrt(const QByteArray& a_headerAndPayloadBase64,const QByteArray& a_secret, const QCryptographicHash::Algorithm& a_algEnm)
+{
+    return CalculateJwtSignatureCrtInline(a_headerAndPayloadBase64,a_secret, a_algEnm);
 }
 
 
