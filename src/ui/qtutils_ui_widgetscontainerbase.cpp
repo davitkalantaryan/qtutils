@@ -3,7 +3,7 @@
 // file:            qtutils_ui_widgetscontainer.cpp
 // path:			src/ui/qtutils_ui_widgetscontainer.cpp
 // created on:		2023 Jul 02
-// created by:		Davit Kalantaryan (davit@focust.ai)
+// created by:		Davit Kalantaryan (davit.kalantaryan@desy.de)
 //
 
 #include <qtutils/ui/widgetscontainerbasequ.hpp>
