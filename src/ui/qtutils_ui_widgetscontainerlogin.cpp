@@ -3,7 +3,7 @@
 // file:            qtutils_ui_widgetscontainerlogin.cpp
 // path:			src/ui/qtutils_ui_widgetscontainerlogin.cpp
 // created on:		2023 Jul 02
-// created by:		Davit Kalantaryan (davit@focust.ai)
+// created by:		Davit Kalantaryan (davit.kalantaryan@desy.de)
 //
 
 #include <qtutils/ui/widgetscontainerlogin.hpp>
@@ -108,10 +108,12 @@ void WidgetsContainerLogin::ConnectSignalsQuLogin()
         }
     });
 
-    QObject::connect(pThisApp,&ApplicationWithLogin::LoginFailedSignal,pThisApp,[](QString a_errorDetails){
-        const QString title = "Login failed";
-        const QString text = a_errorDetails;
-        ::qtutils::ui::ShowMessageBox(QMessageBox::Critical,title,text);
+    QObject::connect(pThisApp,&ApplicationWithLogin::LoginFailedSignal,pThisApp,[](QString a_errorDetails, bool a_bIsUser){
+        if(a_bIsUser){
+            const QString title = "Login failed";
+            const QString text = a_errorDetails;
+            ::qtutils::ui::ShowMessageBox(QMessageBox::Critical,title,text);
+        }
     });
 }
 

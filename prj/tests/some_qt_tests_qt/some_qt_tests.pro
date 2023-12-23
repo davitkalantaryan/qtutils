@@ -1,25 +1,16 @@
 #
-# file:		password_hasher.pro
-# path:		prj/utils/password_hasher_qt/password_hasher.pro
-# created on:	2022 Feb 16
+# file:		some_qt_tests.pro
+# path:		prj/tests/some_qt_tests_qt/some_qt_tests.pro
+# created on:	2023 Jan 21
 # creatd by:	Davit Kalantaryan (davit.kalantaryan@desy.de)
 #
 
-#DEFINES += QTUTILS_UI_FORCE_WEB_STYLE
-#DEFINES += QTUTILS_CORE_FORCE_NEW_SETTINGS
-#DEFINES += QTUTILS_MAKE_DEBUG
+message("!!! $${_PRO_FILE_}")
 
-DEFINES += CPPUTILS_HASH_NO_NEW_DELETE
-DEFINES += FOCUST_MAKE_EVERYTHING_PRIVATE
+TEMPLATE = app
 
-
-message("!!!!!!!!!!! focust_product01_admin_gui.pro")
-
-# QT += svg
-# QT += charts
-
-include ( "$${PWD}/../../common/common_qt/sys_common.pri" )
-include ( "$${qtutilsRepoRoot}/prj/common/common_qt/flags_common.pri" )
+include ( "$${PWD}/../../common/common_qt/flagsandsys_common.pri" )
+DESTDIR     = "$${artifactRoot}/sys/$${CODENAME}/$$CONFIGURATION/test"
 
 
 QT += widgets
@@ -36,9 +27,6 @@ SOURCES += "$${qtutilsRepoRoot}/src/ui/qtutils_ui_global_functions.cpp"
 SOURCES += "$${qtutilsRepoRoot}/src/core/qtutils_core_settings.cpp"
 HEADERS += $$files($${qtutilsRepoRoot}/src/tests/some_qt_tests/*.hpp,true)
 HEADERS += "$${qtutilsRepoRoot}/include/qtutils/core/settings.hpp"
-#HEADERS += $$files($${qtutilsRepoRoot}/include/*.hpp,true)
-#HEADERS += $$files($${qtutilsRepoRoot}/include/*.h,true)
-
 
 
 RC_ICONS = "$${cpputilsRepoRoot}/src/resources/cpputils/cpputils_icon.ico"

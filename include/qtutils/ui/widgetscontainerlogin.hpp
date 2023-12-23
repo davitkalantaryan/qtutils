@@ -3,7 +3,7 @@
 // file:            widgetscontainerlogin.hpp
 // path:			include/qtutils/ui/widgetscontainerlogin.hpp
 // created on:		2023 Jul 02
-// created by:		Davit Kalantaryan (davit@focust.ai)
+// created by:		Davit Kalantaryan (davit.kalantaryan@desy.de)
 //
 
 #pragma once

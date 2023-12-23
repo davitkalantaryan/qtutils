@@ -2,7 +2,7 @@
 # file:		focust_analyze.pro
 # path:		prj/ui/focust_analyze_qt/focust_analyze.pro
 # created on:	2022 Apr 16
-# creatd by:	Davit Kalantaryan (davit@focust.ai)
+# creatd by:	Davit Kalantaryan (davit.kalantaryan@desy.de)
 #
 
 message("!!! $${_PRO_FILE_}")

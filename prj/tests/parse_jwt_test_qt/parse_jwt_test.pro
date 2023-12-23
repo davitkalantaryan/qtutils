@@ -7,10 +7,9 @@
 
 message("!!! $${_PRO_FILE_}")
 
-include ( "$${PWD}/../../common/common_qt/sys_common.pri" )
-include ( "$${qtutilsRepoRoot}/prj/common/common_qt/flags_common.pri" )
+include ( "$${PWD}/../../common/common_qt/flagsandsys_common_private.pri" )
 
-INCLUDEPATH += $${qtutilsRepoRoot}/include
+INCLUDEPATH += /home/kalantar/Qt/6.5.0/Src/qtwebengine/src/3rdparty/chromium/third_party/boringssl/src/include
 
 SOURCES += "$${qtutilsRepoRoot}/src/core/qtutils_core_global_functions.cpp"
 SOURCES += "$${qtutilsRepoRoot}/src/core/qtutils_core_parse_jwt.cpp"
