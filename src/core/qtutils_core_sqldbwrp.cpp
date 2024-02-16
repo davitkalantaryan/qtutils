@@ -42,7 +42,7 @@ void SqlDbWrp::CleanupDb()
 }
 
 
-bool SqlDbWrp::Initialize(const QString& a_type, const QString& a_dbNameOrPath, const QString& a_hostname, const QString& a_username, const QString& a_password)
+bool SqlDbWrp::Initialize(const QString& a_type, const QString& a_dbNameOrPath, const QString& a_hostname, const QString& a_username, const QString& a_password, int a_port)
 {
     ::std::lock_guard<SqlDbWrp> aGuard(*this);
     m_db_data_p->m_type = a_type;
@@ -57,6 +57,9 @@ bool SqlDbWrp::Initialize(const QString& a_type, const QString& a_dbNameOrPath, 
     if(a_password.size()>0){
         m_db_data_p->m_db.setPassword(a_password);
     }
+    if(a_port>=0){
+        m_db_data_p->m_db.setPort(a_port);
+    }
     
     if(m_db_data_p->m_db.open()){
         return true;
@@ -68,15 +71,15 @@ bool SqlDbWrp::Initialize(const QString& a_type, const QString& a_dbNameOrPath, 
 }
 
 
-bool SqlDbWrp::InitializePostgreSQL(const QString& a_dbName, const QString& a_hostname, const QString& a_username, const QString& a_password)
+bool SqlDbWrp::InitializePostgreSQL(const QString& a_dbName, const QString& a_hostname, const QString& a_username, const QString& a_password,int a_port)
 {
-    return SqlDbWrp::Initialize("QPSQL",a_dbName,a_hostname,a_username,a_password);
+    return SqlDbWrp::Initialize("QPSQL",a_dbName,a_hostname,a_username,a_password,a_port);
 }
 
 
 bool SqlDbWrp::InitializeSQLite(const QString& a_dbPath)
 {
-    return SqlDbWrp::Initialize("QSQLITE",a_dbPath,"","","");
+    return SqlDbWrp::Initialize("QSQLITE",a_dbPath,"","","",-1);
 }
 
 

@@ -35,8 +35,8 @@ public:
     SqlDbWrp();
     
     void CleanupDb();
-    bool Initialize(const QString& a_type, const QString& a_dbNameOrPath, const QString& a_hostname, const QString& a_username, const QString& a_password);
-    bool InitializePostgreSQL(const QString& a_dbName, const QString& a_hostname, const QString& a_username, const QString& a_password);
+    bool Initialize(const QString& a_type, const QString& a_dbNameOrPath, const QString& a_hostname, const QString& a_username, const QString& a_password, int a_port);
+    bool InitializePostgreSQL(const QString& a_dbName, const QString& a_hostname, const QString& a_username, const QString& a_password,int a_port);
     bool InitializeSQLite(const QString& a_dbPath);
     
     const SqlDatabase& getQtSqlDb()const;
