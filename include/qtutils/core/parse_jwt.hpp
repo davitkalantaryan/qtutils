@@ -19,9 +19,19 @@
 namespace qtutils { namespace core{
 
 
-QTUTILS_EXPORT QList<QJsonObject> ParseJWT(const QByteArray& a_inpBA, QByteArray* a_pSignatureBuff);
-QTUTILS_EXPORT QList<QJsonObject> ParseJWT02(const QByteArray& a_inpBA, QList<QByteArray>* CPPUTILS_ARG_NN a_inpList_p);
-QTUTILS_EXPORT QByteArray CalculateJwtSignaturePrs(const QByteArray& a_headerAndPayloadBase64,const QByteArray& a_secret, const QCryptographicHash::Algorithm& a_algEnm);
+enum class JwtParseResult{
+    ok,
+    expired,
+    wrong_signature,
+    wrong_data,
+    unknown
+};
+
+QTUTILS_EXPORT QList<QJsonObject> ParseJWT01(const QByteArray& a_inpBA);
+QTUTILS_EXPORT QList<QJsonObject> ParseJWT03(const QByteArray& a_inpBA, QList<QByteArray>* CPPUTILS_ARG_NN a_inpList_p);
+QTUTILS_EXPORT JwtParseResult VerifyJWT01(const QByteArray& a_jwt, const QByteArray& a_key);
+QTUTILS_EXPORT JwtParseResult VerifyJWT02(const QByteArray& a_jwt, const QByteArray& a_key, QList<QByteArray>* CPPUTILS_ARG_NN a_parts_p);
+QTUTILS_EXPORT JwtParseResult VerifyJWTAndParse(const QByteArray& a_jwt, const QByteArray& a_key, QList<QJsonObject>* CPPUTILS_ARG_NN a_inpList_p);
 
 
 }}  // namespace qtutils { namespace core{
