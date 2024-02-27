@@ -31,7 +31,7 @@ public:
     virtual void Login(const QString& a_username, const QString& a_password) =0;
     virtual void Logout() = 0;
     virtual bool isLoggedIn()const = 0;
-    virtual bool shouldLoginSpinn()const = 0;
+    virtual bool shouldLoginSpin()const = 0;
     virtual void ShowSettingsWnd(const QPoint& a_glbPos) = 0;
     virtual void ShowLogsWnd(const QPoint& a_glbPos) = 0;
     virtual QString loginBaseUrl()const = 0;
@@ -45,8 +45,8 @@ signals:
     void LoginSucceedSignal();
     void LoggedOutSignal(bool a_isAppExit);
     void LoginFailedSignal(QString errorString, bool a_bIsUser);
-    void StartLoginSpinnngSignal();
-    void StopLoginSpinnngSignal();
+    void StartLoginSpinningSignal();
+    void StopLoginSpinningSignal();
     void SwitchingToVisibleSignal();
     void SwitchingToHidenSignal();
 };
