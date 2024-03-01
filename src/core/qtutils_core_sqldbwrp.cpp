@@ -126,5 +126,63 @@ void SqlDbWrp::PrintErrorStatRaw(const QString& a_extraText, const char* a_file,
 }
 
 
+static inline QString QVariantToQStringForSqlInline(const QVariant& a_var){
+    return (a_var.typeId()==QMetaType::QString) ? (QString("'") + a_var.toString() + "'") : a_var.toString() ;
+}
+
+
+QTUTILS_EXPORT QString GetLastSqlQuery(const SqlQuery& a_qry)
+{
+    // see: https://doc.qt.io/qt-6/qsqlquery.html#prepare
+    QString debugQueryString = a_qry.lastQuery();
+
+    // first let's find the type of binding (Oracle style or ODBC)
+    qsizetype i;
+    qsizetype index = debugQueryString.indexOf('?',0);
+    if(index<0){
+        // probably we have Oracle style :name
+        bool scanNotStopped;
+        index = 0;
+        while(1){
+            index = debugQueryString.indexOf(':',index);
+            if(index<0){
+                break;
+            }
+            const QString rmnStr = debugQueryString.mid(index);
+            const qsizetype rmnStrLen = rmnStr.length();
+            scanNotStopped = true;
+            for(i=0;i<rmnStrLen;){
+                const QVariant value = a_qry.boundValue(rmnStr.left(++i));
+                if(value.isValid()){
+                    debugQueryString.replace(index, i, QVariantToQStringForSqlInline(value));
+                    scanNotStopped = false;
+                    break;
+                }
+            }
+            if(scanNotStopped){
+                return debugQueryString;
+            }
+            index += i;
+
+        }  //  while(1){
+    }  //  if(index<0){
+    else{
+        // we have ODBC ?
+        const QVariantList bvals = a_qry.boundValues();
+        const qsizetype valsCount = bvals.size();
+        debugQueryString.replace(index++, 1, QVariantToQStringForSqlInline(bvals[0]));
+        for(i=1; i<valsCount;++i){
+            index = debugQueryString.indexOf('?',index);
+            if(index<0){
+                break;
+            }
+            debugQueryString.replace(index++, 1, QVariantToQStringForSqlInline(bvals[i]));
+        }  //  for(i=1; i<valsCount;++i){
+    }
+
+    return debugQueryString;
+}
+
+
 
 }}  // namespace qtutils { namespace core{

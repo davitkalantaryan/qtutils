@@ -25,6 +25,8 @@ typedef QSqlDatabase    SqlDatabase;
 typedef QSqlQuery       SqlQuery;
 
 
+QTUTILS_EXPORT QString GetLastSqlQuery(const SqlQuery& a_qry);
+
 class QTUTILS_EXPORT SqlDbWrp_p;
 
 
