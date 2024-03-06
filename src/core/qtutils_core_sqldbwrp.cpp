@@ -154,7 +154,8 @@ QTUTILS_EXPORT QString GetLastSqlQuery(const SqlQuery& a_qry)
             for(i=0;i<rmnStrLen;){
                 const QVariant value = a_qry.boundValue(rmnStr.left(++i));
                 if(value.isValid()){
-                    debugQueryString.replace(index, i, QVariantToQStringForSqlInline(value));
+                    const QString replaceString = QVariantToQStringForSqlInline(value);
+                    debugQueryString.replace(index, i, replaceString);
                     scanNotStopped = false;
                     break;
                 }
@@ -162,7 +163,7 @@ QTUTILS_EXPORT QString GetLastSqlQuery(const SqlQuery& a_qry)
             if(scanNotStopped){
                 return debugQueryString;
             }
-            index += i;
+            ++index;
 
         }  //  while(1){
     }  //  if(index<0){
