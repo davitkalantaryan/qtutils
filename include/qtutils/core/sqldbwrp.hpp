@@ -36,6 +36,7 @@ public:
     virtual ~SqlDbWrp();
     SqlDbWrp();
     
+    bool StartTransaction(SqlQuery* CPPUTILS_ARG_NN a_qry_p);
     void CleanupDb();
     bool Initialize(const QString& a_type, const QString& a_dbNameOrPath, const QString& a_hostname, const QString& a_username, const QString& a_password, int a_port);
     bool InitializePostgreSQL(const QString& a_dbName, const QString& a_hostname, const QString& a_username, const QString& a_password,int a_port);

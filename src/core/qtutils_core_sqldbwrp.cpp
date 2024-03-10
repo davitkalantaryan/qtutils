@@ -7,6 +7,15 @@
 
 #include <qtutils/core/sqldbwrp_p.hpp>
 #include <mutex>
+#ifdef QTUTILS_LOGGER_IS_USED
+#include <qtutils/core/logger.hpp>
+#define QtUtilsCriticalMacro        QtUtilsCritical
+#define QtUtilsWarningMacro         QtUtilsWarning
+#else
+#include <QDebug>
+#define QtUtilsCriticalMacro        qCritical
+#define QtUtilsWarningMacro         qWarning
+#endif
 #include <qtutils/disable_utils_warnings.h>
 #include <QSqlError>
 #include <QMessageLogger>
@@ -28,6 +37,36 @@ SqlDbWrp::SqlDbWrp()
       m_db_data_p(new SqlDbWrp_p())
 {
     cinternal_lw_recursive_mutex_create(&(m_db_data_p->m_mutex));
+}
+
+
+bool SqlDbWrp::StartTransaction(SqlQuery* CPPUTILS_ARG_NN a_qry_p)
+{
+    if(a_qry_p->exec("BEGIN;")){ // we will make query atomic
+        return true;
+    }
+    
+    // connection to DB lost, let's recover it
+    QtUtilsWarningMacro()<<"Connection to DB lost, trying to reopen";
+    const QString type = m_db_data_p->m_type;
+    const QString dbNameOrPath = m_db_data_p->m_db.databaseName();
+    const QString hostname = m_db_data_p->m_db.hostName();
+    const QString username = m_db_data_p->m_db.userName();
+    const QString password = m_db_data_p->m_db.password();
+    const int port = m_db_data_p->m_db.port();
+    
+    this->CleanupDb();
+    if(!Initialize(type,dbNameOrPath,hostname,username,password,port)){
+        QtUtilsCriticalMacro()<<"Unable reinitialize DB";
+        return false;
+    }
+    
+    if(a_qry_p->exec("BEGIN;")){ // we will make query atomic
+        return true;
+    }
+    
+    QtUtilsCriticalMacro()<<"Unable start transaction";
+    return false;
 }
 
 
