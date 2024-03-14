@@ -7,6 +7,15 @@
 
 #include <qtutils/core/sqldbwrp_p.hpp>
 #include <mutex>
+#ifdef QTUTILS_LOGGER_IS_USED
+#include <qtutils/core/logger.hpp>
+#define QtUtilsCriticalMacro        QtUtilsCritical
+#define QtUtilsWarningMacro         QtUtilsWarning
+#else
+#include <QDebug>
+#define QtUtilsCriticalMacro        qCritical
+#define QtUtilsWarningMacro         qWarning
+#endif
 #include <qtutils/disable_utils_warnings.h>
 #include <QSqlError>
 #include <QMessageLogger>
@@ -31,6 +40,36 @@ SqlDbWrp::SqlDbWrp()
 }
 
 
+bool SqlDbWrp::StartTransaction(SqlQuery* CPPUTILS_ARG_NN a_qry_p)
+{
+    if(a_qry_p->exec("BEGIN;")){ // we will make query atomic
+        return true;
+    }
+    
+    // connection to DB lost, let's recover it
+    QtUtilsWarningMacro()<<"Connection to DB lost, trying to reopen";
+    const QString type = m_db_data_p->m_type;
+    const QString dbNameOrPath = m_db_data_p->m_db.databaseName();
+    const QString hostname = m_db_data_p->m_db.hostName();
+    const QString username = m_db_data_p->m_db.userName();
+    const QString password = m_db_data_p->m_db.password();
+    const int port = m_db_data_p->m_db.port();
+    
+    this->CleanupDb();
+    if(!Initialize(type,dbNameOrPath,hostname,username,password,port)){
+        QtUtilsCriticalMacro()<<"Unable reinitialize DB";
+        return false;
+    }
+    
+    if(a_qry_p->exec("BEGIN;")){ // we will make query atomic
+        return true;
+    }
+    
+    QtUtilsCriticalMacro()<<"Unable start transaction";
+    return false;
+}
+
+
 void SqlDbWrp::CleanupDb()
 {
     ::std::lock_guard<SqlDbWrp> aGuard(*this);
@@ -42,7 +81,7 @@ void SqlDbWrp::CleanupDb()
 }
 
 
-bool SqlDbWrp::Initialize(const QString& a_type, const QString& a_dbNameOrPath, const QString& a_hostname, const QString& a_username, const QString& a_password)
+bool SqlDbWrp::Initialize(const QString& a_type, const QString& a_dbNameOrPath, const QString& a_hostname, const QString& a_username, const QString& a_password, int a_port)
 {
     ::std::lock_guard<SqlDbWrp> aGuard(*this);
     m_db_data_p->m_type = a_type;
@@ -57,6 +96,9 @@ bool SqlDbWrp::Initialize(const QString& a_type, const QString& a_dbNameOrPath, 
     if(a_password.size()>0){
         m_db_data_p->m_db.setPassword(a_password);
     }
+    if(a_port>=0){
+        m_db_data_p->m_db.setPort(a_port);
+    }
     
     if(m_db_data_p->m_db.open()){
         return true;
@@ -68,15 +110,15 @@ bool SqlDbWrp::Initialize(const QString& a_type, const QString& a_dbNameOrPath, 
 }
 
 
-bool SqlDbWrp::InitializePostgreSQL(const QString& a_dbName, const QString& a_hostname, const QString& a_username, const QString& a_password)
+bool SqlDbWrp::InitializePostgreSQL(const QString& a_dbName, const QString& a_hostname, const QString& a_username, const QString& a_password,int a_port)
 {
-    return SqlDbWrp::Initialize("QPSQL",a_dbName,a_hostname,a_username,a_password);
+    return SqlDbWrp::Initialize("QPSQL",a_dbName,a_hostname,a_username,a_password,a_port);
 }
 
 
 bool SqlDbWrp::InitializeSQLite(const QString& a_dbPath)
 {
-    return SqlDbWrp::Initialize("QSQLITE",a_dbPath,"","","");
+    return SqlDbWrp::Initialize("QSQLITE",a_dbPath,"","","",-1);
 }
 
 
@@ -120,6 +162,65 @@ void SqlDbWrp::PrintErrorStatRaw(const QString& a_extraText, const char* a_file,
     QMessageLogger(a_file, a_line, a_function).critical()<< "> Driver error:" << sqlErr.driverText();
     QMessageLogger(a_file, a_line, a_function).critical()<< "> Native error code:" << sqlErr.nativeErrorCode();
     QMessageLogger(a_file, a_line, a_function).critical()<< "> Error type" << sqlErr.type();
+}
+
+
+static inline QString QVariantToQStringForSqlInline(const QVariant& a_var){
+    return (a_var.typeId()==QMetaType::QString) ? (QString("'") + a_var.toString() + "'") : a_var.toString() ;
+}
+
+
+QTUTILS_EXPORT QString GetLastSqlQuery(const SqlQuery& a_qry)
+{
+    // see: https://doc.qt.io/qt-6/qsqlquery.html#prepare
+    QString debugQueryString = a_qry.lastQuery();
+
+    // first let's find the type of binding (Oracle style or ODBC)
+    qsizetype i;
+    qsizetype index = debugQueryString.indexOf('?',0);
+    if(index<0){
+        // probably we have Oracle style :name
+        bool scanNotStopped;
+        index = 0;
+        while(1){
+            index = debugQueryString.indexOf(':',index);
+            if(index<0){
+                break;
+            }
+            const QString rmnStr = debugQueryString.mid(index);
+            const qsizetype rmnStrLen = rmnStr.length();
+            scanNotStopped = true;
+            for(i=0;i<rmnStrLen;){
+                const QVariant value = a_qry.boundValue(rmnStr.left(++i));
+                if(value.isValid()){
+                    const QString replaceString = QVariantToQStringForSqlInline(value);
+                    debugQueryString.replace(index, i, replaceString);
+                    scanNotStopped = false;
+                    break;
+                }
+            }
+            if(scanNotStopped){
+                return debugQueryString;
+            }
+            ++index;
+
+        }  //  while(1){
+    }  //  if(index<0){
+    else{
+        // we have ODBC ?
+        const QVariantList bvals = a_qry.boundValues();
+        const qsizetype valsCount = bvals.size();
+        debugQueryString.replace(index++, 1, QVariantToQStringForSqlInline(bvals[0]));
+        for(i=1; i<valsCount;++i){
+            index = debugQueryString.indexOf('?',index);
+            if(index<0){
+                break;
+            }
+            debugQueryString.replace(index++, 1, QVariantToQStringForSqlInline(bvals[i]));
+        }  //  for(i=1; i<valsCount;++i){
+    }
+
+    return debugQueryString;
 }
 
 
