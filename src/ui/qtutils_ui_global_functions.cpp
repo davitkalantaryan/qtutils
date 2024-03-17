@@ -50,13 +50,13 @@ QTUTILS_EXPORT void SetProperParamsToImagedLbl(QLabel* a_pLbl)
 }
 
 
-QTUTILS_EXPORT void ShowMessageBox(const QMessageBox::Icon& a_icon, const QString a_title, const QString a_text)
+QTUTILS_EXPORT void ShowMessageBox(const QMessageBox::Icon& a_icon, const QString a_title, const QString a_text, QMessageBox::StandardButtons a_buttons, QWidget* a_pParent)
 {
 #if defined(CPPUTILS_EMSCRIPTEN_IS_USED) || defined(QTUTILS_UI_FORCE_WEB_STYLE)
-    ::qtutils::ui::WebDialog<QMessageBox>* pMessageBox = new ::qtutils::ui::WebDialog<QMessageBox>(a_icon,a_title,a_text);
+    ::qtutils::ui::WebDialog<QMessageBox>* pMessageBox = new ::qtutils::ui::WebDialog<QMessageBox>(a_icon,a_title,a_text,a_buttons,a_pParent);
     pMessageBox->open();
 #else
-    QMessageBox aMessageBox(a_icon,a_title,a_text);
+    QMessageBox aMessageBox(a_icon,a_title,a_text,a_buttons,a_pParent);
     aMessageBox.exec();
 #endif
 }
