@@ -37,13 +37,14 @@ public:
     virtual QString loginBaseUrl()const = 0;
     virtual void SetLoginBaseUrl(const QString& a_newUrl) = 0;
     virtual bool isVisible()const;
+    virtual bool isGoingToExit()const = 0;
 		
 protected:
 signals:
     void AppGoingToExitSignal();
     void LoginBaseUrlChangedSignal(QString a_newUrl);
     void LoginSucceedSignal();
-    void LoggedOutSignal(bool a_isAppExit);
+    void LoggedOutSignal();
     void LoginFailedSignal(QString errorString, bool a_bIsUser);
     void StartLoginSpinningSignal();
     void StopLoginSpinningSignal();
