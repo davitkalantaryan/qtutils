@@ -99,8 +99,9 @@ void WidgetsContainerLogin::ConnectSignalsQuLogin()
         WidgetsContainerBase::SwitchToWidget(QUTILS_WIDG_CONT_LOGIN_MAINW);
     });
 
-    QObject::connect(pThisApp,&ApplicationWithLogin::LoggedOutSignal,pThisApp,[this](bool a_isAppExit){
-        if(a_isAppExit){
+    QObject::connect(pThisApp,&ApplicationWithLogin::LoggedOutSignal,pThisApp,[this](){
+        ApplicationWithLogin*const pThisApp = qtutilsUiAppWithLogin();
+        if(pThisApp->isGoingToExit()){
             this->hide();
         }
         else{
