@@ -147,6 +147,16 @@ QDir LoggerToFile::logsDir()const
 }
 
 
+QString LoggerToFile::logFilePath()const
+{
+    QFile* const pLogFile = m_logger_data_p->m_logFile.get();
+    if(pLogFile){
+        return pLogFile->fileName();
+    }
+    return "";
+}
+
+
 
 /*//////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
 
