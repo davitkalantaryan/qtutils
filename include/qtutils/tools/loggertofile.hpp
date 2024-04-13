@@ -35,6 +35,8 @@ public:
     Logger::TypeLogger          extraLogger()const;
     void*                       extraLogUserData()const;
     QDir                        logsDir()const;
+    QString                     logFilePathCurrentDate()const;
+    QString                     logFilePath(const QDate& a_date)const;
 
 private:
     LoggerToFile_p*const   m_logger_data_p;

@@ -41,6 +41,7 @@ public:
     ::qtutils::Logger           m_logger;
 public:
     void MessageHandler(QtMsgType a_msgType, const QMessageLogContext& a_ctx, const QString& a_msg);
+    inline QString logFilePathInline(const QDate& a_date)const;
     inline ::std::shared_ptr<QFile> CreateLogFileInline();
     inline void CreateLogFileNoCheckNoLockInline();
 };
@@ -147,6 +148,22 @@ QDir LoggerToFile::logsDir()const
 }
 
 
+QString LoggerToFile::logFilePath(const QDate& a_date)const
+{
+    return m_logger_data_p->logFilePathInline(a_date);
+}
+
+
+QString LoggerToFile::logFilePathCurrentDate()const
+{
+    QFile* const pLogFile = m_logger_data_p->m_logFile.get();
+    if(pLogFile){
+        return pLogFile->fileName();
+    }
+    return "";
+}
+
+
 
 /*//////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
 
@@ -172,6 +189,13 @@ void LoggerToFile_p::MessageHandler(QtMsgType a_msgType, const QMessageLogContex
 }
 
 
+inline QString LoggerToFile_p::logFilePathInline(const QDate& a_date)const
+{
+    const QFileInfo aFileInfo(m_logsDir,"log_" + a_date.toString("yyyy.MM.dd.txt"));
+    return aFileInfo.filePath();
+}
+
+
 inline void LoggerToFile_p::CreateLogFileNoCheckNoLockInline()
 {
     if(!m_currentDate.isValid()){
@@ -182,8 +206,7 @@ inline void LoggerToFile_p::CreateLogFileNoCheckNoLockInline()
         m_logsDir.mkpath(m_logsDir.path());
     }
 
-    const QFileInfo aFileInfo(m_logsDir,"log_" + m_currentDate.toString("yyyy.MM.dd.txt"));
-    QFile*const pfFileRet_p = new QFile(aFileInfo.filePath());
+    QFile*const pfFileRet_p = new QFile(logFilePathInline(m_currentDate));
     pfFileRet_p->open(QIODevice::Append);
     if(!pfFileRet_p->isOpen()){
         delete pfFileRet_p;
