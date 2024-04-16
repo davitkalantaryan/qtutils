@@ -25,7 +25,7 @@ public:
     virtual ~WidgetsContainerLogin() override;
     WidgetsContainerLogin(QWidget* CPPUTILS_ARG_NN a_pLoginWnd, QWidget* CPPUTILS_ARG_NN a_pMainWindow,
                           const QString& a_logo, const QString& a_tooltip,const QString& a_exitLogo,
-                          const TypeWCShowHide& a_login_show, const TypeWCShowHide& a_main_show);
+                          const TypeWCShowHide& a_login_show, const TypeWCShowHide& a_main_show, bool a_hasHideFromSysMenu);
     virtual void show() override;
     void MakeLoginCloseToExitApp();
     void MakeLoginCloseToHideLogin();

@@ -109,6 +109,7 @@ public:
     public:
         bool isVisible()const;
         bool hasHideFromSysMenu()const;
+        void SetHasHideFromSysMenu(bool a_hasHideFromSysMenu);
 
         friend class WidgetsContainerBase;
     };
