@@ -29,14 +29,14 @@ WidgetsContainerLogin::~WidgetsContainerLogin()
 
 WidgetsContainerLogin::WidgetsContainerLogin(QWidget* CPPUTILS_ARG_NN a_pLoginWnd, QWidget* CPPUTILS_ARG_NN a_pMainWindow,
                                              const QString& a_logo, const QString& a_tooltip,const QString& a_exitLogo,
-                                             const TypeWCShowHide& a_login_show, const TypeWCShowHide& a_main_show)
+                                             const TypeWCShowHide& a_login_show, const TypeWCShowHide& a_main_show,bool a_hasHideFromSysMenu)
     :
       WidgetsContainerBase(&AppExiterForRestApps)
 {
     ApplicationWithLogin*const pThisApp = qtutilsUiAppWithLogin();
 
-    WidgetsContainerBase::AddNewWidget(a_pLoginWnd,a_login_show,nullptr,false);
-    WidgetsContainerBase::AddNewWidget(a_pMainWindow,a_main_show,nullptr,true);
+    WidgetsContainerBase::AddNewWidget(a_pLoginWnd,a_login_show,nullptr,a_hasHideFromSysMenu);
+    WidgetsContainerBase::AddNewWidget(a_pMainWindow,a_main_show,nullptr,a_hasHideFromSysMenu);
     WidgetsContainerBase::SetIconstForContextMenu(a_logo,a_tooltip,a_exitLogo);
     
     ConnectSignalsQuLogin();

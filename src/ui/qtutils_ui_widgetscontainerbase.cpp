@@ -118,17 +118,19 @@ void WidgetsContainerBase::SetWidgetVisible(size_t a_index, bool a_isVisible)
 void WidgetsContainerBase::SetWidgetHasHideFromSysMenu(size_t a_index,bool a_hasHideFromSysMenu)
 {
     SWidget* const pWidget = m_vWidgets[a_index];
-    pWidget->flags.wr.hasHideFromSysMenu = a_hasHideFromSysMenu?CPPUTILS_BISTATE_MAKE_BITS_TRUE:CPPUTILS_BISTATE_MAKE_BITS_FALSE;
+    if(pWidget){
+        pWidget->flags.wr.hasHideFromSysMenu = a_hasHideFromSysMenu?CPPUTILS_BISTATE_MAKE_BITS_TRUE:CPPUTILS_BISTATE_MAKE_BITS_FALSE;
 
-    if(a_index==static_cast<size_t>(m_index)){
-        if(a_hasHideFromSysMenu){
-            //m_contextMenu.removeAction(&m_actionShowOrHide);
-            m_contextMenu.insertAction(&m_actionExit,&m_actionShowOrHide);
-        }
-        else{
-            m_contextMenu.removeAction(&m_actionShowOrHide);
-        }
-    }  //  if(a_index==static_cast<size_t>(m_index)){
+        if(a_index==static_cast<size_t>(m_index)){
+            if(a_hasHideFromSysMenu && pWidget->flags.rd.isVisible_true){
+                //m_contextMenu.removeAction(&m_actionShowOrHide);
+                m_contextMenu.insertAction(&m_actionExit,&m_actionShowOrHide);
+            }
+            else{
+                m_contextMenu.removeAction(&m_actionShowOrHide);
+            }
+        }  //  if(a_index==static_cast<size_t>(m_index)){
+    }
 }
 
 
@@ -393,6 +395,12 @@ bool WidgetsContainerBase::SWidget::isVisible()const
 bool WidgetsContainerBase::SWidget::hasHideFromSysMenu()const
 {
     return (this->flags.rd.hasHideFromSysMenu_true) ? true : false;
+}
+
+
+void WidgetsContainerBase::SWidget::SetHasHideFromSysMenu(bool a_hasHideFromSysMenu)
+{
+    this->flags.wr.hasHideFromSysMenu = a_hasHideFromSysMenu?CPPUTILS_BISTATE_MAKE_BITS_TRUE:CPPUTILS_BISTATE_MAKE_BITS_FALSE;
 }
 
 
