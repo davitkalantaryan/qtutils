@@ -210,14 +210,16 @@ QTUTILS_EXPORT QString GetLastSqlQuery(const SqlQuery& a_qry)
         // we have ODBC ?
         const QVariantList bvals = a_qry.boundValues();
         const qsizetype valsCount = bvals.size();
-        debugQueryString.replace(index++, 1, QVariantToQStringForSqlInline(bvals[0]));
-        for(i=1; i<valsCount;++i){
-            index = debugQueryString.indexOf('?',index);
-            if(index<0){
-                break;
-            }
-            debugQueryString.replace(index++, 1, QVariantToQStringForSqlInline(bvals[i]));
-        }  //  for(i=1; i<valsCount;++i){
+        if(valsCount>0){
+            debugQueryString.replace(index++, 1, QVariantToQStringForSqlInline(bvals[0]));
+            for(i=1; i<valsCount;++i){
+                index = debugQueryString.indexOf('?',index);
+                if(index<0){
+                    break;
+                }
+                debugQueryString.replace(index++, 1, QVariantToQStringForSqlInline(bvals[i]));
+            }  //  for(i=1; i<valsCount;++i){
+        }
     }
 
     return debugQueryString;
