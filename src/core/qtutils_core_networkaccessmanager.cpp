@@ -8,6 +8,7 @@
 #include <qtutils/core/networkaccessmanagerqu.hpp>
 #include <qtutils/core/invokeblocked.hpp>
 #include <qtutils/core/utils.hpp>
+#include <string.h>
 #include <qtutils/disable_utils_warnings.h>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -50,6 +51,17 @@ Reply* AccessManagerRaw::post(ReplyContainer* a_pContainer, const QNetworkReques
 }
 
 
+Reply* AccessManagerRaw::post(ReplyContainer* a_pContainer, const QNetworkRequest& a_request, QIODevice* a_data, ReplyData* a_pData, int a_timeoutMs)
+{
+    QNetworkReply* pNetworkReply = m_pQtManager->post(a_request,a_data);
+    if(pNetworkReply){
+		return new Reply(pNetworkReply,a_pContainer,a_pData, a_timeoutMs);
+    }
+    //return nullptr;
+	throw Exception(a_pData,"Unable to create Network Reply object");
+}
+
+
 Reply* AccessManagerRaw::post(ReplyContainer* a_pContainer, const QNetworkRequest& a_request, const QVariantMap& a_data,  ReplyData* a_pData, int a_timeoutMs)
 {
     const QJsonDocument dataJsonDoc = QJsonDocument(QJsonObject::fromVariantMap(a_data));
@@ -66,6 +78,17 @@ Reply* AccessManagerRaw::post(ReplyContainer* a_pContainer, const QNetworkReques
     }
     //return nullptr;
     throw Exception(a_pData,"Unable to create Network Reply object");
+}
+
+
+Reply* AccessManagerRaw::put(ReplyContainer* a_pContainer, const QNetworkRequest& a_request, QIODevice* a_data, ReplyData* a_pData, int a_timeoutMs)
+{
+    QNetworkReply* pNetworkReply = m_pQtManager->put(a_request,a_data);
+    if(pNetworkReply){
+		return new Reply(pNetworkReply,a_pContainer,a_pData, a_timeoutMs);
+    }
+    //return nullptr;
+	throw Exception(a_pData,"Unable to create Network Reply object");
 }
 
 
@@ -88,6 +111,14 @@ Reply* AccessManagerRaw::put(ReplyContainer* a_pContainer, const QNetworkRequest
 }
 
 
+Reply* AccessManagerRaw::sendCustomRequest(ReplyContainer* a_pContainer, const QNetworkRequest& a_request, const QByteArray& a_verb, const QVariantMap& a_data, ReplyData* a_pData, int a_timeoutMs)
+{
+    const QJsonDocument dataJsonDoc = QJsonDocument(QJsonObject::fromVariantMap(a_data));
+    const QByteArray dataBA = dataJsonDoc.toJson(QJsonDocument::Compact);
+    return sendCustomRequest(a_pContainer, a_request,a_verb, dataBA,a_pData,a_timeoutMs);
+}
+
+
 Reply* AccessManagerRaw::get(ReplyContainer* a_pContainer, const QNetworkRequest& a_request, ReplyData* a_pData, int a_timeoutMs)
 {
     QNetworkReply* pNetworkReply = m_pQtManager->get(a_request);
@@ -107,6 +138,28 @@ Reply* AccessManagerRaw::head(ReplyContainer* a_pContainer, const QNetworkReques
     }
     //return nullptr;
     throw Exception(a_pData,"Unable to create Network Reply object");
+}
+
+
+Reply* AccessManagerRaw::sendCustomRequest(ReplyContainer* a_pContainer, const QNetworkRequest& a_request, const QByteArray& a_verb, ReplyData* a_pData, int a_timeoutMs, QIODevice* a_data)
+{
+    QNetworkReply* pNetworkReply = m_pQtManager->sendCustomRequest(a_request,a_verb,a_data);
+    if(pNetworkReply){
+		return new Reply(pNetworkReply,a_pContainer,a_pData, a_timeoutMs);
+    }
+    //return nullptr;
+	throw Exception(a_pData,"Unable to create Network Reply object");
+}
+
+
+Reply* AccessManagerRaw::sendCustomRequest(ReplyContainer* a_pContainer, const QNetworkRequest& a_request, const QByteArray& a_verb, const QByteArray& a_data, ReplyData* a_pData, int a_timeoutMs)
+{
+    QNetworkReply* pNetworkReply = m_pQtManager->sendCustomRequest(a_request,a_verb,a_data);
+    if(pNetworkReply){
+		return new Reply(pNetworkReply,a_pContainer,a_pData, a_timeoutMs);
+    }
+    //return nullptr;
+	throw Exception(a_pData,"Unable to create Network Reply object");
 }
 
 
@@ -431,6 +484,23 @@ QTUTILS_EXPORT QString NetworkErrorCodeString(const QNetworkReply::NetworkError&
     errStr.push_back(')');
     return errStr;
 }
+
+
+#ifdef QTUTILS_HTTP_SERVER_TOOLS
+QTUTILS_EXPORT QByteArray HttpRequestMethodToByteArray(const QHttpServerRequest::Method& a_method)
+{
+    const QMetaEnum metaEnum = QMetaEnum::fromType<QHttpServerRequest::Method>();
+    const char* cpcVerb =  metaEnum.valueToKey(static_cast<int>(a_method));
+    if(!cpcVerb){
+        return "";
+    }
+    const char* cpcLastDblPoints = strrchr(cpcVerb,':');
+    if(cpcLastDblPoints){
+        return QByteArray(cpcLastDblPoints+1).toUpper();
+    }
+    return QByteArray(cpcVerb).toUpper();
+}
+#endif
 
 
 }}  // namespace qtutils { namespace network {

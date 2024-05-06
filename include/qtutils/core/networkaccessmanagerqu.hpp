@@ -17,6 +17,9 @@
 #include <QVariantMap>
 #include <QDateTime>
 #include <QByteArray>
+#ifdef QTUTILS_HTTP_SERVER_TOOLS
+#include <QHttpServerRequest>
+#endif
 
 namespace qtutils { namespace network{
 
@@ -64,15 +67,26 @@ private:
     AccessManagerRaw();
     ~AccessManagerRaw();
     
-public:
-    Reply* post(ReplyContainer* a_pContainer, const QNetworkRequest &request, const QByteArray &data,  ReplyData* a_pData, int a_timeoutMs);
+public:    
     Reply* post(ReplyContainer* a_pContainer, const QNetworkRequest &request, const QVariantMap&data,  ReplyData* a_pData, int a_timeoutMs);
-    Reply* post(ReplyContainer* a_pContainer, const QNetworkRequest &request, QHttpMultiPart* multiPart,  ReplyData* a_pData, int a_timeoutMs);
-    Reply* put(ReplyContainer* a_pContainer, const QNetworkRequest &request, const QByteArray &data,  ReplyData* a_pData, int a_timeoutMs);
     Reply* put(ReplyContainer* a_pContainer, const QNetworkRequest &request, const QVariantMap&data,  ReplyData* a_pData, int a_timeoutMs);
-    Reply* get(ReplyContainer* a_pContainer, const QNetworkRequest &request, ReplyData* a_pData, int a_timeoutMs);
+    Reply* sendCustomRequest(ReplyContainer* a_pContainer, const QNetworkRequest &request, const QByteArray &verb, const QVariantMap&data, ReplyData* a_pData, int a_timeoutMs);
+    
     Reply* head(ReplyContainer* a_pContainer, const QNetworkRequest &request, ReplyData* a_pData, int a_timeoutMs);
+    Reply* get(ReplyContainer* a_pContainer, const QNetworkRequest &request, ReplyData* a_pData, int a_timeoutMs);
+    Reply* post(ReplyContainer* a_pContainer, const QNetworkRequest &request, QIODevice *data, ReplyData* a_pData, int a_timeoutMs);
+    Reply* post(ReplyContainer* a_pContainer, const QNetworkRequest &request, const QByteArray &data, ReplyData* a_pData, int a_timeoutMs);
+    Reply* put(ReplyContainer* a_pContainer, const QNetworkRequest &request, QIODevice *data, ReplyData* a_pData, int a_timeoutMs);
+    Reply* put(ReplyContainer* a_pContainer, const QNetworkRequest &request, const QByteArray &data, ReplyData* a_pData, int a_timeoutMs);
     Reply* deleteResource(ReplyContainer* a_pContainer, const QNetworkRequest &request, ReplyData* a_pData, int a_timeoutMs);
+    Reply* sendCustomRequest(ReplyContainer* a_pContainer, const QNetworkRequest &request, const QByteArray &verb, ReplyData* a_pData, int a_timeoutMs, QIODevice *data = nullptr);
+    Reply* sendCustomRequest(ReplyContainer* a_pContainer, const QNetworkRequest &request, const QByteArray &verb, const QByteArray &data, ReplyData* a_pData, int a_timeoutMs);
+
+#if QT_CONFIG(http) || defined(Q_OS_WASM)
+    Reply* post(ReplyContainer* a_pContainer, const QNetworkRequest &request, QHttpMultiPart *multiPart, ReplyData* a_pData, int a_timeoutMs);
+    Reply* put(ReplyContainer* a_pContainer, const QNetworkRequest &request, QHttpMultiPart *multiPart, ReplyData* a_pData, int a_timeoutMs);
+    Reply* sendCustomRequest(ReplyContainer* a_pContainer, const QNetworkRequest &request, const QByteArray &verb, QHttpMultiPart *multiPart, ReplyData* a_pData, int a_timeoutMs);
+#endif
     
 private:
     QNetworkAccessManager*    m_pQtManager;
@@ -174,6 +188,9 @@ QTUTILS_EXPORT void PrepareMPartHeadersWithAuth(QNetworkRequest* a_pRequet, cons
 QTUTILS_EXPORT void ErrorByteArray(const QNetworkReply::NetworkError&,const ::qtutils::network::Reply& a_replyHandlerIn, QByteArray* CPPUTILS_IN_OUT a_pData);
 QTUTILS_EXPORT QString CorectUrl(const QString& a_url);
 QTUTILS_EXPORT QString NetworkErrorCodeString(const QNetworkReply::NetworkError& a_errorCode);
+#ifdef QTUTILS_HTTP_SERVER_TOOLS
+QTUTILS_EXPORT QByteArray HttpRequestMethodToByteArray(const QHttpServerRequest::Method& a_method);
+#endif
 
 
 }}  //  namespace qtutils { namespace network{
