@@ -29,6 +29,7 @@ class CPPUTILS_DLL_PRIVATE Logger_p;
 #define QtUtilsCriticalRaw(_fl,_ln,_fnc)    QMessageLogger(_fl, _ln, _fnc).critical()
 #define QtUtilsCritical                     QMessageLogger(__FILE__, __LINE__, __FUNCTION__).critical
 #define QtUtilsFatal                        QMessageLogger(__FILE__, __LINE__, __FUNCTION__).fatal
+#define QtUtilsSimpleLog(_qdebug)           QMessageLogger(__FILE__, -1, __FUNCTION__)._qdebug()
 
 
 class QTUTILS_EXPORT Logger final

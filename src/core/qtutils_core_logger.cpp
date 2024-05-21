@@ -143,29 +143,31 @@ QString Logger::FileLineAndFunctionString(const char* a_fileName, int a_line, co
 
 void Logger_p::MessageHandler(QtMsgType a_type, const QMessageLogContext& a_context,const QString& a_message)
 {
-    QString msgCntx = QDateTime::currentDateTime().toString() + ": ";
-
-    switch (a_type) {
-    case QtDebugMsg:
-        msgCntx += "debug:    ";
-        break;
-    case QtWarningMsg:
-        msgCntx += "warning:  ";
-        msgCntx += Logger::FileAndLineString(a_context.file,a_context.line) + ": ";
-        break;
-    case QtFatalMsg:
-        msgCntx += "fatal:    ";
-        msgCntx += Logger::FileLineAndFunctionString(a_context.file,a_context.line,a_context.function);
-        break;
-    case QtInfoMsg:
-        msgCntx += "info:     ";
-        break;
-    default:  // remains QtSystemMsg and QtCriticalMsg
-        msgCntx += "critical: ";
-        msgCntx += Logger::FileLineAndFunctionString(a_context.file,a_context.line,a_context.function);
-        break;
-    }
-
+    QString msgCntx;
+    if(a_context.line>0){
+        msgCntx = QDateTime::currentDateTime().toString() + ": ";
+    
+        switch (a_type) {
+        case QtDebugMsg:
+            msgCntx += "debug:    ";
+            break;
+        case QtWarningMsg:
+            msgCntx += "warning:  ";
+            msgCntx += Logger::FileAndLineString(a_context.file,a_context.line) + ": ";
+            break;
+        case QtFatalMsg:
+            msgCntx += "fatal:    ";
+            msgCntx += Logger::FileLineAndFunctionString(a_context.file,a_context.line,a_context.function);
+            break;
+        case QtInfoMsg:
+            msgCntx += "info:     ";
+            break;
+        default:  // remains QtSystemMsg and QtCriticalMsg
+            msgCntx += "critical: ";
+            msgCntx += Logger::FileLineAndFunctionString(a_context.file,a_context.line,a_context.function);
+            break;
+        }  //  switch (a_type) {
+    }  //  if(a_context.line>0){
 
     m_logger(m_pOwner,a_type,a_context,msgCntx+a_message);
 }
