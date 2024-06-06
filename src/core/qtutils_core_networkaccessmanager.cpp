@@ -15,6 +15,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QThread>
+#include <QCoreApplication>
 
 
 namespace qtutils { namespace network {
@@ -32,518 +33,53 @@ Exception::Exception(network::ReplyData* a_pReplyData,const char* a_cpcWhat)
 /*////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
 
 
-AccessManagerRaw::~AccessManagerRaw()
+AccessManager::~AccessManager()
 {
+    m_bShouldRun = false;
+
+    Reply *pReplyNext, *pReply = m_pQtManager?m_pFirstExc:m_pFirstSsp;
+
+    while(pReply){
+        pReplyNext = pReply->m_gen.next;
+        pReply->Abort();
+        pReply->deleteLater();
+        pReply = pReplyNext;
+    }
+
     delete m_pQtManager;
+
     free(m_seedData_p);
 }
 
 
-AccessManagerRaw::AccessManagerRaw()
+AccessManager::AccessManager()
     :
     m_pQtManager(new QNetworkAccessManager()),
-    m_seedData_p((SeedData**)calloc(QTUTILS_SEED_TABLE_SIZE,sizeof(SeedData*)))
-{
-    m_countOfCorelated = 0;
-    if(!m_seedData_p){
-        throw ::std::bad_alloc();
-    }
-}
-
-
-Reply* AccessManagerRaw::CreateAndAddReply(QNetworkReply* CPPUTILS_ARG_NN a_pNetworkReply, int a_timeoutMs, ReplyData* a_pData, int a_seed)
-{
-    Reply* const pReturnReply = new Reply(a_pNetworkReply,a_pData, a_timeoutMs);
-
-    pReturnReply->m_connFinished = ::QObject::connect(pReturnReply->m_pNetworkReply,&QNetworkReply::finished,pReturnReply,[this,pReturnReply](){
-        if(pReturnReply->m_timeoutTimer.isActive()){
-            const QMetaObject::Connection connTimeout = pReturnReply->m_connTimeout;
-            pReturnReply->m_connTimeout = QMetaObject::Connection();
-            ::QObject::disconnect(connTimeout);
-            pReturnReply->m_timeoutTimer.stop();
-        }
-        const QMetaObject::Connection connFinished = pReturnReply->m_connFinished;
-        pReturnReply->m_connFinished = QMetaObject::Connection();
-        ::QObject::disconnect(connFinished);
-        emit pReturnReply->finished(QTUTILS_CORE_NTDT_NSP QtUtilsNetReplyArg(this,[](::qtutils::network::Reply* a_pTs){a_pTs->deleteLater();}));
-        RemoveReply(pReturnReply);
-        pReturnReply->deleteLater();
-    });
-
-    if(a_timeoutMs>=0){
-        pReturnReply->m_connTimeout = QObject::connect(&(pReturnReply->m_timeoutTimer),&QTimer::timeout,pReturnReply,[this](){
-            pReturnReply->m_bHasTimeout = true;
-
-            const QMetaObject::Connection connTimeout = pReturnReply->m_connTimeout;
-            pReturnReply->m_connTimeout = QMetaObject::Connection();
-            ::QObject::disconnect(connTimeout);
-
-            const QMetaObject::Connection connFinished = pReturnReply->m_connFinished;
-            pReturnReply->m_connFinished = QMetaObject::Connection();
-            ::QObject::disconnect(connFinished);
-
-            pReturnReply->Abort();
-            emit pReturnReply->finished(QtUtilsNetReplyArg(this,[](::qtutils::network::Reply* a_pTs){a_pTs->deleteLater();}));
-        });
-        pReturnReply->m_timeoutTimer.start(a_timeoutMs);
-    }
-
-
-    pReturnReply->m_prev = nullptr;
-    pReturnReply->m_next = m_pFirst;
-    if(m_pFirst){
-        m_pFirst->m_prev = pReturnReply;
-    }
-    m_pFirst = pReturnReply;
-}
-
-
-void AccessManagerRaw::RemoveDependentCallRaw()
-{
-    --m_countOfCorelated;
-    if(m_pFirstSingleton){
-        LateAction* const pFirstSingleton = m_pFirstSingleton;
-        if(pFirstSingleton->next){
-            m_pFirstSingleton = pFirstSingleton->next;
-        }
-        else{
-            m_pFirstSingleton = m_pLastSingleton = nullptr;
-        }
-        (pFirstSingleton->func)();
-    }
-    else{
-        LateAction *pDependentNext, *pDependent = m_pFirstDependent;
-        while(pDependent){
-            pDependentNext = pDependent->next;
-            if(SeedCheckAndAdd(pDependent->seed)){
-                (pDependent->func)();
-            }
-            pDependent = pDependentNext;
-        }
-
-        m_pFirstDependent = m_pLastDependent = nullptr;
-    }
-}
-
-
-void AccessManagerRaw::RemoveReply(Reply* CPPUTILS_ARG_NN a_pReply)
-{
-    FindAndRemoveSeed(a_pReply->m_seed, a_pReply->m_callType);
-    switch(a_pReply->m_callType){
-    case CallType::DependentDropSeed:case CallType::DependentKeepSeed: case CallType::Singleton:
-        RemoveDependentCallRaw();
-        break;
-    default:
-        break;
-    }  //  switch(a_pReply->m_callType){
-
-    if(a_pReply->m_next){
-        a_pReply->m_next->m_prev=a_pReply->m_prev;
-    }
-
-    if(a_pReply->m_prev){
-        a_pReply->m_prev->m_next=a_pReply->m_next;
-    }
-    else{
-        m_pFirst = a_pReply->m_next;
-    }
-}
-
-
-void AccessManagerRaw::AddSingleton(const TypeLateActionFunc& a_func)
-{
-    LateAction* const pLateAction = new LateAction();
-    pLateAction->prev = m_pLastSingleton;
-    pLateAction->next = nullptr;
-    if(m_pLastSingleton){
-        m_pLastSingleton->prev = pLateAction;
-    }
-    else{
-        m_pFirstSingleton = pLateAction;
-    }
-    m_pLastSingleton = pLateAction;
-}
-
-
-void AccessManagerRaw::AddDependent(const TypeLateActionFunc& a_func)
-{
-    LateAction* const pLateAction = new LateAction();
-    pLateAction->prev = m_pLastDependent;
-    pLateAction->next = nullptr;
-    if(m_pLastDependent){
-        m_pLastDependent->prev = pLateAction;
-    }
-    else{
-        m_pFirstDependent = pLateAction;
-    }
-    m_pLastDependent = pLateAction;
-}
-
-
-SeedData* AccessManagerRaw::findSeedRaw(int a_seed, int* CPPUTILS_ARG_NN a_nIndex_p)const
-{
-    *a_nIndex_p = a_seed % QTUTILS_SEED_TABLE_SIZE;
-    SeedData* pSeedData = m_seedData_p[*a_nIndex_p];
-    while(pSeedData){
-        if((pSeedData->seed)==a_seed){
-            return pSeedData;
-        }
-        pSeedData = pSeedData->next;
-    }
-    return nullptr;
-}
-
-
-bool AccessManagerRaw::SeedCheckAndAdd(int a_seed)
-{
-    if(a_seed>0){
-        int nIndex;
-        SeedData* pSeedData = findSeedRaw(a_seed,&nIndex);
-        if(pSeedData){
-            return false;
-        }
-
-        pSeedData = new SeedData();
-        pSeedData->prev = nullptr;
-        pSeedData->next = m_seedData_p[nIndex];
-        if(m_seedData_p[nIndex]){
-            m_seedData_p[nIndex]->prev = pSeedData;
-        }
-        m_seedData_p[nIndex] = pSeedData;
-    }
-
-    return true;
-}
-
-
-void AccessManagerRaw::FindAndRemoveSeed(int a_seed, const CallType& a_type)
-{
-    switch(a_type){
-    case CallType::Singleton:
-        break;
-    default:{
-        if(a_seed>0){
-            int nIndex;
-            SeedData* pSeedData = findSeedRaw(a_seed,&nIndex);
-            if(pSeedData){
-                if(pSeedData->next){pSeedData->next->prev=pSeedData->prev;}
-                if(pSeedData->prev){
-                    pSeedData->prev->next=pSeedData->next;
-                }
-                else{
-                    m_seedData_p[nIndex] = pSeedData->next;
-                }
-                return;
-            }  //  if(pSeedData){
-        }  //  if(a_seed>0){
-    }break;
-    }  //  switch(a_type){
-}
-
-
-/*////   Raw   //////////*/
-
-Reply* AccessManagerRaw::postRaw(const QNetworkRequest& a_request, const QByteArray& a_data,  int a_timeoutMs, ReplyData* a_pData, int a_seed, const CallType& a_callType)
-{
-    QNetworkReply* pNetworkReply = m_pQtManager->post(a_request,a_data);
-    if(pNetworkReply){
-        return new Reply(a_callType,a_seed,pNetworkReply,a_pData, a_timeoutMs);
-    }
-	throw Exception(a_pData,"Unable to create Network Reply object");
-}
-
-
-Reply* AccessManagerRaw::postRaw(const QNetworkRequest& a_request, QIODevice* a_data, int a_timeoutMs, ReplyData* a_pData, int a_seed, const CallType& a_callType)
-{
-    QNetworkReply* pNetworkReply = m_pQtManager->post(a_request,a_data);
-    if(pNetworkReply){
-        return new Reply(a_callType,a_seed,pNetworkReply,a_pData, a_timeoutMs);
-    }
-	throw Exception(a_pData,"Unable to create Network Reply object");
-}
-
-
-Reply* AccessManagerRaw::postRaw(const QNetworkRequest& a_request, const QVariantMap& a_data,  int a_timeoutMs, ReplyData* a_pData, int a_seed, const CallType& a_callType)
-{
-    const QJsonDocument dataJsonDoc = QJsonDocument(QJsonObject::fromVariantMap(a_data));
-    const QByteArray dataBA = dataJsonDoc.toJson(QJsonDocument::Compact);
-    return postRaw(a_request,dataBA,a_pData,a_timeoutMs,a_seed,a_callType);
-}
-
-
-Reply* AccessManagerRaw::postRaw(const QNetworkRequest& a_request, QHttpMultiPart* a_pMultiPart,  int a_timeoutMs, ReplyData* a_pData, int a_seed, const CallType& a_callType)
-{
-    QNetworkReply* pNetworkReply = m_pQtManager->post(a_request,a_pMultiPart);
-    if(pNetworkReply){
-        return new Reply(a_callType,a_seed,pNetworkReply,a_pData, a_timeoutMs);
-    }
-    throw Exception(a_pData,"Unable to create Network Reply object");
-}
-
-
-Reply* AccessManagerRaw::putRaw(const QNetworkRequest& a_request, QIODevice* a_data, int a_timeoutMs, ReplyData* a_pData, int a_seed, const CallType& a_callType)
-{
-    QNetworkReply* pNetworkReply = m_pQtManager->put(a_request,a_data);
-    if(pNetworkReply){
-        return new Reply(a_callType,a_seed,pNetworkReply,a_pData, a_timeoutMs);
-    }
-	throw Exception(a_pData,"Unable to create Network Reply object");
-}
-
-
-Reply* AccessManagerRaw::putRaw(const QNetworkRequest& a_request, const QByteArray& a_data,  int a_timeoutMs, ReplyData* a_pData, int a_seed, const CallType& a_callType)
-{
-    QNetworkReply* pNetworkReply = m_pQtManager->put(a_request,a_data);
-    if(pNetworkReply){
-        return new Reply(a_callType,a_seed,pNetworkReply,a_pData, a_timeoutMs);
-    }
-	throw Exception(a_pData,"Unable to create Network Reply object");
-}
-
-
-Reply* AccessManagerRaw::putRaw(const QNetworkRequest& a_request, const QVariantMap& a_data,  int a_timeoutMs, ReplyData* a_pData, int a_seed, const CallType& a_callType)
-{
-    const QJsonDocument dataJsonDoc = QJsonDocument(QJsonObject::fromVariantMap(a_data));
-    const QByteArray dataBA = dataJsonDoc.toJson(QJsonDocument::Compact);
-    return putRaw(a_callType,a_request,dataBA,a_pData,a_timeoutMs);
-}
-
-
-Reply* AccessManagerRaw::sendCustomRequestRaw(const QNetworkRequest& a_request, const QByteArray& a_verb, const QVariantMap& a_data, int a_timeoutMs, ReplyData* a_pData, int a_seed, const CallType& a_callType)
-{
-    const QJsonDocument dataJsonDoc = QJsonDocument(QJsonObject::fromVariantMap(a_data));
-    const QByteArray dataBA = dataJsonDoc.toJson(QJsonDocument::Compact);
-    return sendCustomRequestRaw(a_callType,a_request,a_verb, dataBA,a_pData,a_timeoutMs,a_seed);
-}
-
-
-Reply* AccessManagerRaw::getRaw(const QNetworkRequest& a_request, int a_timeoutMs, ReplyData* a_pData, int a_seed, const CallType& a_callType)
-{
-    QNetworkReply* pNetworkReply = m_pQtManager->get(a_request);
-    if(pNetworkReply){
-        return new Reply(a_callType,a_seed,pNetworkReply,a_pData, a_timeoutMs);
-    }
-	throw Exception(a_pData,"Unable to create Network Reply object");
-}
-
-
-Reply* AccessManagerRaw::headRaw(const QNetworkRequest& a_request, int a_timeoutMs, ReplyData* a_pData, int a_seed, const CallType& a_callType)
-{
-    QNetworkReply* pNetworkReply = m_pQtManager->head(a_request);
-    if(pNetworkReply){
-        return new Reply(a_callType,a_seed,pNetworkReply,a_pData, a_timeoutMs);
-    }
-    throw Exception(a_pData,"Unable to create Network Reply object");
-}
-
-
-Reply* AccessManagerRaw::sendCustomRequestRaw(const QNetworkRequest& a_request, const QByteArray& a_verb, int a_timeoutMs, ReplyData* a_pData, int a_seed, QIODevice* a_data, const CallType& a_callType)
-{
-    QNetworkReply* pNetworkReply = m_pQtManager->sendCustomRequest(a_request,a_verb,a_data);
-    if(pNetworkReply){
-        return new Reply(a_callType,a_seed,pNetworkReply,a_pData, a_timeoutMs);
-    }
-	throw Exception(a_pData,"Unable to create Network Reply object");
-}
-
-
-Reply* AccessManagerRaw::sendCustomRequestRaw(const QNetworkRequest& a_request, const QByteArray& a_verb, const QByteArray& a_data, int a_timeoutMs, ReplyData* a_pData, int a_seed, const CallType& a_callType)
-{
-    QNetworkReply* pNetworkReply = m_pQtManager->sendCustomRequest(a_request,a_verb,a_data);
-    if(pNetworkReply){
-        return new Reply(a_callType,a_seed,pNetworkReply,a_pData, a_timeoutMs);
-    }
-	throw Exception(a_pData,"Unable to create Network Reply object");
-}
-
-
-Reply* AccessManagerRaw::deleteResourceRaw(const QNetworkRequest& a_request, int a_timeoutMs, ReplyData* a_pData, int a_seed, const CallType& a_callType)
-{
-    QNetworkReply* pNetworkReply = m_pQtManager->deleteResource(a_request);
-    if(pNetworkReply){
-        return new Reply(a_callType,a_seed,pNetworkReply,a_pData, a_timeoutMs);
-    }
-	throw Exception(a_pData,"Unable to create Network Reply object");
-}
-
-
-#ifdef QTUTILS_EXTRA_REST_CALLS
-
-Reply* AccessManagerRaw::postRaw(const QNetworkRequest &a_request, QHttpMultiPart* a_multiPart, int a_timeoutMs, ReplyData* a_pData, int a_seed, const CallType& a_callType)
-{
-    QNetworkReply* pNetworkReply = m_pQtManager->post(a_request,a_multiPart);
-    if(pNetworkReply){
-        return new Reply(a_callType,a_seed,pNetworkReply,a_pData, a_timeoutMs);
-    }
-    throw Exception(a_pData,"Unable to create Network Reply object");
-}
-
-
-Reply* AccessManagerRaw::putRaw(const QNetworkRequest &a_request, QHttpMultiPart* a_multiPart, int a_timeoutMs, ReplyData* a_pData, int a_seed, const CallType& a_callType)
-{
-    QNetworkReply* pNetworkReply = m_pQtManager->put(a_request,a_multiPart);
-    if(pNetworkReply){
-        return new Reply(a_callType,a_seed,pNetworkReply,a_pData, a_timeoutMs);
-    }
-    throw Exception(a_pData,"Unable to create Network Reply object");
-}
-
-
-Reply* AccessManagerRaw::sendCustomRequestRaw(const QNetworkRequest& a_request, const QByteArray& a_verb, QHttpMultiPart* a_multiPart, int a_timeoutMs, ReplyData* a_pData, int a_seed, const CallType& a_callType)
-{
-    QNetworkReply* pNetworkReply = m_pQtManager->sendCustomRequest(a_request,a_verb,a_multiPart);
-    if(pNetworkReply){
-        return new Reply(a_callType,a_seed,pNetworkReply,a_pData, a_timeoutMs);
-    }
-    throw Exception(a_pData,"Unable to create Network Reply object");
-}
-
-#endif  //  #ifdef QTUTILS_EXTRA_REST_CALLS
-
-
-
-/*////   Simple   //////////*/
-
-Reply* AccessManagerRaw::post(const QNetworkRequest& a_request, const QByteArray& a_data, int a_timeoutMs, ReplyData* a_pData, int a_seed)
-{
-    return postRaw(a_request,a_data,a_pData,a_timeoutMs,CallType::Simple);
-}
-
-
-Reply* AccessManagerRaw::post(const QNetworkRequest& a_request, QIODevice* a_data, int a_timeoutMs, ReplyData* a_pData, int a_seed)
-{
-    return postRaw(a_request,a_data,a_pData,a_timeoutMs,CallType::Simple);
-}
-
-
-Reply* AccessManagerRaw::post(const QNetworkRequest& a_request, const QVariantMap& a_data, int a_timeoutMs, ReplyData* a_pData, int a_seed)
-{
-    return postRaw(a_request,a_data,a_pData,a_timeoutMs,CallType::Simple);
-}
-
-
-Reply* AccessManagerRaw::post(const QNetworkRequest& a_request, QHttpMultiPart* a_pMultiPart, int a_timeoutMs, ReplyData* a_pData, int a_seed)
-{
-    return postRaw(a_request,a_pMultiPart,a_pData,a_timeoutMs,CallType::Simple);
-}
-
-
-Reply* AccessManagerRaw::put(const QNetworkRequest& a_request, QIODevice* a_data, int a_timeoutMs, ReplyData* a_pData, int a_seed)
-{
-    return putRaw(a_request,a_data,a_pData,a_timeoutMs,CallType::Simple);
-}
-
-
-Reply* AccessManagerRaw::put(const QNetworkRequest& a_request, const QByteArray& a_data, int a_timeoutMs, ReplyData* a_pData, int a_seed)
-{
-    return putRaw(a_request,a_data,a_pData,a_timeoutMs,CallType::Simple);
-}
-
-
-Reply* AccessManagerRaw::put(const QNetworkRequest& a_request, const QVariantMap& a_data, int a_timeoutMs, ReplyData* a_pData, int a_seed)
-{
-    return putRaw(a_request,a_data,a_pData,a_timeoutMs,CallType::Simple);
-}
-
-
-Reply* AccessManagerRaw::sendCustomRequest(const QNetworkRequest& a_request, const QByteArray& a_verb, const QVariantMap& a_data, int a_timeoutMs, ReplyData* a_pData, int a_seed)
-{
-    return sendCustomRequestRaw(a_request,a_verb,a_data,a_pData,a_timeoutMs,CallType::Simple);
-}
-
-
-Reply* AccessManagerRaw::get(const QNetworkRequest& a_request, int a_timeoutMs, ReplyData* a_pData, int a_seed)
-{
-    return getRaw(a_request,a_pData,a_timeoutMs,CallType::Simple);
-}
-
-
-Reply* AccessManagerRaw::head(const QNetworkRequest& a_request, int a_timeoutMs, ReplyData* a_pData, int a_seed)
-{
-    return headRaw(a_request,a_pData,a_timeoutMs,CallType::Simple);
-}
-
-
-Reply* AccessManagerRaw::sendCustomRequest(const QNetworkRequest& a_request, const QByteArray& a_verb, QIODevice* a_data, int a_timeoutMs, ReplyData* a_pData, int a_seed)
-{
-    return sendCustomRequestRaw(a_request,a_verb,a_pData,a_timeoutMs,a_data,CallType::Simple);
-}
-
-
-Reply* AccessManagerRaw::sendCustomRequest(const QNetworkRequest& a_request, const QByteArray& a_verb, const QByteArray& a_data, int a_timeoutMs, ReplyData* a_pData, int a_seed)
-{
-    return sendCustomRequestRaw(a_request,a_verb,a_pData,a_timeoutMs,a_data,CallType::Simple);
-}
-
-
-Reply* AccessManagerRaw::deleteResource(const QNetworkRequest& a_request, int a_timeoutMs, ReplyData* a_pData, int a_seed)
-{
-    return deleteResourceRaw(a_request,a_pData,a_timeoutMs,CallType::Simple);
-}
-
-
-#ifdef QTUTILS_EXTRA_REST_CALLS
-
-Reply* AccessManagerRaw::postRaw(const QNetworkRequest &a_request, QHttpMultiPart* a_multiPart, int a_timeoutMs, ReplyData* a_pData, int a_seed, const CallType& a_callType)
-{
-    QNetworkReply* pNetworkReply = m_pQtManager->post(a_request,a_multiPart);
-    if(pNetworkReply){
-        return new Reply(a_callType,a_seed,pNetworkReply,a_pData, a_timeoutMs);
-    }
-    throw Exception(a_pData,"Unable to create Network Reply object");
-}
-
-
-Reply* AccessManagerRaw::putRaw(const QNetworkRequest &a_request, QHttpMultiPart* a_multiPart, int a_timeoutMs, ReplyData* a_pData, int a_seed, const CallType& a_callType)
-{
-    QNetworkReply* pNetworkReply = m_pQtManager->put(a_request,a_multiPart);
-    if(pNetworkReply){
-        return new Reply(a_callType,a_seed,pNetworkReply,a_pData, a_timeoutMs);
-    }
-    throw Exception(a_pData,"Unable to create Network Reply object");
-}
-
-
-Reply* AccessManagerRaw::sendCustomRequestRaw(const QNetworkRequest& a_request, const QByteArray& a_verb, QHttpMultiPart* a_multiPart, int a_timeoutMs, ReplyData* a_pData, int a_seed, const CallType& a_callType)
-{
-    QNetworkReply* pNetworkReply = m_pQtManager->sendCustomRequest(a_request,a_verb,a_multiPart);
-    if(pNetworkReply){
-        return new Reply(a_callType,a_seed,pNetworkReply,a_pData, a_timeoutMs);
-    }
-    throw Exception(a_pData,"Unable to create Network Reply object");
-}
-
-#endif  //  #ifdef QTUTILS_EXTRA_REST_CALLS
-
-
-/*////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
-
-AccessManager::AccessManager()
+    m_seedData_p((SeedDataPtr*)calloc(QTUTILS_SEED_TABLE_SIZE,sizeof(SeedDataPtr)))
 {
     static int snIsNotInited = 1;
     if(snIsNotInited){
         qRegisterMetaType< QTUTILS_CORE_NTDT_NSP QtUtilsNetReplyArg >( "qtutils_QtUtilsNetReplyArg" );
         snIsNotInited = 0;
     }
-    m_bPendingRestart = false; 
-}
 
-
-AccessManagerRaw* AccessManager::accessManagerRaw()
-{
-    if(!m_rawManager.m_pQtManager){
-        if(m_bPendingRestart){return nullptr;}
-        m_rawManager.m_pQtManager = new QNetworkAccessManager();
+    m_bPendingRestart = false;
+    m_countOfCorelated = 0;
+    if(!m_seedData_p){
+        throw ::std::bad_alloc();
     }
-    return &m_rawManager;
+
+    m_bShouldRun = true;
+    m_bQuitAppInDestuctor = false;
+
 }
 
 
 void AccessManager::Restart()
 {
-    if(m_rawManager.m_pQtManager){
-        QNetworkAccessManager* pCurrent = m_rawManager.m_pQtManager;
-        m_rawManager.m_pQtManager = nullptr;
+    if(m_pQtManager){
+        QNetworkAccessManager* pCurrent = m_pQtManager;
+        m_pQtManager = nullptr;
         m_bPendingRestart = true;
         QObject::connect(pCurrent,&QObject::destroyed,pCurrent,[this](){
             m_bPendingRestart = false;
@@ -553,62 +89,872 @@ void AccessManager::Restart()
 }
 
 
-/*////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
-
-#if 0
-ReplyContainer::ReplyContainer()
-    :
-      m_pFirst(nullptr),
-      m_pLast(nullptr)
+void AccessManager::QuitApp()
 {
+    m_bShouldRun = false;
+    m_bQuitAppInDestuctor = true;
+
+    if(m_pQtManager){
+        bool bAllRepliesDeleted = true;
+        Reply *pReplyNext, *pReply = m_pFirstExc;
+        while(pReply){
+            pReplyNext = pReply->m_gen.next;
+            if(pReply->blockAppExit()){
+                bAllRepliesDeleted = false;
+            }
+            else{
+                pReply->Abort();
+                pReply->deleteLater();
+            }
+            pReply = pReplyNext;
+        }  //  while(pReply){
+
+        if(bAllRepliesDeleted){
+            QMetaObject::invokeMethod(qApp,[](){
+                QCoreApplication::quit();
+            });
+        }
+    }  //  if(m_pQtManager){
+    else{
+        QMetaObject::invokeMethod(qApp,[](){
+            QCoreApplication::quit();
+        });
+    }
 }
 
 
-ReplyContainer::~ReplyContainer()
+void AccessManager::AddReplyToExcRaw(Reply* CPPUTILS_ARG_NN a_pReply)
 {
-    ::qtutils::invokeMethodBlocked(m_pFirst,[this](){ // function takes care when m_pFirst is null
-        Clear();
+    bool bReturn = true;
+    a_pReply->m_bAdded = true;
+
+    switch(a_pReply->m_callType){
+    case CallType::SimpleDropSeed:{
+        if(!SeedCheckAndAdd(a_pReply)){
+            a_pReply->m_bAdded = false;
+            a_pReply->deleteLater();
+            return;
+        }
+    }break;
+    case CallType::SingletonDropSeed:{
+        if(SeedCheckAndAdd(a_pReply)){
+            AddSingleton(a_pReply);
+            if(m_pFirstSingleton || m_pFirstDependent){
+                bReturn = false;
+            }
+        }
+        else{
+            a_pReply->m_bAdded = false;
+            a_pReply->deleteLater();
+            return;
+        }
+    }break;
+    case CallType::SingletonKeepSeed:{
+        AddSingleton(a_pReply);
+        if(SeedCheckAndAdd(a_pReply)){
+            if(m_pFirstSingleton || m_pFirstDependent){
+                bReturn = false;
+            }
+        }
+        else{
+            bReturn = false;
+        }
+    }break;
+    case CallType::DependentDropSeed:{
+        if(SeedCheckAndAdd(a_pReply)){
+            AddDependent(a_pReply);
+            if(m_pFirstSingleton){
+                bReturn = false;
+            }
+        }
+        else{
+            a_pReply->m_bAdded = false;
+            a_pReply->deleteLater();
+            return;
+        }
+    }break;
+    case CallType::DependentKeepSeed:{
+        AddDependent(a_pReply);
+        if(SeedCheckAndAdd(a_pReply)){
+            if(m_pFirstSingleton){
+                bReturn = false;
+            }
+        }
+        else{
+            bReturn = false;
+        }
+    }break;
+    default:
+        break;
+    }  //  switch(a_pReply->m_callType){
+
+    a_pReply->m_gen.prev = nullptr;
+    a_pReply->m_gen.next = m_pFirstExc;
+    if(m_pFirstExc){
+        m_pFirstExc->m_gen.prev = a_pReply;
+    }
+    m_pFirstExc = a_pReply;
+
+    if(bReturn){
+        a_pReply->RunFunction();
+    }
+}
+
+
+Reply* AccessManager::CreateAndAddReply(const CallType& a_callType, int a_seed, int a_timeoutMs, ReplyData* a_pData, const TypeLateActionFunc& a_func)
+{
+    Reply* const pReply = new Reply(a_callType,a_seed,a_timeoutMs,a_pData,a_func);
+
+    if(!m_pQtManager){
+        if(m_bPendingRestart){
+            pReply->m_gen.prev = nullptr;
+            pReply->m_gen.next = m_pFirstSsp;
+            if(m_pFirstSsp){
+                m_pFirstSsp->m_gen.prev = pReply;
+            }
+            m_pFirstSsp = pReply;
+            pReply->m_bAdded = true;
+            return pReply;
+        }
+        m_pQtManager = new QNetworkAccessManager();
+
+        Reply *pReplyTmpNext, *pReplyTmp = m_pFirstSsp;
+        while(pReplyTmp){
+            pReplyTmpNext = pReplyTmp->m_gen.next;
+            pReplyTmp->m_gen.next = pReplyTmp->m_gen.prev = nullptr;
+            AddReplyToExcRaw(pReplyTmp);
+            pReplyTmp = pReplyTmpNext;
+        }
+
+    }  //  if(!m_pQtManager){
+
+    AddReplyToExcRaw(pReply);
+
+    ::QObject::connect(pReply, &Reply::finished, pReply,[this,pReply](QTUTILS_CORE_NTDT_NSP QtUtilsNetReplyArg){
+        RemoveReply(pReply);
+        if((!m_bShouldRun)&&(m_pFirstExc==nullptr)){
+            if(m_pQtManager){
+                QNetworkAccessManager* const pQtManager = m_pQtManager;
+                m_pQtManager = nullptr;
+                delete pQtManager;
+            }
+            if(m_bQuitAppInDestuctor){
+                QMetaObject::invokeMethod(qApp,[](){
+                    QCoreApplication::quit();
+                });
+            }
+        }
     });
+
+    return pReply;
 }
 
 
-void ReplyContainer::AddNewNetworkReply(Reply* a_pReply)
+void AccessManager::RemoveDependentCallRaw()
 {
-    a_pReply->m_next = nullptr;
-    a_pReply->m_prev = m_pLast;
-    if(m_pLast){
-        m_pLast->m_next = a_pReply;
+    if(m_pFirstSingleton){
+        int nIndex;
+        Reply *pSingletonTmp, *pSingletonNext, *pSingleton = m_pFirstSingleton;
+        while(pSingleton){
+            pSingletonNext = pSingleton->m_dep.next;
+            pSingletonTmp = findSeedRaw(pSingleton->m_seed,&nIndex);
+            if((!pSingletonTmp)||(pSingletonTmp==pSingleton)){
+                pSingleton->RunFunction();
+                break;
+            }
+            pSingleton = pSingletonNext;
+        }
     }
     else{
-        m_pFirst = a_pReply;
-    }
-    m_pLast = a_pReply;
-}
-
-
-void ReplyContainer::RemoveNetworkReply(Reply* a_pReply)
-{
-    a_pReply->m_pParentContainer = nullptr;
-    if(a_pReply->m_prev){a_pReply->m_prev->m_next = a_pReply->m_next;}
-    if(a_pReply->m_next){a_pReply->m_next->m_prev = a_pReply->m_prev;}
-    if(a_pReply==m_pFirst){m_pFirst=a_pReply->m_next;}
-    if(a_pReply==m_pLast){m_pLast=a_pReply->m_prev;}
-}
-
-
-void ReplyContainer::Clear()
-{
-    Reply *pReplyTmp, *pReply = m_pFirst;
-    while(pReply){
-        pReply->m_pParentContainer = nullptr;
-        pReplyTmp = pReply->m_next;
-        pReply->Abort();
-        pReply->deleteLater();
-        pReply = pReplyTmp;
+        int nIndex;
+        Reply *pDependentTmp, *pDependentNext, *pDependent = m_pFirstDependent;
+        while(pDependent){
+            pDependentNext = pDependent->m_dep.next;
+            pDependentTmp = findSeedRaw(pDependent->m_seed,&nIndex);
+            if((!pDependentTmp)||(pDependentTmp==pDependent)){
+                pDependent->RunFunction();
+            }
+            pDependent = pDependentNext;
+        }
     }
 }
 
-#endif
+
+void AccessManager::RemoveReply(Reply* CPPUTILS_ARG_NN a_pReply)
+{
+    if(a_pReply->m_bAdded){
+        FindAndRemoveSeed(a_pReply->m_seed, a_pReply->m_callType);
+        switch(a_pReply->m_callType){
+        case CallType::DependentDropSeed:case CallType::DependentKeepSeed: case CallType::SingletonDropSeed: case CallType::SingletonKeepSeed:
+            --m_countOfCorelated;
+            RemoveDependentCallRaw();
+            break;
+        default:
+            break;
+        }  //  switch(a_pReply->m_callType){
+
+        if(a_pReply->m_gen.next){
+            a_pReply->m_gen.next->m_gen.prev=a_pReply->m_gen.prev;
+        }
+
+        if(a_pReply->m_gen.prev){
+            a_pReply->m_gen.prev->m_gen.next=a_pReply->m_gen.next;
+        }
+        else{
+            if(m_pQtManager){
+                if(a_pReply==m_pFirstExc){m_pFirstExc = a_pReply->m_gen.next;}
+            }
+            else{
+                if(a_pReply==m_pFirstSsp){m_pFirstSsp = a_pReply->m_gen.next;}
+            }
+        }
+    }  //  if(a_pReply->m_bAdded){
+}
+
+
+void AccessManager::AddSingleton(Reply* CPPUTILS_ARG_NN a_pReply)
+{
+    a_pReply->m_dep.prev = m_pLastSingleton;
+    a_pReply->m_dep.next = nullptr;
+    if(m_pLastSingleton){
+        m_pLastSingleton->m_dep.next = a_pReply;
+    }
+    else{
+        m_pFirstSingleton = a_pReply;
+    }
+    m_pLastSingleton = a_pReply;
+}
+
+
+void AccessManager::AddDependent(Reply* CPPUTILS_ARG_NN a_pReply)
+{
+    a_pReply->m_dep.prev = m_pLastDependent;
+    a_pReply->m_dep.next = nullptr;
+    if(m_pLastDependent){
+        m_pLastDependent->m_dep.next = a_pReply;
+    }
+    else{
+        m_pFirstDependent = a_pReply;
+    }
+    m_pLastDependent = a_pReply;
+}
+
+
+Reply* AccessManager::findSeedRaw(int a_seed, int* CPPUTILS_ARG_NN a_nIndex_p)const
+{
+    *a_nIndex_p = a_seed % QTUTILS_SEED_TABLE_SIZE;
+    Reply* pSeedData = m_seedData_p[*a_nIndex_p];
+    while(pSeedData){
+        if((pSeedData->m_seed)==a_seed){
+            return pSeedData;
+        }
+        pSeedData = pSeedData->m_sed.next;
+    }
+    return nullptr;
+}
+
+
+bool AccessManager::SeedCheckAndAdd(Reply* CPPUTILS_ARG_NN a_pReply)
+{
+    if(a_pReply->m_seed>0){
+        int nIndex;
+        Reply* pSeedData = findSeedRaw(a_pReply->m_seed,&nIndex);
+        if(pSeedData){
+            return (pSeedData==a_pReply);
+        }
+
+        a_pReply->m_sed.prev = nullptr;
+        a_pReply->m_sed.next = m_seedData_p[nIndex];
+        if(m_seedData_p[nIndex]){
+            m_seedData_p[nIndex]->m_sed.prev = a_pReply;
+        }
+        m_seedData_p[nIndex] = a_pReply;
+    }
+
+    return true;
+}
+
+
+void AccessManager::FindAndRemoveSeed(int a_seed, const CallType& a_type)
+{
+    switch(a_type){
+    case CallType::None:
+        break;
+    default:{
+        if(a_seed>0){
+            int nIndex;
+            Reply* pSeedData = findSeedRaw(a_seed,&nIndex);
+            if(pSeedData){
+                if(pSeedData->m_sed.next){pSeedData->m_sed.next->m_sed.prev=pSeedData->m_sed.prev;}
+                if(pSeedData->m_sed.prev){
+                    pSeedData->m_sed.prev->m_sed.next=pSeedData->m_sed.next;
+                }
+                else{
+                    m_seedData_p[nIndex] = pSeedData->m_sed.next;
+                }
+                return;
+            }  //  if(pSeedData){
+        }  //  if(a_seed>0){
+    }break;
+    }  //  switch(a_type){
+}
+
+
+/*////   Simple   //////////*/
+
+Reply* AccessManager::post(const QNetworkRequest& a_request, const QByteArray& a_data, int a_timeoutMs, ReplyData* a_pData, int a_seed)
+{
+    // const CallType& a_callType, int a_seed, int a_timeoutMs, ReplyData* a_pData, const TypeLateActionFunc& a_func
+    Reply* const pReply = CreateAndAddReply(CallType::SimpleKeepSeed,a_seed,a_timeoutMs,a_pData,[this,a_request,a_data](){
+        return m_pQtManager->post(a_request,a_data);
+    });
+    return pReply;
+}
+
+
+Reply* AccessManager::post(const QNetworkRequest& a_request, QIODevice* a_data, int a_timeoutMs, ReplyData* a_pData, int a_seed)
+{
+    Reply* const pReply = CreateAndAddReply(CallType::SimpleKeepSeed,a_seed,a_timeoutMs,a_pData,[this,a_request,a_data](){
+        return m_pQtManager->post(a_request,a_data);
+    });
+    return pReply;
+}
+
+
+Reply* AccessManager::post(const QNetworkRequest& a_request, const QVariantMap& a_data, int a_timeoutMs, ReplyData* a_pData, int a_seed)
+{
+    const QJsonDocument dataJsonDoc = QJsonDocument(QJsonObject::fromVariantMap(a_data));
+    const QByteArray dataBA = dataJsonDoc.toJson(QJsonDocument::Compact);
+    return this->post(a_request,dataBA,a_timeoutMs,a_pData,a_seed);
+}
+
+
+Reply* AccessManager::put(const QNetworkRequest& a_request, const QByteArray& a_data, int a_timeoutMs, ReplyData* a_pData, int a_seed)
+{
+    Reply* const pReply = CreateAndAddReply(CallType::SimpleKeepSeed,a_seed,a_timeoutMs,a_pData,[this,a_request,a_data](){
+        return m_pQtManager->put(a_request,a_data);
+    });
+    return pReply;
+}
+
+
+Reply* AccessManager::put(const QNetworkRequest& a_request, QIODevice* a_data, int a_timeoutMs, ReplyData* a_pData, int a_seed)
+{
+    Reply* const pReply = CreateAndAddReply(CallType::SimpleKeepSeed,a_seed,a_timeoutMs,a_pData,[this,a_request,a_data](){
+        return m_pQtManager->put(a_request,a_data);
+    });
+    return pReply;
+}
+
+
+Reply* AccessManager::put(const QNetworkRequest& a_request, const QVariantMap& a_data, int a_timeoutMs, ReplyData* a_pData, int a_seed)
+{
+    const QJsonDocument dataJsonDoc = QJsonDocument(QJsonObject::fromVariantMap(a_data));
+    const QByteArray dataBA = dataJsonDoc.toJson(QJsonDocument::Compact);
+    return this->put(a_request,dataBA,a_timeoutMs,a_pData,a_seed);
+}
+
+
+Reply* AccessManager::sendCustomRequest(const QNetworkRequest& a_request, const QByteArray& a_verb, const QByteArray& a_data, int a_timeoutMs, ReplyData* a_pData, int a_seed)
+{
+    Reply* const pReply = CreateAndAddReply(CallType::SimpleKeepSeed,a_seed,a_timeoutMs,a_pData,[this,a_request,a_verb,a_data](){
+        return m_pQtManager->sendCustomRequest(a_request,a_verb,a_data);
+    });
+    return pReply;
+}
+
+
+Reply* AccessManager::sendCustomRequest(const QNetworkRequest& a_request, const QByteArray& a_verb, QIODevice* a_data, int a_timeoutMs, ReplyData* a_pData, int a_seed)
+{
+    Reply* const pReply = CreateAndAddReply(CallType::SimpleKeepSeed,a_seed,a_timeoutMs,a_pData,[this,a_request,a_verb,a_data](){
+        return m_pQtManager->sendCustomRequest(a_request,a_verb,a_data);
+    });
+    return pReply;
+}
+
+
+Reply* AccessManager::sendCustomRequest(const QNetworkRequest& a_request, const QByteArray& a_verb, const QVariantMap& a_data, int a_timeoutMs, ReplyData* a_pData, int a_seed)
+{
+    const QJsonDocument dataJsonDoc = QJsonDocument(QJsonObject::fromVariantMap(a_data));
+    const QByteArray dataBA = dataJsonDoc.toJson(QJsonDocument::Compact);
+    return this->sendCustomRequest(a_request,a_verb,dataBA,a_timeoutMs,a_pData,a_seed);
+}
+
+
+Reply* AccessManager::get(const QNetworkRequest& a_request, int a_timeoutMs, ReplyData* a_pData, int a_seed)
+{
+    Reply* const pReply = CreateAndAddReply(CallType::SimpleKeepSeed,a_seed,a_timeoutMs,a_pData,[this,a_request](){
+        return m_pQtManager->get(a_request);
+    });
+    return pReply;
+}
+
+
+Reply* AccessManager::head(const QNetworkRequest& a_request, int a_timeoutMs, ReplyData* a_pData, int a_seed)
+{
+    Reply* const pReply = CreateAndAddReply(CallType::SimpleKeepSeed,a_seed,a_timeoutMs,a_pData,[this,a_request](){
+        return m_pQtManager->head(a_request);
+    });
+    return pReply;
+}
+
+
+Reply* AccessManager::deleteResource(const QNetworkRequest& a_request, int a_timeoutMs, ReplyData* a_pData, int a_seed)
+{
+    Reply* const pReply = CreateAndAddReply(CallType::SimpleKeepSeed,a_seed,a_timeoutMs,a_pData,[this,a_request](){
+        return m_pQtManager->deleteResource(a_request);
+    });
+    return pReply;
+}
+
+
+#ifdef QTUTILS_EXTRA_REST_CALLS
+
+Reply* AccessManager::post(const QNetworkRequest& a_request, QHttpMultiPart* a_pMultiPart, int a_timeoutMs, ReplyData* a_pData, int a_seed)
+{
+    Reply* const pReply = CreateAndAddReply(CallType::SimpleKeepSeed,a_seed,a_timeoutMs,a_pData,[this,a_request,a_pMultiPart](){
+        return m_pQtManager->post(a_request,a_pMultiPart);
+    });
+    return pReply;
+}
+
+
+Reply* AccessManager::put(const QNetworkRequest &a_request, QHttpMultiPart* a_pMultiPart, int a_timeoutMs, ReplyData* a_pData, int a_seed)
+{
+    //throw Exception(a_pData,"Unable to create Network Reply object");
+    Reply* const pReply = CreateAndAddReply(CallType::SimpleKeepSeed,a_seed,a_timeoutMs,a_pData,[this,a_request,a_pMultiPart](){
+        return m_pQtManager->post(a_request,a_pMultiPart);
+    });
+    return pReply;
+}
+
+
+Reply* AccessManager::sendCustomRequest(const QNetworkRequest& a_request, const QByteArray& a_verb, QHttpMultiPart* a_pMultiPart, int a_timeoutMs, ReplyData* a_pData, int a_seed)
+{
+    Reply* const pReply = CreateAndAddReply(CallType::SimpleKeepSeed,a_seed,a_timeoutMs,a_pData,[this,a_request,a_verb,a_pMultiPart](){
+        return m_pQtManager->sendCustomRequest(a_request,a_verb,a_pMultiPart);
+    });
+    return pReply;
+}
+
+#endif  //  #ifdef QTUTILS_EXTRA_REST_CALLS
+
+
+/*////   Singleton   //////////*/
+
+Reply* AccessManager::postSingleton(const QNetworkRequest& a_request, const QByteArray& a_data, int a_timeoutMs, ReplyData* a_pData, int a_seed)
+{
+    Reply* const pReply = CreateAndAddReply(CallType::SingletonKeepSeed,a_seed,a_timeoutMs,a_pData,[this,a_request,a_data](){
+        return m_pQtManager->post(a_request,a_data);
+    });
+    return pReply;
+}
+
+
+Reply* AccessManager::postSingleton(const QNetworkRequest& a_request, QIODevice* a_data, int a_timeoutMs, ReplyData* a_pData, int a_seed)
+{
+    Reply* const pReply = CreateAndAddReply(CallType::SingletonKeepSeed,a_seed,a_timeoutMs,a_pData,[this,a_request,a_data](){
+        return m_pQtManager->post(a_request,a_data);
+    });
+    return pReply;
+}
+
+
+Reply* AccessManager::postSingleton(const QNetworkRequest& a_request, const QVariantMap& a_data, int a_timeoutMs, ReplyData* a_pData, int a_seed)
+{
+    const QJsonDocument dataJsonDoc = QJsonDocument(QJsonObject::fromVariantMap(a_data));
+    const QByteArray dataBA = dataJsonDoc.toJson(QJsonDocument::Compact);
+    return this->postSingleton(a_request,dataBA,a_timeoutMs,a_pData,a_seed);
+}
+
+
+Reply* AccessManager::putSingleton(const QNetworkRequest& a_request, const QByteArray& a_data, int a_timeoutMs, ReplyData* a_pData, int a_seed)
+{
+    Reply* const pReply = CreateAndAddReply(CallType::SingletonKeepSeed,a_seed,a_timeoutMs,a_pData,[this,a_request,a_data](){
+        return m_pQtManager->put(a_request,a_data);
+    });
+    return pReply;
+}
+
+
+Reply* AccessManager::putSingleton(const QNetworkRequest& a_request, QIODevice* a_data, int a_timeoutMs, ReplyData* a_pData, int a_seed)
+{
+    Reply* const pReply = CreateAndAddReply(CallType::SingletonKeepSeed,a_seed,a_timeoutMs,a_pData,[this,a_request,a_data](){
+        return m_pQtManager->put(a_request,a_data);
+    });
+    return pReply;
+}
+
+
+Reply* AccessManager::putSingleton(const QNetworkRequest& a_request, const QVariantMap& a_data, int a_timeoutMs, ReplyData* a_pData, int a_seed)
+{
+    const QJsonDocument dataJsonDoc = QJsonDocument(QJsonObject::fromVariantMap(a_data));
+    const QByteArray dataBA = dataJsonDoc.toJson(QJsonDocument::Compact);
+    return this->putSingleton(a_request,dataBA,a_timeoutMs,a_pData,a_seed);
+}
+
+
+Reply* AccessManager::sendCustomRequestSingleton(const QNetworkRequest& a_request, const QByteArray& a_verb, const QByteArray& a_data, int a_timeoutMs, ReplyData* a_pData, int a_seed)
+{
+    Reply* const pReply = CreateAndAddReply(CallType::SingletonKeepSeed,a_seed,a_timeoutMs,a_pData,[this,a_request,a_verb,a_data](){
+        return m_pQtManager->sendCustomRequest(a_request,a_verb,a_data);
+    });
+    return pReply;
+}
+
+
+Reply* AccessManager::sendCustomRequestSingleton(const QNetworkRequest& a_request, const QByteArray& a_verb, QIODevice* a_data, int a_timeoutMs, ReplyData* a_pData, int a_seed)
+{
+    Reply* const pReply = CreateAndAddReply(CallType::SingletonKeepSeed,a_seed,a_timeoutMs,a_pData,[this,a_request,a_verb,a_data](){
+        return m_pQtManager->sendCustomRequest(a_request,a_verb,a_data);
+    });
+    return pReply;
+}
+
+
+Reply* AccessManager::sendCustomRequestSingleton(const QNetworkRequest& a_request, const QByteArray& a_verb, const QVariantMap& a_data, int a_timeoutMs, ReplyData* a_pData, int a_seed)
+{
+    const QJsonDocument dataJsonDoc = QJsonDocument(QJsonObject::fromVariantMap(a_data));
+    const QByteArray dataBA = dataJsonDoc.toJson(QJsonDocument::Compact);
+    return this->sendCustomRequestSingleton(a_request,a_verb,dataBA,a_timeoutMs,a_pData,a_seed);
+}
+
+
+Reply* AccessManager::getSingleton(const QNetworkRequest& a_request, int a_timeoutMs, ReplyData* a_pData, int a_seed)
+{
+    Reply* const pReply = CreateAndAddReply(CallType::SingletonKeepSeed,a_seed,a_timeoutMs,a_pData,[this,a_request](){
+        return m_pQtManager->get(a_request);
+    });
+    return pReply;
+}
+
+
+Reply* AccessManager::headSingleton(const QNetworkRequest& a_request, int a_timeoutMs, ReplyData* a_pData, int a_seed)
+{
+    Reply* const pReply = CreateAndAddReply(CallType::SingletonKeepSeed,a_seed,a_timeoutMs,a_pData,[this,a_request](){
+        return m_pQtManager->head(a_request);
+    });
+    return pReply;
+}
+
+
+Reply* AccessManager::deleteResourceSingleton(const QNetworkRequest& a_request, int a_timeoutMs, ReplyData* a_pData, int a_seed)
+{
+    Reply* const pReply = CreateAndAddReply(CallType::SingletonKeepSeed,a_seed,a_timeoutMs,a_pData,[this,a_request](){
+        return m_pQtManager->deleteResource(a_request);
+    });
+    return pReply;
+}
+
+
+#ifdef QTUTILS_EXTRA_REST_CALLS
+
+Reply* AccessManager::postSingleton(const QNetworkRequest& a_request, QHttpMultiPart* a_pMultiPart, int a_timeoutMs, ReplyData* a_pData, int a_seed)
+{
+    Reply* const pReply = CreateAndAddReply(CallType::SingletonKeepSeed,a_seed,a_timeoutMs,a_pData,[this,a_request,a_pMultiPart](){
+        return m_pQtManager->post(a_request,a_pMultiPart);
+    });
+    return pReply;
+}
+
+
+Reply* AccessManager::putSingleton(const QNetworkRequest &a_request, QHttpMultiPart* a_pMultiPart, int a_timeoutMs, ReplyData* a_pData, int a_seed)
+{
+    Reply* const pReply = CreateAndAddReply(CallType::SingletonKeepSeed,a_seed,a_timeoutMs,a_pData,[this,a_request,a_pMultiPart](){
+        return m_pQtManager->post(a_request,a_pMultiPart);
+    });
+    return pReply;
+}
+
+
+Reply* AccessManager::sendCustomRequestSingleton(const QNetworkRequest& a_request, const QByteArray& a_verb, QHttpMultiPart* a_pMultiPart, int a_timeoutMs, ReplyData* a_pData, int a_seed)
+{
+    Reply* const pReply = CreateAndAddReply(CallType::SingletonKeepSeed,a_seed,a_timeoutMs,a_pData,[this,a_request,a_verb,a_pMultiPart](){
+        return m_pQtManager->sendCustomRequest(a_request,a_verb,a_pMultiPart);
+    });
+    return pReply;
+}
+
+#endif  //  #ifdef QTUTILS_EXTRA_REST_CALLS
+
+
+/*////   Dependent   //////////*/
+
+Reply* AccessManager::postDependent(const QNetworkRequest& a_request, const QByteArray& a_data, int a_timeoutMs, ReplyData* a_pData, int a_seed)
+{
+    Reply* const pReply = CreateAndAddReply(CallType::DependentKeepSeed,a_seed,a_timeoutMs,a_pData,[this,a_request,a_data](){
+        return m_pQtManager->post(a_request,a_data);
+    });
+    return pReply;
+}
+
+
+Reply* AccessManager::postDependent(const QNetworkRequest& a_request, QIODevice* a_data, int a_timeoutMs, ReplyData* a_pData, int a_seed)
+{
+    Reply* const pReply = CreateAndAddReply(CallType::DependentKeepSeed,a_seed,a_timeoutMs,a_pData,[this,a_request,a_data](){
+        return m_pQtManager->post(a_request,a_data);
+    });
+    return pReply;
+}
+
+
+Reply* AccessManager::postDependent(const QNetworkRequest& a_request, const QVariantMap& a_data, int a_timeoutMs, ReplyData* a_pData, int a_seed)
+{
+    const QJsonDocument dataJsonDoc = QJsonDocument(QJsonObject::fromVariantMap(a_data));
+    const QByteArray dataBA = dataJsonDoc.toJson(QJsonDocument::Compact);
+    return this->postDependent(a_request,dataBA,a_timeoutMs,a_pData,a_seed);
+}
+
+
+Reply* AccessManager::putDependent(const QNetworkRequest& a_request, const QByteArray& a_data, int a_timeoutMs, ReplyData* a_pData, int a_seed)
+{
+    Reply* const pReply = CreateAndAddReply(CallType::DependentKeepSeed,a_seed,a_timeoutMs,a_pData,[this,a_request,a_data](){
+        return m_pQtManager->put(a_request,a_data);
+    });
+    return pReply;
+}
+
+
+Reply* AccessManager::putDependent(const QNetworkRequest& a_request, QIODevice* a_data, int a_timeoutMs, ReplyData* a_pData, int a_seed)
+{
+    Reply* const pReply = CreateAndAddReply(CallType::DependentKeepSeed,a_seed,a_timeoutMs,a_pData,[this,a_request,a_data](){
+        return m_pQtManager->put(a_request,a_data);
+    });
+    return pReply;
+}
+
+
+Reply* AccessManager::putDependent(const QNetworkRequest& a_request, const QVariantMap& a_data, int a_timeoutMs, ReplyData* a_pData, int a_seed)
+{
+    const QJsonDocument dataJsonDoc = QJsonDocument(QJsonObject::fromVariantMap(a_data));
+    const QByteArray dataBA = dataJsonDoc.toJson(QJsonDocument::Compact);
+    return this->putDependent(a_request,dataBA,a_timeoutMs,a_pData,a_seed);
+}
+
+
+Reply* AccessManager::sendCustomRequestDependent(const QNetworkRequest& a_request, const QByteArray& a_verb, const QByteArray& a_data, int a_timeoutMs, ReplyData* a_pData, int a_seed)
+{
+    Reply* const pReply = CreateAndAddReply(CallType::DependentKeepSeed,a_seed,a_timeoutMs,a_pData,[this,a_request,a_verb,a_data](){
+        return m_pQtManager->sendCustomRequest(a_request,a_verb,a_data);
+    });
+    return pReply;
+}
+
+
+Reply* AccessManager::sendCustomRequestDependent(const QNetworkRequest& a_request, const QByteArray& a_verb, QIODevice* a_data, int a_timeoutMs, ReplyData* a_pData, int a_seed)
+{
+    Reply* const pReply = CreateAndAddReply(CallType::DependentKeepSeed,a_seed,a_timeoutMs,a_pData,[this,a_request,a_verb,a_data](){
+        return m_pQtManager->sendCustomRequest(a_request,a_verb,a_data);
+    });
+    return pReply;
+}
+
+
+Reply* AccessManager::sendCustomRequestDependent(const QNetworkRequest& a_request, const QByteArray& a_verb, const QVariantMap& a_data, int a_timeoutMs, ReplyData* a_pData, int a_seed)
+{
+    const QJsonDocument dataJsonDoc = QJsonDocument(QJsonObject::fromVariantMap(a_data));
+    const QByteArray dataBA = dataJsonDoc.toJson(QJsonDocument::Compact);
+    return this->sendCustomRequestDependent(a_request,a_verb,dataBA,a_timeoutMs,a_pData,a_seed);
+}
+
+
+Reply* AccessManager::getDependent(const QNetworkRequest& a_request, int a_timeoutMs, ReplyData* a_pData, int a_seed)
+{
+    Reply* const pReply = CreateAndAddReply(CallType::DependentKeepSeed,a_seed,a_timeoutMs,a_pData,[this,a_request](){
+        return m_pQtManager->get(a_request);
+    });
+    return pReply;
+}
+
+
+Reply* AccessManager::headDependent(const QNetworkRequest& a_request, int a_timeoutMs, ReplyData* a_pData, int a_seed)
+{
+    Reply* const pReply = CreateAndAddReply(CallType::DependentKeepSeed,a_seed,a_timeoutMs,a_pData,[this,a_request](){
+        return m_pQtManager->head(a_request);
+    });
+    return pReply;
+}
+
+
+Reply* AccessManager::deleteResourceDependent(const QNetworkRequest& a_request, int a_timeoutMs, ReplyData* a_pData, int a_seed)
+{
+    Reply* const pReply = CreateAndAddReply(CallType::DependentKeepSeed,a_seed,a_timeoutMs,a_pData,[this,a_request](){
+        return m_pQtManager->deleteResource(a_request);
+    });
+    return pReply;
+}
+
+
+#ifdef QTUTILS_EXTRA_REST_CALLS
+
+Reply* AccessManager::postDependent(const QNetworkRequest& a_request, QHttpMultiPart* a_pMultiPart, int a_timeoutMs, ReplyData* a_pData, int a_seed)
+{
+    Reply* const pReply = CreateAndAddReply(CallType::DependentKeepSeed,a_seed,a_timeoutMs,a_pData,[this,a_request,a_pMultiPart](){
+        return m_pQtManager->post(a_request,a_pMultiPart);
+    });
+    return pReply;
+}
+
+
+Reply* AccessManager::putDependent(const QNetworkRequest &a_request, QHttpMultiPart* a_pMultiPart, int a_timeoutMs, ReplyData* a_pData, int a_seed)
+{
+    //throw Exception(a_pData,"Unable to create Network Reply object");
+    Reply* const pReply = CreateAndAddReply(CallType::DependentKeepSeed,a_seed,a_timeoutMs,a_pData,[this,a_request,a_pMultiPart](){
+        return m_pQtManager->post(a_request,a_pMultiPart);
+    });
+    return pReply;
+}
+
+
+Reply* AccessManager::sendCustomRequestDependent(const QNetworkRequest& a_request, const QByteArray& a_verb, QHttpMultiPart* a_pMultiPart, int a_timeoutMs, ReplyData* a_pData, int a_seed)
+{
+    Reply* const pReply = CreateAndAddReply(CallType::DependentKeepSeed,a_seed,a_timeoutMs,a_pData,[this,a_request,a_verb,a_pMultiPart](){
+        return m_pQtManager->sendCustomRequest(a_request,a_verb,a_pMultiPart);
+    });
+    return pReply;
+}
+
+#endif  //  #ifdef QTUTILS_EXTRA_REST_CALLS
+
+
+/*////   Any   //////////*/
+
+Reply* AccessManager::postAny(const CallType& a_callType, const QNetworkRequest& a_request, const QByteArray& a_data, int a_timeoutMs, ReplyData* a_pData, int a_seed)
+{
+    Reply* const pReply = CreateAndAddReply(a_callType,a_seed,a_timeoutMs,a_pData,[this,a_request,a_data](){
+        return m_pQtManager->post(a_request,a_data);
+    });
+    return pReply;
+}
+
+
+Reply* AccessManager::postAny(const CallType& a_callType, const QNetworkRequest& a_request, QIODevice* a_data, int a_timeoutMs, ReplyData* a_pData, int a_seed)
+{
+    Reply* const pReply = CreateAndAddReply(a_callType,a_seed,a_timeoutMs,a_pData,[this,a_request,a_data](){
+        return m_pQtManager->post(a_request,a_data);
+    });
+    return pReply;
+}
+
+
+Reply* AccessManager::postAny(const CallType& a_callType, const QNetworkRequest& a_request, const QVariantMap& a_data, int a_timeoutMs, ReplyData* a_pData, int a_seed)
+{
+    const QJsonDocument dataJsonDoc = QJsonDocument(QJsonObject::fromVariantMap(a_data));
+    const QByteArray dataBA = dataJsonDoc.toJson(QJsonDocument::Compact);
+    return this->postAny(a_callType,a_request,dataBA,a_timeoutMs,a_pData,a_seed);
+}
+
+
+Reply* AccessManager::putAny(const CallType& a_callType, const QNetworkRequest& a_request, const QByteArray& a_data, int a_timeoutMs, ReplyData* a_pData, int a_seed)
+{
+    Reply* const pReply = CreateAndAddReply(a_callType,a_seed,a_timeoutMs,a_pData,[this,a_request,a_data](){
+        return m_pQtManager->put(a_request,a_data);
+    });
+    return pReply;
+}
+
+
+Reply* AccessManager::putAny(const CallType& a_callType, const QNetworkRequest& a_request, QIODevice* a_data, int a_timeoutMs, ReplyData* a_pData, int a_seed)
+{
+    Reply* const pReply = CreateAndAddReply(a_callType,a_seed,a_timeoutMs,a_pData,[this,a_request,a_data](){
+        return m_pQtManager->put(a_request,a_data);
+    });
+    return pReply;
+}
+
+
+Reply* AccessManager::putAny(const CallType& a_callType, const QNetworkRequest& a_request, const QVariantMap& a_data, int a_timeoutMs, ReplyData* a_pData, int a_seed)
+{
+    const QJsonDocument dataJsonDoc = QJsonDocument(QJsonObject::fromVariantMap(a_data));
+    const QByteArray dataBA = dataJsonDoc.toJson(QJsonDocument::Compact);
+    return this->putAny(a_callType,a_request,dataBA,a_timeoutMs,a_pData,a_seed);
+}
+
+
+Reply* AccessManager::sendCustomRequestAny(const CallType& a_callType, const QNetworkRequest& a_request, const QByteArray& a_verb, const QByteArray& a_data, int a_timeoutMs, ReplyData* a_pData, int a_seed)
+{
+    Reply* const pReply = CreateAndAddReply(a_callType,a_seed,a_timeoutMs,a_pData,[this,a_request,a_verb,a_data](){
+        return m_pQtManager->sendCustomRequest(a_request,a_verb,a_data);
+    });
+    return pReply;
+}
+
+
+Reply* AccessManager::sendCustomRequestAny(const CallType& a_callType, const QNetworkRequest& a_request, const QByteArray& a_verb, QIODevice* a_data, int a_timeoutMs, ReplyData* a_pData, int a_seed)
+{
+    Reply* const pReply = CreateAndAddReply(a_callType,a_seed,a_timeoutMs,a_pData,[this,a_request,a_verb,a_data](){
+        return m_pQtManager->sendCustomRequest(a_request,a_verb,a_data);
+    });
+    return pReply;
+}
+
+
+Reply* AccessManager::sendCustomRequestAny(const CallType& a_callType, const QNetworkRequest& a_request, const QByteArray& a_verb, const QVariantMap& a_data, int a_timeoutMs, ReplyData* a_pData, int a_seed)
+{
+    const QJsonDocument dataJsonDoc = QJsonDocument(QJsonObject::fromVariantMap(a_data));
+    const QByteArray dataBA = dataJsonDoc.toJson(QJsonDocument::Compact);
+    return this->sendCustomRequestAny(a_callType,a_request,a_verb,dataBA,a_timeoutMs,a_pData,a_seed);
+}
+
+
+Reply* AccessManager::getAny(const CallType& a_callType, const QNetworkRequest& a_request, int a_timeoutMs, ReplyData* a_pData, int a_seed)
+{
+    Reply* const pReply = CreateAndAddReply(a_callType,a_seed,a_timeoutMs,a_pData,[this,a_request](){
+        return m_pQtManager->get(a_request);
+    });
+    return pReply;
+}
+
+
+Reply* AccessManager::headAny(const CallType& a_callType, const QNetworkRequest& a_request, int a_timeoutMs, ReplyData* a_pData, int a_seed)
+{
+    Reply* const pReply = CreateAndAddReply(a_callType,a_seed,a_timeoutMs,a_pData,[this,a_request](){
+        return m_pQtManager->head(a_request);
+    });
+    return pReply;
+}
+
+
+Reply* AccessManager::deleteResourceAny(const CallType& a_callType, const QNetworkRequest& a_request, int a_timeoutMs, ReplyData* a_pData, int a_seed)
+{
+    Reply* const pReply = CreateAndAddReply(a_callType,a_seed,a_timeoutMs,a_pData,[this,a_request](){
+        return m_pQtManager->deleteResource(a_request);
+    });
+    return pReply;
+}
+
+
+#ifdef QTUTILS_EXTRA_REST_CALLS
+
+Reply* AccessManager::postAny(const CallType& a_callType, const QNetworkRequest& a_request, QHttpMultiPart* a_pMultiPart, int a_timeoutMs, ReplyData* a_pData, int a_seed)
+{
+    Reply* const pReply = CreateAndAddReply(a_callType,a_seed,a_timeoutMs,a_pData,[this,a_request,a_pMultiPart](){
+        return m_pQtManager->post(a_request,a_pMultiPart);
+    });
+    return pReply;
+}
+
+
+Reply* AccessManager::putAny(const CallType& a_callType, const QNetworkRequest &a_request, QHttpMultiPart* a_pMultiPart, int a_timeoutMs, ReplyData* a_pData, int a_seed)
+{
+    //throw Exception(a_pData,"Unable to create Network Reply object");
+    Reply* const pReply = CreateAndAddReply(a_callType,a_seed,a_timeoutMs,a_pData,[this,a_request,a_pMultiPart](){
+        return m_pQtManager->post(a_request,a_pMultiPart);
+    });
+    return pReply;
+}
+
+
+Reply* AccessManager::sendCustomRequestAny(const CallType& a_callType, const QNetworkRequest& a_request, const QByteArray& a_verb, QHttpMultiPart* a_pMultiPart, int a_timeoutMs, ReplyData* a_pData, int a_seed)
+{
+    Reply* const pReply = CreateAndAddReply(a_callType,a_seed,a_timeoutMs,a_pData,[this,a_request,a_verb,a_pMultiPart](){
+        return m_pQtManager->sendCustomRequest(a_request,a_verb,a_pMultiPart);
+    });
+    return pReply;
+}
+
+#endif  //  #ifdef QTUTILS_EXTRA_REST_CALLS
+
 
 
 /*////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
@@ -618,39 +964,107 @@ ReplyData::~ReplyData()
 }
 
 
-QByteArray ReplyData::postData()const
-{
-    return QByteArray();
-}
-
-
 /*////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
 
 Reply::~Reply()
 {
-    delete m_pData;
-    if(m_connDestroy){
-        disconnect(m_connDestroy);
-    }
-    if(m_pParentContainer){
-        m_pParentContainer->RemoveNetworkReply(this);
-    }
     Abort();
+
+    if(!m_bFinishedEmited){
+        m_bFinishedEmited = true;
+        emit finished(QTUTILS_CORE_NTDT_NSP QtUtilsNetReplyArg(this,[](::qtutils::network::Reply* a_pTs){a_pTs->deleteLater();}));
+        deleteLater();
+    }
+
+    delete m_pData;
+
     if(m_pNetworkReply){m_pNetworkReply->deleteLater();}
 }
 
 
-Reply::Reply( const CallType& a_callType, QNetworkReply* CPPUTILS_ARG_NN a_pNetworkReply, int a_timeoutMs, ReplyData* a_pData, int a_seed)
+Reply::Reply(const CallType& a_callType, int a_seed, int a_timeoutMs, ReplyData* a_pData, const TypeLateActionFunc& a_func)
     :
     m_callType(a_callType),
-    m_pNetworkReply(a_pNetworkReply),
+    m_seed(a_seed),
+    m_timeout(a_timeoutMs),
+    m_func2(a_func),
+    m_pNetworkReply(nullptr),
     m_pData(a_pData)
 {
+    m_gen.next = m_gen.prev = m_dep.next = m_dep.prev = m_sed.next = m_sed.prev = nullptr;
     m_bHasTimeout = false;
-    
-	m_connDestroy = connect(m_pNetworkReply,&QObject::destroyed,this,[this](){
-		deleteLater();
-	});
+    m_bBlockAppExit = false;
+    m_bFinishedEmited = false;
+    m_bAdded = false;
+}
+
+
+bool Reply::blockAppExit()const
+{
+    return m_bBlockAppExit;
+}
+
+
+void Reply::SetBlockAppExit(bool a_bBlockAppExit)
+{
+    m_bBlockAppExit = a_bBlockAppExit;
+}
+
+
+void Reply::RunFunction()
+{
+    if(m_pNetworkReply){
+        return;
+    }
+    m_pNetworkReply = m_func2();
+    if(m_pNetworkReply){
+        m_connDestroy = connect(m_pNetworkReply,&QObject::destroyed,this,[this](){
+            deleteLater();
+        });
+
+
+        m_connFinished = ::QObject::connect(m_pNetworkReply,&QNetworkReply::finished,this,[this](){
+            if(m_timeoutTimer.isActive()){
+                const QMetaObject::Connection connTimeout = m_connTimeout;
+                m_connTimeout = QMetaObject::Connection();
+                ::QObject::disconnect(connTimeout);
+                m_timeoutTimer.stop();
+            }
+            const QMetaObject::Connection connFinished = m_connFinished;
+            m_connFinished = QMetaObject::Connection();
+            ::QObject::disconnect(connFinished);
+            if(!m_bFinishedEmited){
+                m_bFinishedEmited = true;
+                emit finished(QTUTILS_CORE_NTDT_NSP QtUtilsNetReplyArg(this,[](::qtutils::network::Reply* a_pTs){a_pTs->deleteLater();}));
+                deleteLater();
+            }
+        });
+
+        if(m_timeout>=0){
+            m_connTimeout = QObject::connect(&(m_timeoutTimer),&QTimer::timeout,this,[this](){
+                m_bHasTimeout = true;
+
+                const QMetaObject::Connection connTimeout = m_connTimeout;
+                m_connTimeout = QMetaObject::Connection();
+                ::QObject::disconnect(connTimeout);
+
+                const QMetaObject::Connection connFinished = m_connFinished;
+                m_connFinished = QMetaObject::Connection();
+                ::QObject::disconnect(connFinished);
+
+                Abort();
+                if(!m_bFinishedEmited){
+                    m_bFinishedEmited = true;
+                    emit finished(QTUTILS_CORE_NTDT_NSP QtUtilsNetReplyArg(this,[](::qtutils::network::Reply* a_pTs){a_pTs->deleteLater();}));
+                    deleteLater();
+                }
+            });
+            m_timeoutTimer.start(m_timeout);
+        }  //  if(m_timeout>=0){
+    }
+    else{
+        throw Exception(m_pData,"Unable to create Network Reply object");
+    }
 }
 
 
@@ -674,10 +1088,17 @@ bool Reply::hasTimeout()const
 
 void Reply::Abort()
 {
+    if(m_timeoutTimer.isActive()){
+        const QMetaObject::Connection connTimeout = m_connTimeout;
+        m_connTimeout = QMetaObject::Connection();
+        ::QObject::disconnect(connTimeout);
+        m_timeoutTimer.stop();
+    }
+
     if(m_connFinished){
-        QMetaObject::Connection connFinished = m_connFinished;
+        const QMetaObject::Connection connFinished = m_connFinished;
         m_connFinished = QMetaObject::Connection();
-        disconnect(connFinished);
+        ::QObject::disconnect(connFinished);
         if(m_pNetworkReply){m_pNetworkReply->abort();}
     }    
 }
