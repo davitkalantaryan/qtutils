@@ -1084,7 +1084,9 @@ Reply::~Reply()
 
     delete m_pData;
 
-    if(m_pNetworkReply){m_pNetworkReply->deleteLater();}
+    if(m_pNetworkReply){
+        m_pNetworkReply->deleteLater();
+    }
 }
 
 
@@ -1145,7 +1147,6 @@ void Reply::RunFunction()
         if((!m_bFinishedEmited) && m_pNetworkReply){
             m_bFinishedEmited = true;
             emit finished(QTUTILS_CORE_NTDT_NSP QtUtilsNetReplyArg(this,[](::qtutils::network::Reply* a_pTs){a_pTs->deleteLater();}));
-            deleteLater();
         }
     });
 
@@ -1165,7 +1166,6 @@ void Reply::RunFunction()
             if((!m_bFinishedEmited) && m_pNetworkReply){
                 m_bFinishedEmited = true;
                 emit finished(QTUTILS_CORE_NTDT_NSP QtUtilsNetReplyArg(this,[](::qtutils::network::Reply* a_pTs){a_pTs->deleteLater();}));
-                deleteLater();
             }
         });
         m_timeoutTimer.start(m_timeout);
