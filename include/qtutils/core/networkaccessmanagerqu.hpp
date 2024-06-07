@@ -205,7 +205,6 @@ private:
     Reply                           *m_pFirstSsp;
     Reply                           *m_pFirstSingleton, *m_pLastSingleton;
     Reply                           *m_pFirstDependent, *m_pLastDependent;
-    int                             m_countOfCorelated;
     bool                            m_bShouldRun;
     bool                            m_bPendingRestart;
     bool                            m_bQuitAppInDestuctor;
@@ -251,7 +250,7 @@ private:
     const CallType              m_callType;
     const int                   m_seed;
     const int                   m_timeout;
-    const TypeLateActionFunc    m_func2;
+    const TypeLateActionFunc    m_func;
     SReplyListItem              m_gen;
     SReplyListItem              m_dep;
     SReplyListItem              m_sed;

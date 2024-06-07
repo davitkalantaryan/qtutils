@@ -24,5 +24,6 @@ CONFIG += c++17
 
 SOURCES += "$${qtutilsRepoRoot}/src/tests/main_networkacccessmanager_test01.cpp"
 SOURCES += "$${qtutilsRepoRoot}/src/core/qtutils_core_networkaccessmanager.cpp"
+SOURCES += "$${qtutilsRepoRoot}/src/core/qtutils_core_logger.cpp"
 
 HEADERS += "$${qtutilsRepoRoot}/include/qtutils/core/networkaccessmanagerqu.hpp"

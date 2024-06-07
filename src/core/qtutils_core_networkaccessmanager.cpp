@@ -54,7 +54,6 @@ AccessManager::~AccessManager()
 
 AccessManager::AccessManager()
     :
-    m_pQtManager(new QNetworkAccessManager()),
     m_seedData_p((SeedDataPtr*)calloc(QTUTILS_SEED_TABLE_SIZE,sizeof(SeedDataPtr)))
 {
     static int snIsNotInited = 1;
@@ -63,15 +62,18 @@ AccessManager::AccessManager()
         snIsNotInited = 0;
     }
 
+    m_pQtManager = nullptr;
+    m_pFirstExc = nullptr;
+    m_pFirstSsp = nullptr;
+    m_pFirstSingleton = m_pLastSingleton = nullptr;
+    m_pFirstDependent = m_pLastDependent = nullptr;
+    m_bShouldRun = true;
     m_bPendingRestart = false;
-    m_countOfCorelated = 0;
+    m_bQuitAppInDestuctor = false;
+
     if(!m_seedData_p){
         throw ::std::bad_alloc();
     }
-
-    m_bShouldRun = true;
-    m_bQuitAppInDestuctor = false;
-
 }
 
 
@@ -286,7 +288,6 @@ void AccessManager::RemoveReply(Reply* CPPUTILS_ARG_NN a_pReply)
         FindAndRemoveSeed(a_pReply->m_seed, a_pReply->m_callType);
         switch(a_pReply->m_callType){
         case CallType::DependentDropSeed:case CallType::DependentKeepSeed: case CallType::SingletonDropSeed: case CallType::SingletonKeepSeed:
-            --m_countOfCorelated;
             RemoveDependentCallRaw();
             break;
         default:
@@ -987,7 +988,7 @@ Reply::Reply(const CallType& a_callType, int a_seed, int a_timeoutMs, ReplyData*
     m_callType(a_callType),
     m_seed(a_seed),
     m_timeout(a_timeoutMs),
-    m_func2(a_func),
+    m_func(a_func),
     m_pNetworkReply(nullptr),
     m_pData(a_pData)
 {
@@ -1016,55 +1017,54 @@ void Reply::RunFunction()
     if(m_pNetworkReply){
         return;
     }
-    m_pNetworkReply = m_func2();
-    if(m_pNetworkReply){
-        m_connDestroy = connect(m_pNetworkReply,&QObject::destroyed,this,[this](){
+
+    m_pNetworkReply = m_func();
+    if(!m_pNetworkReply){
+        throw Exception(m_pData,"Unable to create Network Reply object");
+    }
+
+    m_connDestroy = connect(m_pNetworkReply,&QObject::destroyed,this,[this](){
+        deleteLater();
+    });
+
+    m_connFinished = ::QObject::connect(m_pNetworkReply,&QNetworkReply::finished,this,[this](){
+        if(m_timeoutTimer.isActive()){
+            const QMetaObject::Connection connTimeout = m_connTimeout;
+            m_connTimeout = QMetaObject::Connection();
+            ::QObject::disconnect(connTimeout);
+            m_timeoutTimer.stop();
+        }
+        const QMetaObject::Connection connFinished = m_connFinished;
+        m_connFinished = QMetaObject::Connection();
+        ::QObject::disconnect(connFinished);
+        if(!m_bFinishedEmited){
+            m_bFinishedEmited = true;
+            emit finished(QTUTILS_CORE_NTDT_NSP QtUtilsNetReplyArg(this,[](::qtutils::network::Reply* a_pTs){a_pTs->deleteLater();}));
             deleteLater();
-        });
+        }
+    });
 
+    if(m_timeout>=0){
+        m_connTimeout = QObject::connect(&(m_timeoutTimer),&QTimer::timeout,this,[this](){
+            m_bHasTimeout = true;
 
-        m_connFinished = ::QObject::connect(m_pNetworkReply,&QNetworkReply::finished,this,[this](){
-            if(m_timeoutTimer.isActive()){
-                const QMetaObject::Connection connTimeout = m_connTimeout;
-                m_connTimeout = QMetaObject::Connection();
-                ::QObject::disconnect(connTimeout);
-                m_timeoutTimer.stop();
-            }
+            const QMetaObject::Connection connTimeout = m_connTimeout;
+            m_connTimeout = QMetaObject::Connection();
+            ::QObject::disconnect(connTimeout);
+
             const QMetaObject::Connection connFinished = m_connFinished;
             m_connFinished = QMetaObject::Connection();
             ::QObject::disconnect(connFinished);
+
+            Abort();
             if(!m_bFinishedEmited){
                 m_bFinishedEmited = true;
                 emit finished(QTUTILS_CORE_NTDT_NSP QtUtilsNetReplyArg(this,[](::qtutils::network::Reply* a_pTs){a_pTs->deleteLater();}));
                 deleteLater();
             }
         });
-
-        if(m_timeout>=0){
-            m_connTimeout = QObject::connect(&(m_timeoutTimer),&QTimer::timeout,this,[this](){
-                m_bHasTimeout = true;
-
-                const QMetaObject::Connection connTimeout = m_connTimeout;
-                m_connTimeout = QMetaObject::Connection();
-                ::QObject::disconnect(connTimeout);
-
-                const QMetaObject::Connection connFinished = m_connFinished;
-                m_connFinished = QMetaObject::Connection();
-                ::QObject::disconnect(connFinished);
-
-                Abort();
-                if(!m_bFinishedEmited){
-                    m_bFinishedEmited = true;
-                    emit finished(QTUTILS_CORE_NTDT_NSP QtUtilsNetReplyArg(this,[](::qtutils::network::Reply* a_pTs){a_pTs->deleteLater();}));
-                    deleteLater();
-                }
-            });
-            m_timeoutTimer.start(m_timeout);
-        }  //  if(m_timeout>=0){
-    }
-    else{
-        throw Exception(m_pData,"Unable to create Network Reply object");
-    }
+        m_timeoutTimer.start(m_timeout);
+    }  //  if(m_timeout>=0){
 }
 
 
