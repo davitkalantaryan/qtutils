@@ -1099,7 +1099,7 @@ Reply::Reply(const CallType& a_callType, unsigned int a_seed, int a_timeoutMs, R
     m_pNetworkReply(nullptr),
     m_pData(a_pData)
 {
-    m_itr.next = m_itr.prev = m_itr.next = m_itr.prev = m_sed.next = m_sed.prev = nullptr;
+    m_itr.next = m_itr.prev = m_sed.next = m_sed.prev = nullptr;
     m_bHasTimeout = false;
     m_bBlockAppExit = false;
     m_bFinishedEmited = false;
