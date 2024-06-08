@@ -109,8 +109,9 @@ void WidgetsContainerLogin::ConnectSignalsQuLogin()
         }
     });
 
-    QObject::connect(pThisApp,&ApplicationWithLogin::LoginFailedSignal,pThisApp,[this](QString a_errorDetails, bool a_bIsUser){
-        if(a_bIsUser){
+    QObject::connect(pThisApp,&ApplicationWithLogin::LoginFailedSignal,pThisApp,[this](QString a_errorDetails){
+        ApplicationWithLogin*const pThisApp = qtutilsUiAppWithLogin();
+        if(pThisApp->isVisible()){
             QWidget* const pParent = (m_vWidgets.size()>QUTILS_WIDG_CONT_LOGIN_LOGIN)? static_cast<QWidget*>(m_vWidgets[QUTILS_WIDG_CONT_LOGIN_LOGIN]->pWidget) : nullptr;
             const QString title = "Login failed";
             const QString text = a_errorDetails;
