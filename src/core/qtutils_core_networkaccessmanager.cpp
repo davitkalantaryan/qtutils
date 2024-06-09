@@ -42,6 +42,7 @@ AccessManager::~AccessManager()
         pReply=m_pFirstSimple;
         while(pReply){
             pReplyNext = pReply->m_itr.next;
+            pReply->FromDestructorOfAccessManager();
             pReply->Abort();
             pReply->deleteLater();
             pReply = pReplyNext;
@@ -50,6 +51,7 @@ AccessManager::~AccessManager()
         pReply=m_pFirstDependent;
         while(pReply){
             pReplyNext = pReply->m_itr.next;
+            pReply->FromDestructorOfAccessManager();
             pReply->Abort();
             pReply->deleteLater();
             pReply = pReplyNext;
@@ -58,17 +60,20 @@ AccessManager::~AccessManager()
         pReply=m_pFirstSingleton;
         while(pReply){
             pReplyNext = pReply->m_itr.next;
+            pReply->FromDestructorOfAccessManager();
             pReply->Abort();
             pReply->deleteLater();
             pReply = pReplyNext;
         }
 
-        delete m_pQtManager;
+        m_pQtManager->deleteLater();
+        m_pQtManager = nullptr;
     }
     else{
         pReply=m_pFirstWaiting;
         while(pReply){
             pReplyNext = pReply->m_itr.next;
+            pReply->FromDestructorOfAccessManager();
             pReply->Abort();
             pReply->deleteLater();
             pReply = pReplyNext;
@@ -81,7 +86,8 @@ AccessManager::~AccessManager()
 
 AccessManager::AccessManager()
     :
-    m_seedData_p((SeedDataPtr*)calloc(QTUTILS_SEED_TABLE_SIZE,sizeof(SeedDataPtr)))
+    m_seedData_p((SeedDataPtr*)calloc(QTUTILS_SEED_TABLE_SIZE,sizeof(SeedDataPtr))),
+    m_destruct([](){})
 {
     static int snIsNotInited = 1;
     if(snIsNotInited){
@@ -118,10 +124,11 @@ void AccessManager::Restart()
 }
 
 
-void AccessManager::QuitApp()
+void AccessManager::QuitApp(const ::std::function<void(void)>& a_destruct)
 {
     m_bShouldRun = false;
     m_bQuitAppInDestuctor = true;
+    m_destruct = a_destruct;
 
     if(m_pQtManager){
         bool bAllRepliesDeleted = true;
@@ -164,13 +171,15 @@ void AccessManager::QuitApp()
         }
 
         if(bAllRepliesDeleted){
-            QMetaObject::invokeMethod(qApp,[](){
+            QMetaObject::invokeMethod(qApp,[a_destruct](){
+                a_destruct();
                 QCoreApplication::quit();
             });
         }
     }  //  if(m_pQtManager){
     else{
-        QMetaObject::invokeMethod(qApp,[](){
+        QMetaObject::invokeMethod(qApp,[a_destruct](){
+            a_destruct();
             QCoreApplication::quit();
         });
     }
@@ -295,7 +304,8 @@ Reply* AccessManager::CreateAndAddReply(const CallType& a_callType, unsigned int
                 pQtManager->deleteLater();
             }
             if(m_bQuitAppInDestuctor){
-                QMetaObject::invokeMethod(qApp,[](){
+                QMetaObject::invokeMethod(qApp,[this](){
+                    m_destruct();
                     QCoreApplication::quit();
                 });
             }
@@ -1116,6 +1126,13 @@ bool Reply::blockAppExit()const
 void Reply::SetBlockAppExit(bool a_bBlockAppExit)
 {
     m_bBlockAppExit = a_bBlockAppExit;
+}
+
+
+void Reply::FromDestructorOfAccessManager()
+{
+    m_bAdded = false;
+    m_bFinishedEmited = true;
 }
 
 

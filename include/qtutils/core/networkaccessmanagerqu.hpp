@@ -89,7 +89,7 @@ public:
     AccessManager();
 
     void Restart();
-    void QuitApp();
+    void QuitApp(const ::std::function<void(void)>& a_destruct);
 
     // simple apps
     Reply* post(const QNetworkRequest& a_request, const QByteArray& a_data, int a_timeoutMs=-1, ReplyData* a_pData=nullptr, unsigned int a_seed=QTUTILS_NET_NO_SEED);
@@ -210,6 +210,7 @@ private:
     bool                            m_bShouldRun;
     bool                            m_bPendingRestart;
     bool                            m_bQuitAppInDestuctor;
+    ::std::function<void(void)>     m_destruct;
 };
 
 
@@ -231,6 +232,8 @@ public:
     ReplyData* data()const;
     void ReplaceData(ReplyData* a_pData); // this will be used to replace by null to prevent delete
     bool hasTimeout()const;
+    bool blockAppExit()const;
+    void SetBlockAppExit(bool a_bBlockAppExit);
     
 private:
 signals:
@@ -245,8 +248,7 @@ private:
     Reply& operator=(const Reply&) = delete;
     Reply& operator=(Reply&&) = delete;
     void RunFunction();
-    bool blockAppExit()const;
-    void SetBlockAppExit(bool a_bBlockAppExit);
+    void FromDestructorOfAccessManager();
 
 private:
     const CallType              m_callType;
