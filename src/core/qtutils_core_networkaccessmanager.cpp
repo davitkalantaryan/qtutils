@@ -1089,7 +1089,7 @@ Reply::~Reply()
 
     if((!m_bFinishedEmited) && m_pNetworkReply){
         m_bFinishedEmited = true;
-        emit finished(QTUTILS_CORE_NTDT_NSP QtUtilsNetReplyArg(this,[](::qtutils::network::Reply* a_pTs){a_pTs->deleteLater();}));
+        emit finished(QTUTILS_CORE_NTDT_NSP QtUtilsNetReplyArg(this,[](::qtutils::network::Reply*){}));  // here we do not delete
     }
 
     delete m_pData;
