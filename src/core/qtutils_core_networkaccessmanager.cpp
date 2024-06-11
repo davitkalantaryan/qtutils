@@ -1085,12 +1085,9 @@ ReplyData::~ReplyData()
 
 Reply::~Reply()
 {
-    Abort();
+    m_bFinishedEmited = true;
 
-    if((!m_bFinishedEmited) && m_pNetworkReply){
-        m_bFinishedEmited = true;
-        emit finished(QTUTILS_CORE_NTDT_NSP QtUtilsNetReplyArg(this,[](::qtutils::network::Reply*){}));  // here we do not delete
-    }
+    Abort();
 
     delete m_pData;
 
