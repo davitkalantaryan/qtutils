@@ -1145,6 +1145,7 @@ void Reply::RunFunction()
     }
 
     m_connDestroy = connect(m_pNetworkReply,&QObject::destroyed,this,[this](){
+        m_pNetworkReply = nullptr;
         deleteLater();
     });
 
