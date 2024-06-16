@@ -37,7 +37,7 @@ public:
     virtual ~ResizibleWindowRaw() override;
     
     const QString& settingsKey()const;
-	void InitAndShow() QTUTILS_RSZ_WND_INIT_AND_SHOW_OVERRIDE;
+    virtual void InitAndShow() QTUTILS_RSZ_WND_INIT_AND_SHOW_OVERRIDE;
 	void Init2(); 
 	    
 protected:

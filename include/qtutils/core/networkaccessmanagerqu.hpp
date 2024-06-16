@@ -10,6 +10,7 @@
 #include <qtutils/export_symbols.h>
 #include <stdexcept>
 #include <memory>
+#include <functional>
 #include <qtutils/disable_utils_warnings.h>
 #include <QTimer>
 #include <QNetworkAccessManager>
@@ -24,10 +25,14 @@
 namespace qtutils { namespace network{
 
 #define QTUTILS_NET_REPLY_HAS_AUTO_DELETE   1
+#define QTUTILS_NET_NO_SEED     static_cast<unsigned int>(-1)
+
+#if QT_CONFIG(http) || defined(Q_OS_WASM)
+#define QTUTILS_EXTRA_REST_CALLS
+#endif
 
 
 class QTUTILS_EXPORT Reply;
-class QTUTILS_EXPORT ReplyContainer;
 class QTUTILS_EXPORT ReplyData;
 class QTUTILS_EXPORT AccessManager;
 
@@ -51,6 +56,11 @@ QTUTILS_CORE_NTDT_NSP_P2
 
 namespace qtutils { namespace network{
 
+typedef ::std::function<QNetworkReply*(void)>     TypeLateActionFunc;
+
+struct SReplyListItem{
+    Reply   *prev, *next;
+};
 
 class QTUTILS_EXPORT Exception final : public ::std::runtime_error
 {
@@ -61,73 +71,146 @@ public:
 };
 
 
-class QTUTILS_EXPORT AccessManagerRaw final
-{
-private:
-    AccessManagerRaw();
-    ~AccessManagerRaw();
-    
-public:    
-    Reply* post(ReplyContainer* a_pContainer, const QNetworkRequest &request, const QVariantMap&data,  ReplyData* a_pData, int a_timeoutMs);
-    Reply* put(ReplyContainer* a_pContainer, const QNetworkRequest &request, const QVariantMap&data,  ReplyData* a_pData, int a_timeoutMs);
-    Reply* sendCustomRequest(ReplyContainer* a_pContainer, const QNetworkRequest &request, const QByteArray &verb, const QVariantMap&data, ReplyData* a_pData, int a_timeoutMs);
-    
-    Reply* head(ReplyContainer* a_pContainer, const QNetworkRequest &request, ReplyData* a_pData, int a_timeoutMs);
-    Reply* get(ReplyContainer* a_pContainer, const QNetworkRequest &request, ReplyData* a_pData, int a_timeoutMs);
-    Reply* post(ReplyContainer* a_pContainer, const QNetworkRequest &request, QIODevice *data, ReplyData* a_pData, int a_timeoutMs);
-    Reply* post(ReplyContainer* a_pContainer, const QNetworkRequest &request, const QByteArray &data, ReplyData* a_pData, int a_timeoutMs);
-    Reply* put(ReplyContainer* a_pContainer, const QNetworkRequest &request, QIODevice *data, ReplyData* a_pData, int a_timeoutMs);
-    Reply* put(ReplyContainer* a_pContainer, const QNetworkRequest &request, const QByteArray &data, ReplyData* a_pData, int a_timeoutMs);
-    Reply* deleteResource(ReplyContainer* a_pContainer, const QNetworkRequest &request, ReplyData* a_pData, int a_timeoutMs);
-    Reply* sendCustomRequest(ReplyContainer* a_pContainer, const QNetworkRequest &request, const QByteArray &verb, ReplyData* a_pData, int a_timeoutMs, QIODevice *data = nullptr);
-    Reply* sendCustomRequest(ReplyContainer* a_pContainer, const QNetworkRequest &request, const QByteArray &verb, const QByteArray &data, ReplyData* a_pData, int a_timeoutMs);
-
-#if QT_CONFIG(http) || defined(Q_OS_WASM)
-    Reply* post(ReplyContainer* a_pContainer, const QNetworkRequest &request, QHttpMultiPart *multiPart, ReplyData* a_pData, int a_timeoutMs);
-    Reply* put(ReplyContainer* a_pContainer, const QNetworkRequest &request, QHttpMultiPart *multiPart, ReplyData* a_pData, int a_timeoutMs);
-    Reply* sendCustomRequest(ReplyContainer* a_pContainer, const QNetworkRequest &request, const QByteArray &verb, QHttpMultiPart *multiPart, ReplyData* a_pData, int a_timeoutMs);
-#endif
-    
-private:
-    QNetworkAccessManager*    m_pQtManager;
-    
-    friend class AccessManager;
+enum class CallType{
+    None,
+    SimpleDropSeed,
+    SimpleKeepSeed,
+    DependentDropSeed,
+    DependentKeepSeed,
+    SingletonDropSeed,
+    SingletonKeepSeed
 };
 
 
 class QTUTILS_EXPORT AccessManager final
 {
 public:
+    ~AccessManager();
     AccessManager();
-    AccessManagerRaw*   accessManagerRaw();
-    void   Restart();
+
+    void Restart();
+    void QuitApp(const ::std::function<void(void)>& a_destruct);
+
+    // simple apps
+    Reply* post(const QNetworkRequest& a_request, const QByteArray& a_data, int a_timeoutMs=-1, ReplyData* a_pData=nullptr, unsigned int a_seed=QTUTILS_NET_NO_SEED);
+    Reply* post(const QNetworkRequest& a_request, QIODevice* a_data, int a_timeoutMs=-1, ReplyData* a_pData=nullptr, unsigned int a_seed=QTUTILS_NET_NO_SEED);
+    Reply* post(const QNetworkRequest& a_request, const QVariantMap& a_data, int a_timeoutMs=-1, ReplyData* a_pData=nullptr, unsigned int a_seed=QTUTILS_NET_NO_SEED);
+
+    Reply* put(const QNetworkRequest& a_request, const QByteArray& a_data, int a_timeoutMs=-1, ReplyData* a_pData=nullptr, unsigned int a_seed=QTUTILS_NET_NO_SEED);
+    Reply* put(const QNetworkRequest& a_request, QIODevice* a_data, int a_timeoutMs=-1, ReplyData* a_pData=nullptr, unsigned int a_seed=QTUTILS_NET_NO_SEED);
+    Reply* put(const QNetworkRequest& a_request, const QVariantMap& a_data,  int a_timeoutMs=-1, ReplyData* a_pData=nullptr, unsigned int a_seed=QTUTILS_NET_NO_SEED);
+
+    Reply* sendCustomRequest(const QNetworkRequest& a_request, const QByteArray& a_verb, const QByteArray& a_data, int a_timeoutMs=-1, ReplyData* a_pData=nullptr, unsigned int a_seed=QTUTILS_NET_NO_SEED);
+    Reply* sendCustomRequest(const QNetworkRequest& a_request, const QByteArray& a_verb, QIODevice* a_data = nullptr, int a_timeoutMs=-1, ReplyData* a_pData=nullptr, unsigned int a_seed=QTUTILS_NET_NO_SEED);
+    Reply* sendCustomRequest(const QNetworkRequest& a_request, const QByteArray& a_verb, const QVariantMap& a_data, int a_timeoutMs=-1, ReplyData* a_pData=nullptr, unsigned int a_seed=QTUTILS_NET_NO_SEED);
+
+    Reply* get(const QNetworkRequest& a_request, int a_timeoutMs=-1, ReplyData* a_pData=nullptr, unsigned int a_seed=QTUTILS_NET_NO_SEED);
+    Reply* head(const QNetworkRequest& a_request, int a_timeoutMs=-1, ReplyData* a_pData=nullptr, unsigned int a_seed=QTUTILS_NET_NO_SEED);
+    Reply* deleteResource(const QNetworkRequest& a_request, int a_timeoutMs=-1, ReplyData* a_pData=nullptr, unsigned int a_seed=QTUTILS_NET_NO_SEED);
+
+#ifdef QTUTILS_EXTRA_REST_CALLS
+    Reply* post(const QNetworkRequest& a_request, QHttpMultiPart* a_pMultiPart, int a_timeoutMs=-1, ReplyData* a_pData=nullptr, unsigned int a_seed=QTUTILS_NET_NO_SEED);
+    Reply* put(const QNetworkRequest& a_request, QHttpMultiPart* a_pMultiPart, int a_timeoutMs=-1, ReplyData* a_pData=nullptr, unsigned int a_seed=QTUTILS_NET_NO_SEED);
+    Reply* sendCustomRequest(const QNetworkRequest& a_request, const QByteArray& a_verb, QHttpMultiPart* a_pMultiPart, int a_timeoutMs=-1, ReplyData* a_pData=nullptr, unsigned int a_seed=QTUTILS_NET_NO_SEED);
+#endif
+
+    // singletons
+    Reply* postSingleton(const QNetworkRequest& a_request, const QByteArray& a_data, int a_timeoutMs=-1, ReplyData* a_pData=nullptr, unsigned int a_seed=QTUTILS_NET_NO_SEED);
+    Reply* postSingleton(const QNetworkRequest& a_request, QIODevice* a_data, int a_timeoutMs=-1, ReplyData* a_pData=nullptr, unsigned int a_seed=QTUTILS_NET_NO_SEED);
+    Reply* postSingleton(const QNetworkRequest& a_request, const QVariantMap& a_data, int a_timeoutMs=-1, ReplyData* a_pData=nullptr, unsigned int a_seed=QTUTILS_NET_NO_SEED);
+
+    Reply* putSingleton(const QNetworkRequest& a_request, const QByteArray& a_data, int a_timeoutMs=-1, ReplyData* a_pData=nullptr, unsigned int a_seed=QTUTILS_NET_NO_SEED);
+    Reply* putSingleton(const QNetworkRequest& a_request, QIODevice* a_data, int a_timeoutMs=-1, ReplyData* a_pData=nullptr, unsigned int a_seed=QTUTILS_NET_NO_SEED);
+    Reply* putSingleton(const QNetworkRequest& a_request, const QVariantMap& a_data,  int a_timeoutMs=-1, ReplyData* a_pData=nullptr, unsigned int a_seed=QTUTILS_NET_NO_SEED);
+
+    Reply* sendCustomRequestSingleton(const QNetworkRequest& a_request, const QByteArray& a_verb, const QByteArray& a_data, int a_timeoutMs=-1, ReplyData* a_pData=nullptr, unsigned int a_seed=QTUTILS_NET_NO_SEED);
+    Reply* sendCustomRequestSingleton(const QNetworkRequest& a_request, const QByteArray& a_verb, QIODevice* a_data = nullptr, int a_timeoutMs=-1, ReplyData* a_pData=nullptr, unsigned int a_seed=QTUTILS_NET_NO_SEED);
+    Reply* sendCustomRequestSingleton(const QNetworkRequest& a_request, const QByteArray& a_verb, const QVariantMap& a_data, int a_timeoutMs=-1, ReplyData* a_pData=nullptr, unsigned int a_seed=QTUTILS_NET_NO_SEED);
+
+    Reply* getSingleton(const QNetworkRequest& a_request, int a_timeoutMs=-1, ReplyData* a_pData=nullptr, unsigned int a_seed=QTUTILS_NET_NO_SEED);
+    Reply* headSingleton(const QNetworkRequest& a_request, int a_timeoutMs=-1, ReplyData* a_pData=nullptr, unsigned int a_seed=QTUTILS_NET_NO_SEED);
+    Reply* deleteResourceSingleton(const QNetworkRequest& a_request, int a_timeoutMs=-1, ReplyData* a_pData=nullptr, unsigned int a_seed=QTUTILS_NET_NO_SEED);
+
+#ifdef QTUTILS_EXTRA_REST_CALLS
+    Reply* postSingleton(const QNetworkRequest& a_request, QHttpMultiPart* a_pMultiPart, int a_timeoutMs=-1, ReplyData* a_pData=nullptr, unsigned int a_seed=QTUTILS_NET_NO_SEED);
+    Reply* putSingleton(const QNetworkRequest& a_request, QHttpMultiPart* a_pMultiPart, int a_timeoutMs=-1, ReplyData* a_pData=nullptr, unsigned int a_seed=QTUTILS_NET_NO_SEED);
+    Reply* sendCustomRequestSingleton(const QNetworkRequest& a_request, const QByteArray& a_verb, QHttpMultiPart* a_pMultiPart, int a_timeoutMs=-1, ReplyData* a_pData=nullptr, unsigned int a_seed=QTUTILS_NET_NO_SEED);
+#endif
+
+    // dependents
+    Reply* postDependent(const QNetworkRequest& a_request, const QByteArray& a_data, int a_timeoutMs=-1, ReplyData* a_pData=nullptr, unsigned int a_seed=QTUTILS_NET_NO_SEED);
+    Reply* postDependent(const QNetworkRequest& a_request, QIODevice* a_data, int a_timeoutMs=-1, ReplyData* a_pData=nullptr, unsigned int a_seed=QTUTILS_NET_NO_SEED);
+    Reply* postDependent(const QNetworkRequest& a_request, const QVariantMap& a_data, int a_timeoutMs=-1, ReplyData* a_pData=nullptr, unsigned int a_seed=QTUTILS_NET_NO_SEED);
+
+    Reply* putDependent(const QNetworkRequest& a_request, const QByteArray& a_data, int a_timeoutMs=-1, ReplyData* a_pData=nullptr, unsigned int a_seed=QTUTILS_NET_NO_SEED);
+    Reply* putDependent(const QNetworkRequest& a_request, QIODevice* a_data, int a_timeoutMs=-1, ReplyData* a_pData=nullptr, unsigned int a_seed=QTUTILS_NET_NO_SEED);
+    Reply* putDependent(const QNetworkRequest& a_request, const QVariantMap& a_data,  int a_timeoutMs=-1, ReplyData* a_pData=nullptr, unsigned int a_seed=QTUTILS_NET_NO_SEED);
+
+    Reply* sendCustomRequestDependent(const QNetworkRequest& a_request, const QByteArray& a_verb, const QByteArray& a_data, int a_timeoutMs=-1, ReplyData* a_pData=nullptr, unsigned int a_seed=QTUTILS_NET_NO_SEED);
+    Reply* sendCustomRequestDependent(const QNetworkRequest& a_request, const QByteArray& a_verb, QIODevice* a_data = nullptr, int a_timeoutMs=-1, ReplyData* a_pData=nullptr, unsigned int a_seed=QTUTILS_NET_NO_SEED);
+    Reply* sendCustomRequestDependent(const QNetworkRequest& a_request, const QByteArray& a_verb, const QVariantMap& a_data, int a_timeoutMs=-1, ReplyData* a_pData=nullptr, unsigned int a_seed=QTUTILS_NET_NO_SEED);
+
+    Reply* getDependent(const QNetworkRequest& a_request, int a_timeoutMs=-1, ReplyData* a_pData=nullptr, unsigned int a_seed=QTUTILS_NET_NO_SEED);
+    Reply* headDependent(const QNetworkRequest& a_request, int a_timeoutMs=-1, ReplyData* a_pData=nullptr, unsigned int a_seed=QTUTILS_NET_NO_SEED);
+    Reply* deleteResourceDependent(const QNetworkRequest& a_request, int a_timeoutMs=-1, ReplyData* a_pData=nullptr, unsigned int a_seed=QTUTILS_NET_NO_SEED);
+
+#ifdef QTUTILS_EXTRA_REST_CALLS
+    Reply* postDependent(const QNetworkRequest& a_request, QHttpMultiPart* a_pMultiPart, int a_timeoutMs=-1, ReplyData* a_pData=nullptr, unsigned int a_seed=QTUTILS_NET_NO_SEED);
+    Reply* putDependent(const QNetworkRequest& a_request, QHttpMultiPart* a_pMultiPart, int a_timeoutMs=-1, ReplyData* a_pData=nullptr, unsigned int a_seed=QTUTILS_NET_NO_SEED);
+    Reply* sendCustomRequestDependent(const QNetworkRequest& a_request, const QByteArray& a_verb, QHttpMultiPart* a_pMultiPart, int a_timeoutMs=-1, ReplyData* a_pData=nullptr, unsigned int a_seed=QTUTILS_NET_NO_SEED);
+#endif
+
+    // any
+    Reply* postAny(const CallType& a_callType, const QNetworkRequest& a_request, const QByteArray& a_data, int a_timeoutMs=-1, ReplyData* a_pData=nullptr, unsigned int a_seed=QTUTILS_NET_NO_SEED);
+    Reply* postAny(const CallType& a_callType, const QNetworkRequest& a_request, QIODevice* a_data, int a_timeoutMs=-1, ReplyData* a_pData=nullptr, unsigned int a_seed=QTUTILS_NET_NO_SEED);
+    Reply* postAny(const CallType& a_callType, const QNetworkRequest& a_request, const QVariantMap& a_data, int a_timeoutMs=-1, ReplyData* a_pData=nullptr, unsigned int a_seed=QTUTILS_NET_NO_SEED);
+
+    Reply* putAny(const CallType& a_callType, const QNetworkRequest& a_request, const QByteArray& a_data, int a_timeoutMs=-1, ReplyData* a_pData=nullptr, unsigned int a_seed=QTUTILS_NET_NO_SEED);
+    Reply* putAny(const CallType& a_callType, const QNetworkRequest& a_request, QIODevice* a_data, int a_timeoutMs=-1, ReplyData* a_pData=nullptr, unsigned int a_seed=QTUTILS_NET_NO_SEED);
+    Reply* putAny(const CallType& a_callType, const QNetworkRequest& a_request, const QVariantMap& a_data,  int a_timeoutMs=-1, ReplyData* a_pData=nullptr, unsigned int a_seed=QTUTILS_NET_NO_SEED);
+
+    Reply* sendCustomRequestAny(const CallType& a_callType, const QNetworkRequest& a_request, const QByteArray& a_verb, const QByteArray& a_data, int a_timeoutMs=-1, ReplyData* a_pData=nullptr, unsigned int a_seed=QTUTILS_NET_NO_SEED);
+    Reply* sendCustomRequestAny(const CallType& a_callType, const QNetworkRequest& a_request, const QByteArray& a_verb, QIODevice* a_data = nullptr, int a_timeoutMs=-1, ReplyData* a_pData=nullptr, unsigned int a_seed=QTUTILS_NET_NO_SEED);
+    Reply* sendCustomRequestAny(const CallType& a_callType, const QNetworkRequest& a_request, const QByteArray& a_verb, const QVariantMap& a_data, int a_timeoutMs=-1, ReplyData* a_pData=nullptr, unsigned int a_seed=QTUTILS_NET_NO_SEED);
+
+    Reply* getAny(const CallType& a_callType, const QNetworkRequest& a_request, int a_timeoutMs=-1, ReplyData* a_pData=nullptr, unsigned int a_seed=QTUTILS_NET_NO_SEED);
+    Reply* headAny(const CallType& a_callType, const QNetworkRequest& a_request, int a_timeoutMs=-1, ReplyData* a_pData=nullptr, unsigned int a_seed=QTUTILS_NET_NO_SEED);
+    Reply* deleteResourceAny(const CallType& a_callType, const QNetworkRequest& a_request, int a_timeoutMs=-1, ReplyData* a_pData=nullptr, unsigned int a_seed=QTUTILS_NET_NO_SEED);
+
+#ifdef QTUTILS_EXTRA_REST_CALLS
+    Reply* postAny(const CallType& a_callType, const QNetworkRequest& a_request, QHttpMultiPart* a_pMultiPart, int a_timeoutMs=-1, ReplyData* a_pData=nullptr, unsigned int a_seed=QTUTILS_NET_NO_SEED);
+    Reply* putAny(const CallType& a_callType, const QNetworkRequest& a_request, QHttpMultiPart* a_pMultiPart, int a_timeoutMs=-1, ReplyData* a_pData=nullptr, unsigned int a_seed=QTUTILS_NET_NO_SEED);
+    Reply* sendCustomRequestAny(const CallType& a_callType, const QNetworkRequest& a_request, const QByteArray& a_verb, QHttpMultiPart* a_pMultiPart, int a_timeoutMs=-1, ReplyData* a_pData=nullptr, unsigned int a_seed=QTUTILS_NET_NO_SEED);
+#endif
 
 private:
     AccessManager(const AccessManager&)=delete;
+    AccessManager(AccessManager&&)=delete;
     AccessManager& operator=(const AccessManager&)=delete;
+    AccessManager& operator=(AccessManager&&)=delete;
+
+    Reply* CreateAndAddReply(const CallType& a_callType, unsigned int a_seed, int a_timeoutMs, ReplyData* a_pData, const TypeLateActionFunc& a_func);
+    void RunReplyIfAllowedRaw(Reply* CPPUTILS_ARG_NN a_pReply);
+    void RemoveReply(Reply* CPPUTILS_ARG_NN a_pReply);
+    void AddSimple(Reply* CPPUTILS_ARG_NN a_pReply);
+    void AddSingleton(Reply* CPPUTILS_ARG_NN a_pReply);
+    void AddDependent(Reply* CPPUTILS_ARG_NN a_pReply);
+    bool SeedCheckAndAdd(Reply* CPPUTILS_ARG_NN a_pReply);
+    void FindAndRemoveSeed(unsigned int a_seed, const CallType& a_type);
+    Reply* findSeedRaw(unsigned int a_seed, unsigned int* CPPUTILS_ARG_NN a_nIndex_p)const;
     
 private:
-    AccessManagerRaw	m_rawManager;
-    bool				m_bPendingRestart;
-};
-
-
-class QTUTILS_EXPORT ReplyContainer final
-{
-public:
-    ReplyContainer();
-    ReplyContainer(const ReplyContainer&)=delete;
-    ReplyContainer(ReplyContainer&&)=delete;
-    ~ReplyContainer();
-    
-    void AddNewNetworkReply(Reply* a_pReply);
-    void RemoveNetworkReply(Reply* a_pReply);
-
-private:
-    void Clear();
-    
-protected:
-    Reply    *m_pFirst, *m_pLast;    
+    typedef Reply*       SeedDataPtr;
+    QNetworkAccessManager*          m_pQtManager;
+    SeedDataPtr* const              m_seedData_p;
+    Reply                           *m_pFirstWaiting;
+    Reply                           *m_pFirstSimple, *m_pLastSimple;
+    Reply                           *m_pFirstSingleton, *m_pLastSingleton;
+    Reply                           *m_pFirstDependent, *m_pLastDependent;
+    bool                            m_bShouldRun;
+    bool                            m_bPendingRestart;
+    bool                            m_bQuitAppInDestuctor;
+    ::std::function<void(void)>     m_destruct;
 };
 
 
@@ -135,7 +218,6 @@ class QTUTILS_EXPORT ReplyData
 {
 public:
     virtual ~ReplyData();
-    virtual QByteArray postData()const;
 };
 
 
@@ -143,13 +225,6 @@ class QTUTILS_EXPORT Reply final : public QObject
 {
     Q_OBJECT
 
-private:
-    ~Reply() override;  // don't panic it is deleted automatically :)
-    Reply() = delete;
-    Reply(const Reply&) = delete;
-    Reply(Reply&&) = delete;
-    Reply( QNetworkReply* CPPUTILS_ARG_NN networkReply, ReplyContainer* a_pParentContainer, ReplyData* a_pData=nullptr, int a_timeoutMs=-1);
-    
 public:
     void Abort();
     QNetworkReply* operator->()const;
@@ -157,26 +232,43 @@ public:
     ReplyData* data()const;
     void ReplaceData(ReplyData* a_pData); // this will be used to replace by null to prevent delete
     bool hasTimeout()const;
+    bool blockAppExit()const;
+    void SetBlockAppExit(bool a_bBlockAppExit);
     
 private:
 signals:
     void finished(QTUTILS_CORE_NTDT_NSP QtUtilsNetReplyArg);
 
 private:
-    Reply                   *m_prev, *m_next;
-    QTimer                  m_timeoutTimer;
-    QNetworkReply*/*const*/	m_pNetworkReply;
-    ReplyContainer*/*const*/m_pParentContainer;
-    ReplyData*              m_pData;
-    QMetaObject::Connection	m_connFinished;
-    QMetaObject::Connection	m_connDestroy;
-    bool                    m_bHasTimeout;
+    ~Reply() override;  // don't panic it is deleted automatically :)
+    Reply(const CallType& a_callType, unsigned int a_seed, int a_timeoutMs, ReplyData* a_pData, const TypeLateActionFunc& a_func);
+    Reply() = delete;
+    Reply(const Reply&) = delete;
+    Reply(Reply&&) = delete;
+    Reply& operator=(const Reply&) = delete;
+    Reply& operator=(Reply&&) = delete;
+    void RunFunction();
+    void FromDestructorOfAccessManager();
 
-public:
-    const QDateTime         m_restStartDate;
+private:
+    const CallType              m_callType;
+    const unsigned int          m_seed;
+    const int                   m_timeout;
+    const TypeLateActionFunc    m_func;
+    SReplyListItem              m_itr;
+    SReplyListItem              m_sed;
+    QTimer                      m_timeoutTimer;
+    QNetworkReply*              m_pNetworkReply;
+    ReplyData*                  m_pData;
+    QMetaObject::Connection     m_connFinished;
+    QMetaObject::Connection     m_connTimeout;
+    QMetaObject::Connection     m_connDestroy;
+    bool                        m_bHasTimeout;
+    bool                        m_bBlockAppExit;
+    bool                        m_bFinishedEmited;
+    bool                        m_bAdded;
     
-    friend class ReplyContainer;
-    friend class AccessManagerRaw;
+    friend class AccessManager;
 };
 
 

@@ -45,7 +45,7 @@ signals:
     void LoginBaseUrlChangedSignal(QString a_newUrl);
     void LoginSucceedSignal();
     void LoggedOutSignal();
-    void LoginFailedSignal(QString errorString, bool a_bIsUser);
+    void LoginFailedSignal(QString errorString);
     void StartLoginSpinningSignal();
     void StopLoginSpinningSignal();
     void SwitchingToVisibleSignal();
