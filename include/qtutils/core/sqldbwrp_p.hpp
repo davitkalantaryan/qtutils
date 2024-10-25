@@ -18,13 +18,25 @@
 namespace qtutils { namespace core{
 
 
-class QTUTILS_EXPORT SqlDbWrp_p
+
+class QTUTILS_EXPORT SqlDbWrpBase_p
+{   
+public:
+    SqlDatabase                     m_db;
+    QString                         m_type;
+    QString                         m_connectionName;
+};
+
+#ifndef QTUTILS_DBUSE_CLASS_API
+
+class QTUTILS_EXPORT SqlDbWrp_p : public SqlDbWrpBase_p
 {   
 public:
     cinternal_lw_recursive_mutex_t  m_mutex;
-    SqlDatabase                     m_db;
-    QString                         m_type;
 };
+
+
+#endif  //  #ifndef QTUTILS_DBUSE_CLASS_API
 
 
 }}  //  namespace qtutils { namespace core{

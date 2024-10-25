@@ -24,6 +24,115 @@
 namespace qtutils { namespace core{
 
 
+static inline void CleanupDbInline(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p){
+    if(a_db_p->m_db.isOpen()){
+        a_db_p->m_db.close();
+        SqlDatabase::removeDatabase(a_db_p->m_connectionName);
+        a_db_p->m_connectionName = "";
+        a_db_p->m_type = "";
+    }
+}
+
+
+static inline bool InitializeInline(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p, const QString& a_type, const QString& a_dbNameOrPath, const QString& a_hostname, const QString& a_username, const QString& a_password, int a_port, const QString* a_connectionName_p){
+    a_db_p->m_type = a_type;
+    if(a_connectionName_p){
+        a_db_p->m_db = SqlDatabase::addDatabase(a_type,*a_connectionName_p);
+    }
+    else{
+        a_db_p->m_db = SqlDatabase::addDatabase(a_type);
+    }
+    a_db_p->m_db.setDatabaseName(a_dbNameOrPath);
+    if(a_hostname.size()>0){
+        a_db_p->m_db.setHostName(a_hostname);
+    }
+    if(a_username.size()>0){
+        a_db_p->m_db.setUserName(a_username);
+    }
+    if(a_password.size()>0){
+        a_db_p->m_db.setPassword(a_password);
+    }
+    if(a_port>=0){
+        a_db_p->m_db.setPort(a_port);
+    }
+    
+    if(a_db_p->m_db.open()){
+        a_db_p->m_connectionName = a_db_p->m_db.connectionName();
+        return true;
+    }
+    
+    const QString connectionName = a_connectionName_p ? (*a_connectionName_p) : a_db_p->m_db.connectionName();
+    SqlDatabase::removeDatabase(connectionName);
+    a_db_p->m_type = "";
+    return false;
+}
+
+
+static inline bool StartTransactionInline(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p, SqlQuery* CPPUTILS_ARG_NN a_qry_p){
+    if(a_qry_p->exec("BEGIN;")){ // we will make query atomic
+        return true;
+    }
+    
+    // connection to DB lost, let's recover it
+    QtUtilsWarningMacro()<<"Connection to DB lost, trying to reopen";
+    const QString type = a_db_p->m_type;
+    const QString connectionName = a_db_p->m_connectionName;
+    const QString dbNameOrPath = a_db_p->m_db.databaseName();
+    const QString hostname = a_db_p->m_db.hostName();
+    const QString username = a_db_p->m_db.userName();
+    const QString password = a_db_p->m_db.password();
+    const int port = a_db_p->m_db.port();
+    
+    CleanupDbInline(a_db_p);
+    if(!InitializeInline(a_db_p,type,dbNameOrPath,hostname,username,password,port,&connectionName)){
+        QtUtilsCriticalMacro()<<"Unable reinitialize DB";
+        return false;
+    }
+    
+    if(a_qry_p->exec("BEGIN;")){ // we will make query atomic
+        return true;
+    }
+    
+    QtUtilsCriticalMacro()<<"Unable start transaction";
+    return false;
+}
+
+
+static inline bool CloneAndOpenDbInline(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p, const SqlDbWrpBase_p& a_dbInp, const QString& a_connectionName){
+    a_db_p->m_db = QSqlDatabase::cloneDatabase(a_dbInp.m_db,a_connectionName);
+    if(!a_db_p->m_db.isOpen()){
+        a_db_p->m_db.open();
+    }
+    if(!a_db_p->m_db.isOpen()){
+        a_db_p->m_type = a_db_p->m_db.driverName();
+        a_db_p->m_connectionName = a_db_p->m_db.connectionName();
+        return true;
+    }
+    return false;
+}
+
+
+static inline bool CloneAndOpenDbInline(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p, const QString& a_oldConnectionName, const QString& a_newConnectionName){
+    a_db_p->m_db = QSqlDatabase::cloneDatabase(a_oldConnectionName,a_newConnectionName);
+    if(!a_db_p->m_db.isOpen()){
+        a_db_p->m_db.open();
+    }
+    if(!a_db_p->m_db.isOpen()){
+        a_db_p->m_type = a_db_p->m_db.driverName();
+        a_db_p->m_connectionName = a_db_p->m_db.connectionName();
+        return true;
+    }
+    return false;
+}
+
+
+static inline QString QVariantToQStringForSqlInline(const QVariant& a_var){
+    return (a_var.typeId()==QMetaType::QString) ? (QString("'") + a_var.toString() + "'") : a_var.toString() ;
+}
+
+
+#ifndef QTUTILS_DBUSE_CLASS_API
+
 SqlDbWrp::~SqlDbWrp()
 {
     SqlDbWrp::CleanupDb();
@@ -42,83 +151,47 @@ SqlDbWrp::SqlDbWrp()
 
 bool SqlDbWrp::StartTransaction(SqlQuery* CPPUTILS_ARG_NN a_qry_p)
 {
-    if(a_qry_p->exec("BEGIN;")){ // we will make query atomic
-        return true;
-    }
-    
-    // connection to DB lost, let's recover it
-    QtUtilsWarningMacro()<<"Connection to DB lost, trying to reopen";
-    const QString type = m_db_data_p->m_type;
-    const QString dbNameOrPath = m_db_data_p->m_db.databaseName();
-    const QString hostname = m_db_data_p->m_db.hostName();
-    const QString username = m_db_data_p->m_db.userName();
-    const QString password = m_db_data_p->m_db.password();
-    const int port = m_db_data_p->m_db.port();
-    
-    this->CleanupDb();
-    if(!Initialize(type,dbNameOrPath,hostname,username,password,port)){
-        QtUtilsCriticalMacro()<<"Unable reinitialize DB";
-        return false;
-    }
-    
-    if(a_qry_p->exec("BEGIN;")){ // we will make query atomic
-        return true;
-    }
-    
-    QtUtilsCriticalMacro()<<"Unable start transaction";
-    return false;
+    return StartTransactionInline(m_db_data_p,a_qry_p);
 }
 
 
 void SqlDbWrp::CleanupDb()
 {
     ::std::lock_guard<SqlDbWrp> aGuard(*this);
-    if(m_db_data_p->m_db.isOpen()){
-        m_db_data_p->m_db.close();
-        SqlDatabase::removeDatabase(m_db_data_p->m_type);
-        m_db_data_p->m_type = "";
-    }
+    CleanupDbInline(m_db_data_p);
 }
 
 
-bool SqlDbWrp::Initialize(const QString& a_type, const QString& a_dbNameOrPath, const QString& a_hostname, const QString& a_username, const QString& a_password, int a_port)
+bool SqlDbWrp::Initialize(const QString& a_type, const QString& a_dbNameOrPath, const QString& a_hostname, const QString& a_username, const QString& a_password, int a_port, const QString* a_connectionName_p)
 {
     ::std::lock_guard<SqlDbWrp> aGuard(*this);
-    m_db_data_p->m_type = a_type;
-    m_db_data_p->m_db = SqlDatabase::addDatabase(a_type);
-    m_db_data_p->m_db.setDatabaseName(a_dbNameOrPath);
-    if(a_hostname.size()>0){
-        m_db_data_p->m_db.setHostName(a_hostname);
-    }
-    if(a_username.size()>0){
-        m_db_data_p->m_db.setUserName(a_username);
-    }
-    if(a_password.size()>0){
-        m_db_data_p->m_db.setPassword(a_password);
-    }
-    if(a_port>=0){
-        m_db_data_p->m_db.setPort(a_port);
-    }
-    
-    if(m_db_data_p->m_db.open()){
-        return true;
-    }
-    
-    SqlDatabase::removeDatabase(a_type);
-    m_db_data_p->m_type = "";
-    return false;
+    return InitializeInline(m_db_data_p,a_type,a_dbNameOrPath,a_hostname,a_username,a_password,a_port, a_connectionName_p);
 }
 
 
-bool SqlDbWrp::InitializePostgreSQL(const QString& a_dbName, const QString& a_hostname, const QString& a_username, const QString& a_password,int a_port)
+bool SqlDbWrp::InitializePostgreSQL(const QString& a_dbName, const QString& a_hostname, const QString& a_username, const QString& a_password,int a_port, const QString* a_connectionName_p)
 {
-    return SqlDbWrp::Initialize("QPSQL",a_dbName,a_hostname,a_username,a_password,a_port);
+    ::std::lock_guard<SqlDbWrp> aGuard(*this);
+    return InitializeInline(m_db_data_p,"QPSQL",a_dbName,a_hostname,a_username,a_password,a_port,a_connectionName_p);
 }
 
 
-bool SqlDbWrp::InitializeSQLite(const QString& a_dbPath)
+bool SqlDbWrp::InitializeSQLite(const QString& a_dbPath, const QString* a_connectionName_p)
 {
-    return SqlDbWrp::Initialize("QSQLITE",a_dbPath,"","","",-1);
+    ::std::lock_guard<SqlDbWrp> aGuard(*this);
+    return InitializeInline(m_db_data_p,"QSQLITE",a_dbPath,"","","",-1,a_connectionName_p);
+}
+
+
+bool SqlDbWrp::CloneAndOpenDb(const SqlDbWrpBase_p& a_dbInp, const QString& a_connectionName)
+{
+    return CloneAndOpenDbInline(m_db_data_p,a_dbInp,a_connectionName);
+}
+
+
+bool SqlDbWrp::CloneAndOpenDb(const QString& a_oldConnectionName, const QString& a_newConnectionName)
+{
+    return CloneAndOpenDbInline(m_db_data_p,a_oldConnectionName,a_newConnectionName);
 }
 
 
@@ -165,10 +238,10 @@ void SqlDbWrp::PrintErrorStatRaw(const QString& a_extraText, const char* a_file,
 }
 
 
-static inline QString QVariantToQStringForSqlInline(const QVariant& a_var){
-    return (a_var.typeId()==QMetaType::QString) ? (QString("'") + a_var.toString() + "'") : a_var.toString() ;
-}
+#endif  //  #ifndef QTUTILS_DBUSE_CLASS_API
 
+
+namespace db{
 
 QTUTILS_EXPORT QString GetLastSqlQuery(const SqlQuery& a_qry)
 {
@@ -225,6 +298,49 @@ QTUTILS_EXPORT QString GetLastSqlQuery(const SqlQuery& a_qry)
     return debugQueryString;
 }
 
+
+QTUTILS_EXPORT bool InitializeGlb(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p, const QString& a_type, const QString& a_dbNameOrPath, const QString& a_hostname, const QString& a_username, const QString& a_password, int a_port, const QString* a_connectionName_p)
+{
+    return InitializeInline(a_db_p,a_type,a_dbNameOrPath,a_hostname,a_username,a_password,a_port,a_connectionName_p);
+}
+
+QTUTILS_EXPORT bool InitializePostgreSQLGlb(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p, const QString& a_dbName, const QString& a_hostname, const QString& a_username, const QString& a_password,int a_port, const QString* a_connectionName_p)
+{
+    return InitializeInline(a_db_p,"QPSQL",a_dbName,a_hostname,a_username,a_password,a_port,a_connectionName_p);
+}
+
+
+QTUTILS_EXPORT bool InitializeSQLiteGlb(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p, const QString& a_dbPath, const QString* a_connectionName_p)
+{
+    return InitializeInline(a_db_p,"QSQLITE",a_dbPath,"","","",-1,a_connectionName_p);
+}
+
+
+QTUTILS_EXPORT bool StartTransactionGlb(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p, SqlQuery* CPPUTILS_ARG_NN a_qry_p)
+{
+    return StartTransactionInline(a_db_p,a_qry_p);
+}
+
+
+QTUTILS_EXPORT void CleanupDbGlb(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p)
+{
+    CleanupDbInline(a_db_p);
+}
+
+
+QTUTILS_EXPORT bool CloneAndOpenDbGlb(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p, const SqlDbWrpBase_p& a_dbInp, const QString& a_connectionName)
+{
+    return CloneAndOpenDbInline(a_db_p,a_dbInp,a_connectionName);
+}
+
+
+QTUTILS_EXPORT bool CloneAndOpenDbGlb(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p,const QString& a_oldConnectionName, const QString& a_newConnectionName)
+{
+    return CloneAndOpenDbInline(a_db_p,a_oldConnectionName,a_newConnectionName);
+}
+
+
+}  //  namespace db{
 
 
 }}  // namespace qtutils { namespace core{
