@@ -103,7 +103,7 @@ static inline bool CloneAndOpenDbInline(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p, 
     if(!a_db_p->m_db.isOpen()){
         a_db_p->m_db.open();
     }
-    if(!a_db_p->m_db.isOpen()){
+    if(a_db_p->m_db.isOpen()){
         a_db_p->m_type = a_db_p->m_db.driverName();
         a_db_p->m_connectionName = a_db_p->m_db.connectionName();
         return true;
@@ -117,7 +117,7 @@ static inline bool CloneAndOpenDbInline(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p, 
     if(!a_db_p->m_db.isOpen()){
         a_db_p->m_db.open();
     }
-    if(!a_db_p->m_db.isOpen()){
+    if(a_db_p->m_db.isOpen()){
         a_db_p->m_type = a_db_p->m_db.driverName();
         a_db_p->m_connectionName = a_db_p->m_db.connectionName();
         return true;
