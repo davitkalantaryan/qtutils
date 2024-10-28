@@ -139,7 +139,7 @@ void ThreadLS_p::run()
     m_construct(m_userData);
     cinternal_unnamed_sema_post(&(this->m_sema));
 
-    QThread::exec();
+    m_main(m_userData);
 }
 
 
