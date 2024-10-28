@@ -32,6 +32,7 @@ namespace db{
 
 QTUTILS_EXPORT QString GetLastSqlQuery(const SqlQuery& a_qry);
 QTUTILS_EXPORT bool StartTransactionGlb(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p, SqlQuery* CPPUTILS_ARG_NN a_qry_p);
+QTUTILS_EXPORT bool StartTransactionAndReadLockTableGlb(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p, SqlQuery* CPPUTILS_ARG_NN a_qry_p, const QString& a_tableName);
 QTUTILS_EXPORT void PrintErrorStatRawGlb(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p, const QString& a_extraText, const char* a_file, int a_line, const char* a_function);
 QTUTILS_EXPORT void CleanupDbGlb(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p);
 QTUTILS_EXPORT bool InitializeGlb(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p, const QString& a_type, const QString& a_dbNameOrPath, const QString& a_hostname, const QString& a_username, const QString& a_password, int a_port, const QString* a_connectionName_p=nullptr);
@@ -52,6 +53,7 @@ public:
     SqlDbWrp();
     
     bool StartTransaction(SqlQuery* CPPUTILS_ARG_NN a_qry_p);
+    bool StartTransactionAndReadLockTable(SqlQuery* CPPUTILS_ARG_NN a_qry_p, const QString& a_tableName);
     void CleanupDb();
     bool Initialize(const QString& a_type, const QString& a_dbNameOrPath, const QString& a_hostname, const QString& a_username, const QString& a_password, int a_port, const QString* a_connectionName_p=nullptr);
     bool InitializePostgreSQL(const QString& a_dbName, const QString& a_hostname, const QString& a_username, const QString& a_password,int a_port, const QString* a_connectionName_p=nullptr);

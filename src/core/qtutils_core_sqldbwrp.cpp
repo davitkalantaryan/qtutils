@@ -69,7 +69,40 @@ static inline bool InitializeInline(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p, cons
 
 
 static inline bool StartTransactionInline(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p, SqlQuery* CPPUTILS_ARG_NN a_qry_p){
+    if(a_qry_p->exec("BEGIN;")){
+        return true;
+    }
+    
+    // connection to DB lost, let's recover it
+    QtUtilsWarningMacro()<<"Connection to DB lost, trying to reopen";
+    const QString type = a_db_p->m_type;
+    const QString connectionName = a_db_p->m_connectionName;
+    const QString dbNameOrPath = a_db_p->m_db.databaseName();
+    const QString hostname = a_db_p->m_db.hostName();
+    const QString username = a_db_p->m_db.userName();
+    const QString password = a_db_p->m_db.password();
+    const int port = a_db_p->m_db.port();
+    
+    CleanupDbInline(a_db_p);
+    if(!InitializeInline(a_db_p,type,dbNameOrPath,hostname,username,password,port,&connectionName)){
+        QtUtilsCriticalMacro()<<"Unable reinitialize DB";
+        return false;
+    }
+    
     if(a_qry_p->exec("BEGIN;")){ // we will make query atomic
+        return true;
+    }
+    
+    QtUtilsCriticalMacro()<<"Unable start transaction";
+    return false;
+}
+
+
+static inline bool StartTransactionAndReadLockTableInline(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p, SqlQuery* CPPUTILS_ARG_NN a_qry_p, const QString& a_tableName){
+    if(a_qry_p->exec(
+                "BEGIN; \n"
+                "LOCK TABLE " + a_tableName + " IN SHARE ROW EXCLUSIVE MODE;"))
+    {
         return true;
     }
     
@@ -152,6 +185,12 @@ SqlDbWrp::SqlDbWrp()
 bool SqlDbWrp::StartTransaction(SqlQuery* CPPUTILS_ARG_NN a_qry_p)
 {
     return StartTransactionInline(m_db_data_p,a_qry_p);
+}
+
+
+bool SqlDbWrp::StartTransactionAndReadLockTable(SqlQuery* CPPUTILS_ARG_NN a_qry_p, const QString& a_tableName)
+{
+    return StartTransactionAndReadLockTableInline(m_db_data_p,a_qry_p,a_tableName);
 }
 
 
@@ -319,6 +358,12 @@ QTUTILS_EXPORT bool InitializeSQLiteGlb(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p, 
 QTUTILS_EXPORT bool StartTransactionGlb(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p, SqlQuery* CPPUTILS_ARG_NN a_qry_p)
 {
     return StartTransactionInline(a_db_p,a_qry_p);
+}
+
+
+QTUTILS_EXPORT bool StartTransactionAndReadLockTableGlb(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p, SqlQuery* CPPUTILS_ARG_NN a_qry_p, const QString& a_tableName)
+{
+    return StartTransactionAndReadLockTableInline(a_db_p,a_qry_p,a_tableName);
 }
 
 
