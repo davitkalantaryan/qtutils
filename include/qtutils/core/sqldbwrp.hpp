@@ -13,6 +13,7 @@
 #include <QString>
 #include <QSqlQuery>
 #include <QSqlDatabase>
+#include <QStringList>
 
 
 namespace qtutils { namespace core{
@@ -32,7 +33,7 @@ namespace db{
 
 QTUTILS_EXPORT QString GetLastSqlQuery(const SqlQuery& a_qry);
 QTUTILS_EXPORT bool StartTransactionGlb(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p, SqlQuery* CPPUTILS_ARG_NN a_qry_p);
-QTUTILS_EXPORT bool OnlyWriteLockTableGlb(SqlQuery* CPPUTILS_ARG_NN a_qry_p, const QString& a_tableName);
+QTUTILS_EXPORT bool LockOfTablesGlb(SqlQuery* CPPUTILS_ARG_NN a_qry_p, const QStringList& a_tablesNames, const QString& a_lockMode = QString("SHARE ROW EXCLUSIVE"));
 QTUTILS_EXPORT void PrintErrorStatRawGlb(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p, const QString& a_extraText, const char* a_file, int a_line, const char* a_function);
 QTUTILS_EXPORT void CleanupDbGlb(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p);
 QTUTILS_EXPORT bool InitializeGlb(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p, const QString& a_type, const QString& a_dbNameOrPath, const QString& a_hostname, const QString& a_username, const QString& a_password, int a_port, const QString* a_connectionName_p=nullptr);

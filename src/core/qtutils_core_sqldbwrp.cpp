@@ -98,8 +98,19 @@ static inline bool StartTransactionInline(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p
 }
 
 
-static inline bool OnlyWriteLockTableleInline(SqlQuery* CPPUTILS_ARG_NN a_qry_p, const QString& a_tableName){
-    return a_qry_p->exec("LOCK TABLE " + a_tableName + " IN SHARE ROW EXCLUSIVE MODE;");
+static inline bool LockOfTablesInline(SqlQuery* CPPUTILS_ARG_NN a_qry_p, const QStringList& a_tablesNames, const QString& a_lockMode){
+    const qsizetype tablesCount = a_tablesNames.size();
+    if(tablesCount>0){
+        QString execStr = "LOCK TABLE " + a_tablesNames.at(0);
+        if(tablesCount>1){
+            for(qsizetype i(1); i<tablesCount; ++i){
+                execStr += (", " + a_tablesNames.at(i));
+            }  //  for(qsizetype i(1); i<tablesCount; ++i){
+        }  //  if(tablesCount>1){
+        execStr += " IN " + a_lockMode + " MODE;";
+        return a_qry_p->exec(execStr);
+    }  //  if(tablesCount>0){
+    return false;
 }
 
 
@@ -327,9 +338,9 @@ QTUTILS_EXPORT bool StartTransactionGlb(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p, 
 }
 
 
-QTUTILS_EXPORT bool OnlyWriteLockTableGlb(SqlQuery* CPPUTILS_ARG_NN a_qry_p, const QString& a_tableName)
+QTUTILS_EXPORT bool LockOfTablesGlb(SqlQuery* CPPUTILS_ARG_NN a_qry_p, const QStringList& a_tablesNames, const QString& a_lockMode)
 {
-    return OnlyWriteLockTableleInline(a_qry_p,a_tableName);
+    return LockOfTablesInline(a_qry_p,a_tablesNames,a_lockMode);
 }
 
 
