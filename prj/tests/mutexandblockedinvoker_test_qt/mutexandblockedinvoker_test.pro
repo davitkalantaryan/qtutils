@@ -26,6 +26,7 @@ CONFIG += c++17
 
 
 #SOURCES += $$files($${qtutilsRepoRoot}/src/tests/some_qt_tests/*.cpp,true)
-SOURCES += "$${qtutilsRepoRoot}/src/tests/main_invokeblocked_test.cpp"
-SOURCES += "$${qtutilsRepoRoot}/src/core/qtutils_core_clsinvokeblocked.cpp"
+SOURCES += "$${qtutilsRepoRoot}/src/tests/main_mutexandblockedinvoker_test.cpp"
 HEADERS += "$${qtutilsRepoRoot}/include/qtutils/core/clsinvokeblocked.hpp"
+HEADERS += "$${qtutilsRepoRoot}/include/qtutils/core/mutexandblockedinvoker.hpp"
+HEADERS += "$${qtutilsRepoRoot}/include/qtutils/core/impl/qtutils_core_mutexandblockedinvoker.impl.hpp"

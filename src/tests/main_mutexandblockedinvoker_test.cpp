@@ -1,12 +1,13 @@
 //
-// file:		main_q_enums_test.cpp
-// path:		src/tests/main_q_enums_test.cpp
-// created on:	2024 May 06
+// repo:        qtutils
+// file:		main_mutexandblockedinvoker_test.cpp
+// path:		src/tests/main_mutexandblockedinvoker_test.cpp
+// created on:	2024 Oct 29
 // creatd by:	Davit Kalantaryan (davit.kalantaryan@desy.de)
 //
 
 
-#include <qtutils/core/clsinvokeblocked.hpp>
+#include <qtutils/core/mutexandblockedinvoker.hpp>
 #include <thread>
 #include <mutex>
 #include <iostream>
@@ -22,7 +23,7 @@ class MyThread : public QThread{
 
 
 static QObject*     s_pObject=nullptr;
-static ::qtutils::core::blocking::Carrier*  s_pCarier = nullptr;
+static ::qtutils::core::mutexandblockedinvoker::Mutex<::std::recursive_mutex>*  s_pCarier = nullptr;
 static bool s_rawThreadCallExecuted = false;
 
 
@@ -42,14 +43,14 @@ static void RawThreadFunctionStatic()
 {
     ::std::cout<<"Std Thread id: "<< ::std::this_thread::get_id()<< ::std::endl;
     
-    ::std::lock_guard<::qtutils::core::blocking::Carrier> aGuard(*s_pCarier);
+    ::std::lock_guard<::qtutils::core::mutexandblockedinvoker::Mutex<::std::recursive_mutex> > aGuard(*s_pCarier);
     
     while(!s_pObject){
         QThread::sleep(2);
     }
     
-    ::qtutils::core::blocking::CInvoke(s_pCarier,s_pObject,[](){
-        ::std::lock_guard<::qtutils::core::blocking::Carrier> aGuard(*s_pCarier);
+    ::qtutils::core::mutexandblockedinvoker::CInvoke(s_pCarier,s_pObject,[](){
+        ::std::lock_guard<::qtutils::core::mutexandblockedinvoker::Mutex<::std::recursive_mutex> > aGuard(*s_pCarier);
         ::std::cout<<"Thread id 02: "<< ::std::this_thread::get_id()<< ::std::endl;
     });
     
@@ -59,7 +60,7 @@ static void RawThreadFunctionStatic()
 
 int main(int a_argc, char* a_argv[])
 {
-    ::qtutils::core::blocking::Carrier aCarier;
+    ::qtutils::core::mutexandblockedinvoker::Mutex<::std::recursive_mutex> aCarier;
     fprintf(stdout,"Press any key then enter to continue! ");
     fflush(stdout);
     getchar();
@@ -80,8 +81,8 @@ int main(int a_argc, char* a_argv[])
         QThread::sleep(2);
     }
     
-    ::qtutils::core::blocking::CInvoke(s_pCarier,s_pObject,[](){
-        ::std::lock_guard<::qtutils::core::blocking::Carrier> aGuard(*s_pCarier);
+    ::qtutils::core::mutexandblockedinvoker::CInvoke<::std::recursive_mutex>(s_pCarier,s_pObject,[](){
+        ::std::lock_guard<::qtutils::core::mutexandblockedinvoker::Mutex<::std::recursive_mutex> > aGuard(*s_pCarier);
         ::std::cout<<"Thread id 01: "<< ::std::this_thread::get_id()<< ::std::endl;
     });
     
