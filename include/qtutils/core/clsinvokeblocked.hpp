@@ -21,16 +21,19 @@ namespace qtutils { namespace core{ namespace blocking{
 
 typedef ::std::function<void(void)>  TypeFunc;
 class CPPUTILS_DLL_PRIVATE Carrier_p;
-class CPPUTILS_DLL_PRIVATE LockBase_p;
-class QTUTILS_EXPORT LockBase;
+class CPPUTILS_DLL_PRIVATE CInvoke_p;
+class QTUTILS_EXPORT CInvoke;
 
 
 class QTUTILS_EXPORT Carrier final
 {
-    friend class LockBase;
+    friend class CInvoke;
 public:
     ~Carrier();
     Carrier();
+    
+    void lock();
+    void unlock();
         
 private:
     Carrier(const Carrier&) = delete;
@@ -42,38 +45,11 @@ private:
     Carrier_p* const  m_data_p;
 };
 
-class QTUTILS_EXPORT LockBase
-{
-protected:
-    virtual ~LockBase();
-    LockBase(Carrier* CPPUTILS_ARG_NN a_pCarier);
-    LockBase(const LockBase&) = delete;
-    LockBase(LockBase&&) = delete;
-    LockBase& operator=(const LockBase&) = delete;
-    LockBase& operator=(LockBase&&) = delete;
-        
-protected:
-    LockBase_p* const   m_data_p;
-};
 
-
-class QTUTILS_EXPORT LockGuard final : public LockBase
+class QTUTILS_EXPORT CInvoke final 
 {    
 public:
-    ~LockGuard() override;
-    LockGuard(Carrier* CPPUTILS_ARG_NN a_pCarier);
-    
-private:
-    LockGuard(const LockGuard&) = delete;
-    LockGuard(LockGuard&&) = delete;
-    LockGuard& operator=(const LockGuard&) = delete;
-    LockGuard& operator=(LockGuard&&) = delete;
-};
-
-
-class QTUTILS_EXPORT CInvoke final : public LockBase
-{    
-public:
+    ~CInvoke();
     CInvoke(Carrier* CPPUTILS_ARG_NN a_pCarier, QObject* CPPUTILS_ARG_NN a_pObj, const TypeFunc& a_func);
     
 private:
@@ -81,6 +57,9 @@ private:
     CInvoke(CInvoke&&) = delete;
     CInvoke& operator=(const CInvoke&) = delete;
     CInvoke& operator=(CInvoke&&) = delete;
+    
+private:
+    CInvoke_p* const    m_data_p;
 };
 
 

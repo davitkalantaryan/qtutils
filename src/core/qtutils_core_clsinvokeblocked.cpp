@@ -31,27 +31,15 @@ public:
 public:
     inline void IncrementCurrentValue(size_t a_currentValue);
     inline size_t DecrementCurrentValue();
+    inline void LockInline();
+    inline void UnlockInline();
 };
 
 
-class CPPUTILS_DLL_PRIVATE LockBase_p{
+class CPPUTILS_DLL_PRIVATE CInvoke_p{
 public:
     Carrier_p*  carrier_p;
 };
-
-
-LockBase::~LockBase()
-{
-    delete m_data_p;
-}
-
-
-LockBase::LockBase(Carrier* CPPUTILS_ARG_NN a_pCarier)
-    :
-      m_data_p(new LockBase_p())
-{
-    m_data_p->carrier_p = a_pCarier->m_data_p;
-}
 
 
 ///
@@ -70,6 +58,27 @@ inline size_t Carrier_p::DecrementCurrentValue()
     --currentValue;
     CinternalTlsSetSpecific(this->m_tls_data2,(void*)currentValue);
     return currentValue;
+}
+
+
+inline void Carrier_p::LockInline()
+{
+    size_t currentValue = (size_t)CinternalTlsGetSpecific(m_tls_data2);
+    if(currentValue){
+        IncrementCurrentValue(currentValue);
+    }
+    else{
+        cinternal_lw_recursive_mutex_lock(&m_mutex_rc);
+        CinternalTlsSetSpecific(m_tls_data2,(void*)1);
+    }
+}
+
+
+inline void Carrier_p::UnlockInline()
+{
+    if(!DecrementCurrentValue()){
+        cinternal_lw_recursive_mutex_unlock(&m_mutex_rc);
+    }
 }
 
 
@@ -96,39 +105,32 @@ Carrier::Carrier()
     }
 }
 
-///
 
-
-LockGuard::~LockGuard()
+void Carrier::lock()
 {
-    if(!m_data_p->carrier_p->DecrementCurrentValue()){
-        cinternal_lw_recursive_mutex_unlock(&(m_data_p->carrier_p->m_mutex_rc));
-    }
+    m_data_p->LockInline();
 }
 
 
-LockGuard::LockGuard(Carrier* CPPUTILS_ARG_NN a_pCarier)
-    :
-      LockBase(a_pCarier)
+void Carrier::unlock()
 {
-    size_t currentValue = (size_t)CinternalTlsGetSpecific(m_data_p->carrier_p->m_tls_data2);
-    if(currentValue){
-        m_data_p->carrier_p->IncrementCurrentValue(currentValue);
-    }
-    else{
-        cinternal_lw_recursive_mutex_lock(&(m_data_p->carrier_p->m_mutex_rc));
-        CinternalTlsSetSpecific(m_data_p->carrier_p->m_tls_data2,(void*)1);
-    }
+    m_data_p->UnlockInline();
 }
 
 
-/// 
+/*///////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
+
+CInvoke::~CInvoke()
+{
+    delete m_data_p;
+}
 
 
 CInvoke::CInvoke(Carrier* CPPUTILS_ARG_NN a_pCarier, QObject* CPPUTILS_ARG_NN a_pObj, const TypeFunc& a_func)
     :
-      LockBase(a_pCarier)
+      m_data_p(new CInvoke_p())
 {
+    m_data_p->carrier_p = a_pCarier->m_data_p;
     size_t currentValue = (size_t)CinternalTlsGetSpecific(m_data_p->carrier_p->m_tls_data2);
     if(a_pObj->thread() == QThread::currentThread()){
         m_data_p->carrier_p->IncrementCurrentValue(currentValue);
@@ -157,7 +159,6 @@ CInvoke::CInvoke(Carrier* CPPUTILS_ARG_NN a_pCarier, QObject* CPPUTILS_ARG_NN a_
         }
     }    
 }
-
 
 
 

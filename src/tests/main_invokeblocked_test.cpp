@@ -8,6 +8,7 @@
 
 #include <qtutils/core/clsinvokeblocked.hpp>
 #include <thread>
+#include <mutex>
 #include <iostream>
 #include <stdio.h>
 #include <qtutils/disable_utils_warnings.h>
@@ -41,14 +42,14 @@ static void RawThreadFunctionStatic()
 {
     ::std::cout<<"Std Thread id: "<< ::std::this_thread::get_id()<< ::std::endl;
     
-    ::qtutils::core::blocking::LockGuard aGuard(s_pCarier);
+    ::std::lock_guard<::qtutils::core::blocking::Carrier> aGuard(*s_pCarier);
     
     while(!s_pObject){
         QThread::sleep(2);
     }
     
     ::qtutils::core::blocking::CInvoke(s_pCarier,s_pObject,[](){
-        ::qtutils::core::blocking::LockGuard aGuard(s_pCarier);
+        ::std::lock_guard<::qtutils::core::blocking::Carrier> aGuard(*s_pCarier);
         ::std::cout<<"Thread id 02: "<< ::std::this_thread::get_id()<< ::std::endl;
     });
     
@@ -80,7 +81,7 @@ int main(int a_argc, char* a_argv[])
     }
     
     ::qtutils::core::blocking::CInvoke(s_pCarier,s_pObject,[](){
-        ::qtutils::core::blocking::LockGuard aGuard(s_pCarier);
+        ::std::lock_guard<::qtutils::core::blocking::Carrier> aGuard(*s_pCarier);
         ::std::cout<<"Thread id 01: "<< ::std::this_thread::get_id()<< ::std::endl;
     });
     
