@@ -32,7 +32,9 @@ class QTUTILS_EXPORT SqlDbWrpBase_p;
 namespace db{
 
 QTUTILS_EXPORT QString GetLastSqlQuery(const SqlQuery& a_qry);
-QTUTILS_EXPORT bool StartTransactionGlb(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p, SqlQuery* CPPUTILS_ARG_NN a_qry_p);
+QTUTILS_EXPORT bool StartTransactionGlb(SqlQuery* CPPUTILS_ARG_NN a_qry_p);
+QTUTILS_EXPORT bool StartTransactionGlb(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p,SqlQuery* CPPUTILS_ARG_NN a_qry_p);
+QTUTILS_EXPORT bool CheckAndTryToReconnectDbGlb(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p, SqlQuery* CPPUTILS_ARG_NN a_qry_p);
 QTUTILS_EXPORT bool LockOfTablesGlb(SqlQuery* CPPUTILS_ARG_NN a_qry_p, const QStringList& a_tablesNames, const QString& a_lockMode = QString("SHARE ROW EXCLUSIVE"));
 QTUTILS_EXPORT void PrintErrorStatRawGlb(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p, const QString& a_extraText, const char* a_file, int a_line, const char* a_function);
 QTUTILS_EXPORT void CleanupDbGlb(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p);
@@ -41,6 +43,31 @@ QTUTILS_EXPORT bool InitializePostgreSQLGlb(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db
 QTUTILS_EXPORT bool InitializeSQLiteGlb(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p, const QString& a_dbPath, const QString* a_connectionName_p=nullptr);
 QTUTILS_EXPORT bool CloneAndOpenDbGlb(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p, const SqlDbWrpBase_p& a_dbInp, const QString& a_connectionName);
 QTUTILS_EXPORT bool CloneAndOpenDbGlb(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p, const QString& a_oldConnectionName, const QString& a_newConnectionName);
+
+class QTUTILS_EXPORT MutexPg
+{
+public:
+    MutexPg(const QStringList& a_tablesNames, const QString& a_lockMode = QString("SHARE ROW EXCLUSIVE"));
+    MutexPg(const MutexPg&)=delete;
+    MutexPg(MutexPg&&)=delete;
+    MutexPg& operator=(const MutexPg&)=delete;
+    MutexPg& operator=(MutexPg&&)=delete;
+    
+    void SetQuery(SqlQuery* CPPUTILS_ARG_NN a_qry_p);
+    void SetOkStatus(bool a_bIsOk);
+    void lock(SqlQuery* CPPUTILS_ARG_NN a_qry_p);
+    void lock();
+    void unlock();
+    
+private:
+    const QStringList   m_tablesNames;
+    const QString       m_lockMode;
+    QString             m_savePointStr;
+    SqlQuery*           m_qry_p;
+    bool                m_bOk;
+    bool                m_bHasSavepoint;
+    bool                m_reserved01[(sizeof(void*)-sizeof(bool))/sizeof(bool)];
+};
 
 }  //  namespace db{
 

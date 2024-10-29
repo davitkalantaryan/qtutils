@@ -7,6 +7,7 @@
 
 #include <qtutils/core/sqldbwrp_p.hpp>
 #include <mutex>
+#include <atomic>
 #ifdef QTUTILS_LOGGER_IS_USED
 #include <qtutils/core/logger.hpp>
 #define QtUtilsCriticalMacro        QtUtilsCritical
@@ -90,6 +91,36 @@ static inline bool StartTransactionInline(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p
     }
     
     if(a_qry_p->exec("BEGIN;")){ // we will make query atomic
+        return true;
+    }
+    
+    QtUtilsCriticalMacro()<<"Unable start transaction";
+    return false;
+}
+
+
+static inline bool CheckAndTryToReconnectDbInline(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p, SqlQuery* CPPUTILS_ARG_NN a_qry_p){
+    if(a_qry_p->exec("SELECT 1;")){
+        return true;
+    }
+    
+    // connection to DB lost, let's recover it
+    QtUtilsWarningMacro()<<"Connection to DB lost, trying to reopen";
+    const QString type = a_db_p->m_type;
+    const QString connectionName = a_db_p->m_connectionName;
+    const QString dbNameOrPath = a_db_p->m_db.databaseName();
+    const QString hostname = a_db_p->m_db.hostName();
+    const QString username = a_db_p->m_db.userName();
+    const QString password = a_db_p->m_db.password();
+    const int port = a_db_p->m_db.port();
+    
+    CleanupDbInline(a_db_p);
+    if(!InitializeInline(a_db_p,type,dbNameOrPath,hostname,username,password,port,&connectionName)){
+        QtUtilsCriticalMacro()<<"Unable reinitialize DB";
+        return false;
+    }
+    
+    if(a_qry_p->exec("SELECT 1;")){ // we will make query atomic
         return true;
     }
     
@@ -259,6 +290,84 @@ void SqlDbWrp::PrintErrorStatRaw(const QString& a_extraText, const char* a_file,
 
 namespace db{
 
+
+static inline QString GetUniqueNameForDbSavepointInline(){
+    static ::std::atomic<int> s_atomicInt(0);
+    const int cnUniqueNumber = s_atomicInt.fetch_add(1, std::memory_order_relaxed);
+    return "UniqueNameForDbSavepoint" + QString::number(cnUniqueNumber);
+}
+
+
+static inline bool LockDbInline(SqlQuery* CPPUTILS_ARG_NN a_qry_p, QString* CPPUTILS_ARG_NN a_pSavepointStr, bool* CPPUTILS_ARG_NN a_bpHasSavePoint){
+    if(!a_qry_p->exec("SELECT txid_current_if_assigned();")){
+        return false;
+    }
+    
+    const bool bHasTransaction = a_qry_p->first();
+    if(bHasTransaction){
+        *a_bpHasSavePoint = true;
+        *a_pSavepointStr = GetUniqueNameForDbSavepointInline();
+        return a_qry_p->exec("SAVEPOINT "+ (*a_pSavepointStr) + ";");
+    }
+    
+    *a_bpHasSavePoint = false;
+    *a_pSavepointStr = QString();
+    return a_qry_p->exec("BEGIN;");
+}
+
+
+MutexPg::MutexPg(const QStringList& a_tablesNames, const QString& a_lockMode )
+    :
+      m_tablesNames(a_tablesNames),
+      m_lockMode(a_lockMode),
+      m_qry_p(nullptr)
+{
+    m_bOk = false;
+    m_bHasSavepoint = false;
+    static_cast<void>(m_reserved01);
+}
+
+
+void MutexPg::SetQuery(SqlQuery* CPPUTILS_ARG_NN a_qry_p)
+{
+    m_qry_p = a_qry_p;
+}
+
+
+void MutexPg::SetOkStatus(bool a_bIsOk)
+{
+    m_bOk = a_bIsOk;
+}
+
+
+void MutexPg::lock()
+{
+    if(m_qry_p){
+        m_bOk = LockDbInline(m_qry_p,&m_savePointStr,&m_bHasSavepoint);
+    }
+}
+
+
+void MutexPg::lock(SqlQuery* CPPUTILS_ARG_NN a_qry_p)
+{
+    m_qry_p = a_qry_p;
+    m_bOk = LockDbInline(m_qry_p,&m_savePointStr,&m_bHasSavepoint);
+}
+
+
+void MutexPg::unlock()
+{
+    if(m_bHasSavepoint){
+        m_qry_p->exec( m_bOk ? (QString("RELEASE TO SAVEPOINT ") + m_savePointStr + ";") : (QString("ROLLBACK TO SAVEPOINT ") + m_savePointStr + ";"));
+        m_bHasSavepoint = false;
+        m_savePointStr = QString();
+    }
+    else{
+        m_qry_p->exec( m_bOk ? QString("COMMIT;") : QString("ROLLBACK;"));
+    }
+}
+
+
 QTUTILS_EXPORT QString GetLastSqlQuery(const SqlQuery& a_qry)
 {
     // see: https://doc.qt.io/qt-6/qsqlquery.html#prepare
@@ -335,6 +444,18 @@ QTUTILS_EXPORT bool InitializeSQLiteGlb(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p, 
 QTUTILS_EXPORT bool StartTransactionGlb(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p, SqlQuery* CPPUTILS_ARG_NN a_qry_p)
 {
     return StartTransactionInline(a_db_p,a_qry_p);
+}
+
+
+QTUTILS_EXPORT bool StartTransactionGlb(SqlQuery* CPPUTILS_ARG_NN a_qry_p)
+{
+    return a_qry_p->exec("BEGIN;");
+}
+
+
+QTUTILS_EXPORT bool CheckAndTryToReconnectDbGlb(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p, SqlQuery* CPPUTILS_ARG_NN a_qry_p)
+{
+    return CheckAndTryToReconnectDbInline(a_db_p,a_qry_p);
 }
 
 
