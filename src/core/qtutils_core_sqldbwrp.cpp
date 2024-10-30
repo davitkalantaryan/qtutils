@@ -25,6 +25,17 @@
 namespace qtutils { namespace core{
 
 
+static inline void PrintErrorStatRawInline(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p, const QString& a_extraText, const char* a_file, int a_line, const char* a_function)
+{
+    const QSqlError sqlErr = a_db_p->m_db.lastError();
+    QMessageLogger(a_file, a_line, a_function).critical()<< a_extraText << sqlErr.text();
+    QMessageLogger(a_file, a_line, a_function).critical()<< "> Database error:" << sqlErr.databaseText();
+    QMessageLogger(a_file, a_line, a_function).critical()<< "> Driver error:" << sqlErr.driverText();
+    QMessageLogger(a_file, a_line, a_function).critical()<< "> Native error code:" << sqlErr.nativeErrorCode();
+    QMessageLogger(a_file, a_line, a_function).critical()<< "> Error type" << sqlErr.type();
+}
+
+
 static inline void CleanupDbInline(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p){
     if(a_db_p->m_db.isOpen()){
         a_db_p->m_db.close();
@@ -69,36 +80,6 @@ static inline bool InitializeInline(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p, cons
 }
 
 
-static inline bool StartTransactionInline(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p, SqlQuery* CPPUTILS_ARG_NN a_qry_p){
-    if(a_qry_p->exec("BEGIN;")){
-        return true;
-    }
-    
-    // connection to DB lost, let's recover it
-    QtUtilsWarningMacro()<<"Connection to DB lost, trying to reopen";
-    const QString type = a_db_p->m_type;
-    const QString connectionName = a_db_p->m_connectionName;
-    const QString dbNameOrPath = a_db_p->m_db.databaseName();
-    const QString hostname = a_db_p->m_db.hostName();
-    const QString username = a_db_p->m_db.userName();
-    const QString password = a_db_p->m_db.password();
-    const int port = a_db_p->m_db.port();
-    
-    CleanupDbInline(a_db_p);
-    if(!InitializeInline(a_db_p,type,dbNameOrPath,hostname,username,password,port,&connectionName)){
-        QtUtilsCriticalMacro()<<"Unable reinitialize DB";
-        return false;
-    }
-    
-    if(a_qry_p->exec("BEGIN;")){ // we will make query atomic
-        return true;
-    }
-    
-    QtUtilsCriticalMacro()<<"Unable start transaction";
-    return false;
-}
-
-
 static inline bool CheckAndTryToReconnectDbInline(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p, SqlQuery* CPPUTILS_ARG_NN a_qry_p){
     if(a_qry_p->exec("SELECT 1;")){
         return true;
@@ -129,19 +110,27 @@ static inline bool CheckAndTryToReconnectDbInline(SqlDbWrpBase_p* CPPUTILS_ARG_N
 }
 
 
-static inline bool LockOfTablesInline(SqlQuery* CPPUTILS_ARG_NN a_qry_p, const QStringList& a_tablesNames, const QString& a_lockMode){
+#define LockOfTablesInlineMacro(_qry_p,_tablesNamesStr,_lockMode)   \
+    (_qry_p)->exec("LOCK TABLE " + (_tablesNamesStr) + " IN " + (_lockMode) + " MODE;")
+
+
+static inline QString TableNamesStrFromListInline(const QStringList& a_tablesNames){
     const qsizetype tablesCount = a_tablesNames.size();
     if(tablesCount>0){
-        QString execStr = "LOCK TABLE " + a_tablesNames.at(0);
+        QString tablesNamesStr = a_tablesNames.at(0);
         if(tablesCount>1){
             for(qsizetype i(1); i<tablesCount; ++i){
-                execStr += (", " + a_tablesNames.at(i));
+                tablesNamesStr += (", " + a_tablesNames.at(i));
             }  //  for(qsizetype i(1); i<tablesCount; ++i){
         }  //  if(tablesCount>1){
-        execStr += " IN " + a_lockMode + " MODE;";
-        return a_qry_p->exec(execStr);
+        return tablesNamesStr;
     }  //  if(tablesCount>0){
-    return false;
+    return QString();
+}
+
+
+static inline bool LockOfTablesInline(SqlQuery* CPPUTILS_ARG_NN a_qry_p, const QStringList& a_tablesNames, const QString& a_lockMode){
+    return LockOfTablesInlineMacro(a_qry_p,TableNamesStrFromListInline(a_tablesNames),a_lockMode);
 }
 
 
@@ -193,12 +182,6 @@ SqlDbWrp::SqlDbWrp()
       m_db_data_p(new SqlDbWrp_p())
 {
     cinternal_lw_recursive_mutex_create(&(m_db_data_p->m_mutex));
-}
-
-
-bool SqlDbWrp::StartTransaction(SqlQuery* CPPUTILS_ARG_NN a_qry_p)
-{
-    return StartTransactionInline(m_db_data_p,a_qry_p);
 }
 
 
@@ -276,12 +259,7 @@ void SqlDbWrp::Commit()
 
 void SqlDbWrp::PrintErrorStatRaw(const QString& a_extraText, const char* a_file, int a_line, const char* a_function)
 {
-    const QSqlError sqlErr = m_db_data_p->m_db.lastError();
-    QMessageLogger(a_file, a_line, a_function).critical()<< a_extraText << sqlErr.text();
-    QMessageLogger(a_file, a_line, a_function).critical()<< "> Database error:" << sqlErr.databaseText();
-    QMessageLogger(a_file, a_line, a_function).critical()<< "> Driver error:" << sqlErr.driverText();
-    QMessageLogger(a_file, a_line, a_function).critical()<< "> Native error code:" << sqlErr.nativeErrorCode();
-    QMessageLogger(a_file, a_line, a_function).critical()<< "> Error type" << sqlErr.type();
+    PrintErrorStatRawInline(m_db_data_p,a_extraText, a_file,a_line,a_function);
 }
 
 
@@ -298,19 +276,17 @@ static inline QString GetUniqueNameForDbSavepointInline(){
 }
 
 
-static inline bool LockDbInline(SqlQuery* CPPUTILS_ARG_NN a_qry_p, QString* CPPUTILS_ARG_NN a_pSavepointStr, bool* CPPUTILS_ARG_NN a_bpHasSavePoint){
+static inline bool StartTransactionOrSaveStateInline(SqlQuery* CPPUTILS_ARG_NN a_qry_p, QString* CPPUTILS_ARG_NN a_pSavepointStr){
     if(!a_qry_p->exec("SELECT txid_current_if_assigned();")){
         return false;
     }
     
     const bool bHasTransaction = a_qry_p->first();
     if(bHasTransaction){
-        *a_bpHasSavePoint = true;
         *a_pSavepointStr = GetUniqueNameForDbSavepointInline();
         return a_qry_p->exec("SAVEPOINT "+ (*a_pSavepointStr) + ";");
     }
     
-    *a_bpHasSavePoint = false;
     *a_pSavepointStr = QString();
     return a_qry_p->exec("BEGIN;");
 }
@@ -318,12 +294,11 @@ static inline bool LockDbInline(SqlQuery* CPPUTILS_ARG_NN a_qry_p, QString* CPPU
 
 MutexPg::MutexPg(const QStringList& a_tablesNames, const QString& a_lockMode )
     :
-      m_tablesNames(a_tablesNames),
+      m_tablesNamesStr(TableNamesStrFromListInline(a_tablesNames)),
       m_lockMode(a_lockMode),
       m_qry_p(nullptr)
 {
     m_bOk = false;
-    m_bHasSavepoint = false;
     static_cast<void>(m_reserved01);
 }
 
@@ -343,23 +318,30 @@ void MutexPg::SetOkStatus(bool a_bIsOk)
 void MutexPg::lock()
 {
     if(m_qry_p){
-        m_bOk = LockDbInline(m_qry_p,&m_savePointStr,&m_bHasSavepoint);
-    }
+        m_bOk = StartTransactionOrSaveStateInline(m_qry_p,&m_savePointStr);
+        if(!m_bOk){
+            return;
+        }
+        m_bOk = LockOfTablesInlineMacro(m_qry_p,m_tablesNamesStr,m_lockMode);
+    }  //  if(m_qry_p){
 }
 
 
 void MutexPg::lock(SqlQuery* CPPUTILS_ARG_NN a_qry_p)
 {
     m_qry_p = a_qry_p;
-    m_bOk = LockDbInline(m_qry_p,&m_savePointStr,&m_bHasSavepoint);
+    m_bOk = StartTransactionOrSaveStateInline(m_qry_p,&m_savePointStr);
+    if(!m_bOk){
+        return;
+    }
+    m_bOk = LockOfTablesInlineMacro(m_qry_p,m_tablesNamesStr,m_lockMode);
 }
 
 
 void MutexPg::unlock()
 {
-    if(m_bHasSavepoint){
+    if(m_savePointStr.size()>1){
         m_qry_p->exec( m_bOk ? (QString("RELEASE TO SAVEPOINT ") + m_savePointStr + ";") : (QString("ROLLBACK TO SAVEPOINT ") + m_savePointStr + ";"));
-        m_bHasSavepoint = false;
         m_savePointStr = QString();
     }
     else{
@@ -441,15 +423,15 @@ QTUTILS_EXPORT bool InitializeSQLiteGlb(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p, 
 }
 
 
-QTUTILS_EXPORT bool StartTransactionGlb(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p, SqlQuery* CPPUTILS_ARG_NN a_qry_p)
+QTUTILS_EXPORT bool StartTransactionOrSaveStateGlb(SqlQuery* CPPUTILS_ARG_NN a_qry_p, QString* CPPUTILS_ARG_NN a_pSavepointStr)
 {
-    return StartTransactionInline(a_db_p,a_qry_p);
+    return StartTransactionOrSaveStateInline(a_qry_p, a_pSavepointStr);
 }
 
 
-QTUTILS_EXPORT bool StartTransactionGlb(SqlQuery* CPPUTILS_ARG_NN a_qry_p)
+QTUTILS_EXPORT void PrintErrorStatRawGlb(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p, const QString& a_extraText, const char* a_file, int a_line, const char* a_function)
 {
-    return a_qry_p->exec("BEGIN;");
+    PrintErrorStatRawInline(a_db_p,a_extraText, a_file,a_line,a_function);
 }
 
 
@@ -459,9 +441,15 @@ QTUTILS_EXPORT bool CheckAndTryToReconnectDbGlb(SqlDbWrpBase_p* CPPUTILS_ARG_NN 
 }
 
 
-QTUTILS_EXPORT bool LockOfTablesGlb(SqlQuery* CPPUTILS_ARG_NN a_qry_p, const QStringList& a_tablesNames, const QString& a_lockMode)
+QTUTILS_EXPORT bool LockOfTablesGlb2(SqlQuery* CPPUTILS_ARG_NN a_qry_p, const QStringList& a_tablesNames, const QString& a_lockMode)
 {
     return LockOfTablesInline(a_qry_p,a_tablesNames,a_lockMode);
+}
+
+
+QTUTILS_EXPORT bool LockOfTablesGlbRaw(SqlQuery* CPPUTILS_ARG_NN a_qry_p, const QString& a_tablesNamesStr, const QString& a_lockMode)
+{
+    return LockOfTablesInlineMacro(a_qry_p,a_tablesNamesStr,a_lockMode);
 }
 
 

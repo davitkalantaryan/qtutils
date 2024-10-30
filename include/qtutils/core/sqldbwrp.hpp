@@ -32,10 +32,10 @@ class QTUTILS_EXPORT SqlDbWrpBase_p;
 namespace db{
 
 QTUTILS_EXPORT QString GetLastSqlQuery(const SqlQuery& a_qry);
-QTUTILS_EXPORT bool StartTransactionGlb(SqlQuery* CPPUTILS_ARG_NN a_qry_p);
-QTUTILS_EXPORT bool StartTransactionGlb(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p,SqlQuery* CPPUTILS_ARG_NN a_qry_p);
+QTUTILS_EXPORT bool StartTransactionOrSaveStateGlb(SqlQuery* CPPUTILS_ARG_NN a_qry_p, QString* CPPUTILS_ARG_NN a_pSavepointStr);
 QTUTILS_EXPORT bool CheckAndTryToReconnectDbGlb(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p, SqlQuery* CPPUTILS_ARG_NN a_qry_p);
-QTUTILS_EXPORT bool LockOfTablesGlb(SqlQuery* CPPUTILS_ARG_NN a_qry_p, const QStringList& a_tablesNames, const QString& a_lockMode = QString("SHARE ROW EXCLUSIVE"));
+QTUTILS_EXPORT bool LockOfTablesGlb2(SqlQuery* CPPUTILS_ARG_NN a_qry_p, const QStringList& a_tablesNames, const QString& a_lockMode = QString("SHARE ROW EXCLUSIVE"));
+QTUTILS_EXPORT bool LockOfTablesGlbRaw(SqlQuery* CPPUTILS_ARG_NN a_qry_p, const QString& a_tablesNames, const QString& a_lockMode = QString("SHARE ROW EXCLUSIVE"));
 QTUTILS_EXPORT void PrintErrorStatRawGlb(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p, const QString& a_extraText, const char* a_file, int a_line, const char* a_function);
 QTUTILS_EXPORT void CleanupDbGlb(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p);
 QTUTILS_EXPORT bool InitializeGlb(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p, const QString& a_type, const QString& a_dbNameOrPath, const QString& a_hostname, const QString& a_username, const QString& a_password, int a_port, const QString* a_connectionName_p=nullptr);
@@ -48,6 +48,7 @@ class QTUTILS_EXPORT MutexPg
 {
 public:
     MutexPg(const QStringList& a_tablesNames, const QString& a_lockMode = QString("SHARE ROW EXCLUSIVE"));
+    MutexPg(const QString& a_tablesNamesStr, const QString& a_lockMode = QString("SHARE ROW EXCLUSIVE"));
     MutexPg(const MutexPg&)=delete;
     MutexPg(MutexPg&&)=delete;
     MutexPg& operator=(const MutexPg&)=delete;
@@ -60,12 +61,11 @@ public:
     void unlock();
     
 private:
-    const QStringList   m_tablesNames;
+    const QString       m_tablesNamesStr;
     const QString       m_lockMode;
     QString             m_savePointStr;
     SqlQuery*           m_qry_p;
     bool                m_bOk;
-    bool                m_bHasSavepoint;
     bool                m_reserved01[(sizeof(void*)-sizeof(bool))/sizeof(bool)];
 };
 
@@ -80,7 +80,6 @@ public:
     virtual ~SqlDbWrp();
     SqlDbWrp();
     
-    bool StartTransaction(SqlQuery* CPPUTILS_ARG_NN a_qry_p);
     void CleanupDb();
     bool Initialize(const QString& a_type, const QString& a_dbNameOrPath, const QString& a_hostname, const QString& a_username, const QString& a_password, int a_port, const QString* a_connectionName_p=nullptr);
     bool InitializePostgreSQL(const QString& a_dbName, const QString& a_hostname, const QString& a_username, const QString& a_password,int a_port, const QString* a_connectionName_p=nullptr);
