@@ -16,6 +16,18 @@
 #include <QCoreApplication>
 #include <QThread>
 #include <QDebug>
+#ifdef CPPUTILS_PRESENT
+#include <cpputils/deadlockfreemutexes.hpp>
+typedef ::cpputils::mutex::DeadlockFreeMutexes< ::std::recursive_mutex> DeadLockFreeRecursive;
+typedef ::qtutils::core::mutexandblockedinvoker::ArrayMutex< DeadLockFreeRecursive > MutexToUse;
+typedef ::cpputils::orderedcalls::Guard<MutexToUse >    LockGuard;
+#define MUTEX_PTR_TO_GUARD_ARGS(_mutex_ptr)     (_mutex_ptr), 0
+#else
+typedef ::qtutils::core::mutexandblockedinvoker::SimpleMutex<::std::recursive_mutex>  MutexToUse;
+typedef ::std::lock_guard<MutexToUse>   LockGuard;
+#define MUTEX_PTR_TO_GUARD_ARGS(_mutex_ptr)     (*(_mutex_ptr))
+#endif
+
 
 class MyThread : public QThread{
     void run() override;
@@ -23,7 +35,7 @@ class MyThread : public QThread{
 
 
 static QObject*     s_pObject=nullptr;
-static ::qtutils::core::mutexandblockedinvoker::Mutex<::std::recursive_mutex>*  s_pCarier = nullptr;
+static MutexToUse*  s_pCarier = nullptr;
 static bool s_rawThreadCallExecuted = false;
 
 
@@ -43,14 +55,14 @@ static void RawThreadFunctionStatic()
 {
     ::std::cout<<"Std Thread id: "<< ::std::this_thread::get_id()<< ::std::endl;
     
-    ::std::lock_guard<::qtutils::core::mutexandblockedinvoker::Mutex<::std::recursive_mutex> > aGuard(*s_pCarier);
+    LockGuard aGuard(MUTEX_PTR_TO_GUARD_ARGS(s_pCarier));
     
     while(!s_pObject){
         QThread::sleep(2);
     }
     
-    ::qtutils::core::mutexandblockedinvoker::CInvoke(s_pCarier,s_pObject,[](){
-        ::std::lock_guard<::qtutils::core::mutexandblockedinvoker::Mutex<::std::recursive_mutex> > aGuard(*s_pCarier);
+    ::qtutils::core::mutexandblockedinvoker::InvokeBlocked(s_pCarier,s_pObject,[](){
+        LockGuard aGuard(MUTEX_PTR_TO_GUARD_ARGS(s_pCarier));
         ::std::cout<<"Thread id 02: "<< ::std::this_thread::get_id()<< ::std::endl;
     });
     
@@ -60,7 +72,21 @@ static void RawThreadFunctionStatic()
 
 int main(int a_argc, char* a_argv[])
 {
-    ::qtutils::core::mutexandblockedinvoker::Mutex<::std::recursive_mutex> aCarier;
+      
+#ifdef CPPUTILS_PRESENT
+    ::std::recursive_mutex mutex1;
+    ::std::recursive_mutex mutex2;
+    ::std::recursive_mutex mutex3;
+    ::std::recursive_mutex mutex4;
+    ::std::recursive_mutex mutex5;
+    const ::std::vector<::std::recursive_mutex* >  vMutexes({&mutex1,&mutex2,&mutex3,&mutex4,&mutex5});
+    DeadLockFreeRecursive aMut1(vMutexes);
+    //::qtutils::core::mutexandblockedinvoker::ArrayBaseMutex<DeadLockFreeRecursive,size_t> aMut2(vMutexes);
+    MutexToUse aCarier (1);
+#else
+    MutexToUse aCarier;
+#endif
+    
     fprintf(stdout,"Press any key then enter to continue! ");
     fflush(stdout);
     getchar();
@@ -81,8 +107,8 @@ int main(int a_argc, char* a_argv[])
         QThread::sleep(2);
     }
     
-    ::qtutils::core::mutexandblockedinvoker::CInvoke<::std::recursive_mutex>(s_pCarier,s_pObject,[](){
-        ::std::lock_guard<::qtutils::core::mutexandblockedinvoker::Mutex<::std::recursive_mutex> > aGuard(*s_pCarier);
+    ::qtutils::core::mutexandblockedinvoker::InvokeBlocked(s_pCarier,s_pObject,[](){
+        LockGuard aGuard(MUTEX_PTR_TO_GUARD_ARGS(s_pCarier));
         ::std::cout<<"Thread id 01: "<< ::std::this_thread::get_id()<< ::std::endl;
     });
     

@@ -15,6 +15,22 @@ DESTDIR     = "$${artifactRoot}/sys/$${CODENAME}/$$CONFIGURATION/test"
 DEFINES += QTUTILS_HTTP_SERVER_TOOLS
 
 
+isEmpty(cpputilsRepoRoot) {
+    cpputilsRepoRoot = $$(cpputilsRepoRoot)
+}
+
+
+!isEmpty(cpputilsRepoRoot) {
+    include ( "$${cpputilsRepoRoot}/prj/common/common_qt/flagsandsys_common.pri" )
+    DEFINES += CPPUTILS_PRESENT
+    HEADERS += \
+	"$${cpputilsRepoRoot}/include/cpputils/impl/cpputils_orderedcalls.impl.hpp"	    \
+	"$${cpputilsRepoRoot}/include/cpputils/deadlockfreemutexes.hpp"		    \
+	"$${cpputilsRepoRoot}/include/cpputils/export_symbols.h"			    \
+	"$${cpputilsRepoRoot}/include/cpputils/orderedcalls.hpp"
+}
+
+
 QT += widgets
 QT += network
 #QT += sql
@@ -27,6 +43,7 @@ CONFIG += c++17
 
 #SOURCES += $$files($${qtutilsRepoRoot}/src/tests/some_qt_tests/*.cpp,true)
 SOURCES += "$${qtutilsRepoRoot}/src/tests/main_mutexandblockedinvoker_test.cpp"
-HEADERS += "$${qtutilsRepoRoot}/include/qtutils/core/clsinvokeblocked.hpp"
+
+HEADERS += "$${qtutilsRepoRoot}/include/qtutils/export_symbols.h"
 HEADERS += "$${qtutilsRepoRoot}/include/qtutils/core/mutexandblockedinvoker.hpp"
 HEADERS += "$${qtutilsRepoRoot}/include/qtutils/core/impl/qtutils_core_mutexandblockedinvoker.impl.hpp"

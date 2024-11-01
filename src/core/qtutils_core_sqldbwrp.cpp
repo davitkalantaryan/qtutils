@@ -12,10 +12,12 @@
 #include <qtutils/core/logger.hpp>
 #define QtUtilsCriticalMacro        QtUtilsCritical
 #define QtUtilsWarningMacro         QtUtilsWarning
+#define QtUtilsInfoMacro            QtUtilsInfo
 #else
 #include <QDebug>
 #define QtUtilsCriticalMacro        qCritical
 #define QtUtilsWarningMacro         qWarning
+#define QtUtilsInfoMacro            qInfo
 #endif
 #include <qtutils/disable_utils_warnings.h>
 #include <QSqlError>
@@ -80,9 +82,12 @@ static inline bool InitializeInline(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p, cons
 }
 
 
-static inline bool CheckAndTryToReconnectDbInline(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p, SqlQuery* CPPUTILS_ARG_NN a_qry_p){
-    if(a_qry_p->exec("SELECT 1;")){
-        return true;
+static inline bool CheckAndTryToReconnectDbInline(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p){
+    {
+        SqlQuery aQry1(a_db_p->m_db);
+        if(aQry1.exec("SELECT 1;")){
+            return true;
+        }
     }
     
     // connection to DB lost, let's recover it
@@ -101,11 +106,16 @@ static inline bool CheckAndTryToReconnectDbInline(SqlDbWrpBase_p* CPPUTILS_ARG_N
         return false;
     }
     
-    if(a_qry_p->exec("SELECT 1;")){ // we will make query atomic
-        return true;
+    
+    {
+        SqlQuery aQry2(a_db_p->m_db);
+        if(aQry2.exec("SELECT 1;")){
+            QtUtilsInfoMacro()<<"Connection to DB recovered";
+            return true;
+        }
     }
     
-    QtUtilsCriticalMacro()<<"Unable start transaction";
+    QtUtilsCriticalMacro()<<"Unable to recover connection to db";
     return false;
 }
 
@@ -303,7 +313,7 @@ MutexPg::MutexPg(const QStringList& a_tablesNames, const QString& a_lockMode )
 }
 
 
-void MutexPg::SetQuery(SqlQuery* CPPUTILS_ARG_NN a_qry_p)
+void MutexPg::SetQuery(SqlQuery* a_qry_p)
 {
     m_qry_p = a_qry_p;
 }
@@ -347,6 +357,18 @@ void MutexPg::unlock()
     else{
         m_qry_p->exec( m_bOk ? QString("COMMIT;") : QString("ROLLBACK;"));
     }
+}
+
+
+bool MutexPg::isOk()const
+{
+    return m_bOk;
+}
+
+
+SqlQuery* MutexPg::qry()const
+{
+    return m_qry_p;
 }
 
 
@@ -435,9 +457,9 @@ QTUTILS_EXPORT void PrintErrorStatRawGlb(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p,
 }
 
 
-QTUTILS_EXPORT bool CheckAndTryToReconnectDbGlb(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p, SqlQuery* CPPUTILS_ARG_NN a_qry_p)
+QTUTILS_EXPORT bool CheckAndTryToReconnectDbGlb(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p)
 {
-    return CheckAndTryToReconnectDbInline(a_db_p,a_qry_p);
+    return CheckAndTryToReconnectDbInline(a_db_p);
 }
 
 

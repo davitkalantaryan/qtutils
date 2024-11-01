@@ -18,6 +18,8 @@
 #endif
 
 #include <cinternal/thread_local_sys.h>
+#include <tuple>
+#include <stddef.h>
 #include <qtutils/disable_utils_warnings.h>
 #include <QMetaObject>
 #include <QThread>
@@ -28,147 +30,251 @@ namespace qtutils { namespace core{ namespace mutexandblockedinvoker{
 static void PthreadKeyCreateDeleteClbk(void*){}
 
 
-template <typename BaseMutex>
-class Mutex_p{
-public:
-    CinternalTlsData                m_tls_data;
-    
-public:
-    inline void IncrementCurrentValue(size_t a_currentValue);
-    inline size_t DecrementCurrentValue();
-};
-
-
-template <typename BaseMutex>
-class CInvoke_p{
-public:
-    CInvoke_p(Mutex<BaseMutex>* CPPUTILS_ARG_NN a_mutex_p);
-
-public:
-    Mutex<BaseMutex>* const   mutex_p;
+struct BlockedCallerThreadId{
+    BlockedCallerThreadId   *caller;
+    ::std::thread::id       m_id;
+    bool                    isBlockedCall;
+    bool                    reserved01[7];
 };
 
 
 /*///////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
 
+template <typename BaseMutex, typename... Targs>
+Mutex<BaseMutex,Targs...>::~Mutex()
+{
+    CinternalTlsDelete(m_tls_data);
+}
 
-template <typename BaseMutex>
-CInvoke_p<BaseMutex>::CInvoke_p(Mutex<BaseMutex>* CPPUTILS_ARG_NN a_mutex_p)
+
+template <typename BaseMutex, typename... Targs>
+template <typename... TargsMtx>
+Mutex<BaseMutex,Targs...>::Mutex(TargsMtx... a_mtxArgs)
     :
-      mutex_p(a_mutex_p)
+      m_mutex(a_mtxArgs...)
 {
-}
-
-
-template <typename BaseMutex>
-inline void Mutex_p<BaseMutex>::IncrementCurrentValue(size_t a_currentValue)
-{
-    ++a_currentValue;
-    CinternalTlsSetSpecific(this->m_tls_data,(void*)a_currentValue);
-}
-
-
-template <typename BaseMutex>
-inline size_t Mutex_p<BaseMutex>::DecrementCurrentValue()
-{
-    size_t currentValue = (size_t)CinternalTlsGetSpecific(this->m_tls_data);
-    assert(currentValue);
-    --currentValue;
-    CinternalTlsSetSpecific(this->m_tls_data,(void*)currentValue);
-    return currentValue;
-}
-
-
-/*///////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
-
-template <typename BaseMutex>
-Mutex<BaseMutex>::~Mutex()
-{
-    CinternalTlsDelete(m_data_p->m_tls_data);
-    delete m_data_p;
-}
-
-
-template <typename BaseMutex>
-template<typename... Targs>
-Mutex<BaseMutex>::Mutex(Targs... a_args)
-    :
-      BaseMutex(a_args...),
-      m_data_p(new Mutex_p<BaseMutex>())
-{
-    CinternalTlsAlloc(&(m_data_p->m_tls_data),&PthreadKeyCreateDeleteClbk);
-    if(m_data_p->m_tls_data==CINTERNAL_TLS_OUT_OF_INDEXES){
+    CinternalTlsAlloc(&m_tls_data,&PthreadKeyCreateDeleteClbk);
+    if(m_tls_data==CINTERNAL_TLS_OUT_OF_INDEXES){
         throw "Failure on constructor. Unable to create TLS";
     }
 }
 
 
-template <typename BaseMutex>
-template<typename... Targs>
-void Mutex<BaseMutex>::lock(Targs... a_args)
+template <typename BaseMutex, typename... Targs>
+void Mutex<BaseMutex,Targs...>::lock(Targs... a_args)
 {
-    size_t currentValue = (size_t)CinternalTlsGetSpecific(m_data_p->m_tls_data);
-    if(currentValue){
-        m_data_p->IncrementCurrentValue(currentValue);
-    }
-    else{
-        BaseMutex::lock(a_args...);
-        CinternalTlsSetSpecific(m_data_p->m_tls_data,(void*)1);
-    }
+    BlockedCallerThreadId* const pThreadData = (BlockedCallerThreadId*)CinternalTlsGetSpecific(m_tls_data);
+    if(pThreadData){
+        const ::std::thread::id lockerId = m_mutex.get_locker_thread_id(a_args...);
+        if(lockerId!= (::std::thread::id())){
+            BlockedCallerThreadId* pStackThreadData = pThreadData;
+            while(pStackThreadData){
+                if(pStackThreadData->m_id == lockerId){
+                    // no need to lock to prevent deadlock
+                    m_mutex.increment_lock_count(a_args...);
+                    return;
+                }  //  if(pStackThreadData->m_id == lockerId){
+                pStackThreadData = pStackThreadData->caller;
+            }  //  while(pCurThreadData){
+        }  //  if(lockerId!= (::std::thread::id())){
+    }  //  if(pThreadDataCaller){
+    
+    // if we are here then we have to lock
+    m_mutex.lock(a_args...);
+    m_mutex.set_locker_thread_id( ::std::this_thread::get_id(), a_args... );
+    m_mutex.increment_lock_count(a_args...);
 }
 
 
-template <typename BaseMutex>
-template<typename... Targs>
-void Mutex<BaseMutex>::unlock(Targs... a_args)
+template <typename BaseMutex, typename... Targs>
+void Mutex<BaseMutex,Targs...>::unlock(Targs... a_args)
 {
-    if(!(m_data_p->DecrementCurrentValue())){
-        BaseMutex::unlock(a_args...);
+    const ::std::thread::id thisThreadId = ::std::this_thread::get_id();
+    const ::std::thread::id lockerThreadId = m_mutex.get_locker_thread_id(a_args...);
+    const ptrdiff_t currentLocksCount = m_mutex.decrement_lock_count_and_return(a_args...);
+    
+    if((lockerThreadId==thisThreadId) && (currentLocksCount<1)){
+        m_mutex.unlock(a_args...);
     }
 }
+
 
 
 /*///////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
 
 template <typename BaseMutex>
-CInvoke<BaseMutex>::~CInvoke()
+template <typename... TargsMtx>
+SimpleBaseMutex<BaseMutex>::SimpleBaseMutex(TargsMtx... a_mtxArgs)
+    :
+      BaseMutex(a_mtxArgs...)
 {
-    delete m_data_p;
+    m_lockCount = 0;
 }
 
 
 template <typename BaseMutex>
-CInvoke<BaseMutex>::CInvoke(Mutex<BaseMutex>* CPPUTILS_ARG_NN a_pMutex, QObject* CPPUTILS_ARG_NN a_pObj, const TypeFunc& a_func)
-    :
-      m_data_p(new CInvoke_p<BaseMutex>(a_pMutex))
+void SimpleBaseMutex<BaseMutex>::lock()
 {
-    size_t currentValue = (size_t)CinternalTlsGetSpecific(m_data_p->mutex_p->m_data_p->m_tls_data);
+    BaseMutex::lock();
+}
+
+
+template <typename BaseMutex>
+void SimpleBaseMutex<BaseMutex>::unlock()
+{
+    BaseMutex::unlock();
+}
+
+
+template <typename BaseMutex>
+void SimpleBaseMutex<BaseMutex>::set_locker_thread_id(const ::std::thread::id& a_id)
+{
+    m_threadId = a_id;
+}
+
+
+template <typename BaseMutex>
+::std::thread::id SimpleBaseMutex<BaseMutex>::get_locker_thread_id()const
+{
+    return m_threadId;
+}
+
+
+template <typename BaseMutex>
+void SimpleBaseMutex<BaseMutex>::increment_lock_count()
+{
+    ++m_lockCount;
+}
+
+
+template <typename BaseMutex>
+ptrdiff_t SimpleBaseMutex<BaseMutex>::decrement_lock_count_and_return()
+{
+    return (--m_lockCount);
+}
+
+
+/*///////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
+
+//template <typename BaseMutex>
+//template <typename... TargsMtx>
+//ArrayBaseMutex_p<BaseMutex>::ArrayBaseMutex_p(TargsMtx... a_mtxArgs)
+//    :
+//      m_mutex_p( new BaseMutex(a_mtxArgs...) )
+//{
+//}
+
+
+/*///////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
+
+
+template <typename BaseMutex>
+ArrayBaseMutex<BaseMutex>::~ArrayBaseMutex()
+{
+    delete [] m_pLockData;
+}
+
+
+template <typename BaseMutex>
+template <typename... TargsMtx>
+ArrayBaseMutex<BaseMutex>::ArrayBaseMutex(TargsMtx... a_mtxArgs)
+    :
+      BaseMutex( a_mtxArgs... )
+{
+    const size_t cunCount = static_cast<size_t>( BaseMutex::size() );
+    m_pLockData = new SItem[cunCount];
+    for(size_t i(0); i<cunCount;++i){
+        m_pLockData[i].lockCount = 0;
+    }
+}
+
+
+template <typename BaseMutex>
+void ArrayBaseMutex<BaseMutex>::lock(const IntType& a_index)
+{
+    BaseMutex::lock(a_index);
+}
+
+
+template <typename BaseMutex>
+void ArrayBaseMutex<BaseMutex>::unlock(const IntType& a_index)
+{
+    BaseMutex::unlock(a_index);
+}
+
+
+template <typename BaseMutex>
+void ArrayBaseMutex<BaseMutex>::set_locker_thread_id(const ::std::thread::id& a_id, const IntType& a_index)
+{
+    m_pLockData[static_cast<size_t>(a_index)].threadId = a_id;
+}
+
+
+template <typename BaseMutex>
+::std::thread::id ArrayBaseMutex<BaseMutex>::get_locker_thread_id(const IntType& a_index)const
+{
+    return m_pLockData[static_cast<size_t>(a_index)].threadId;
+}
+
+
+template <typename BaseMutex>
+void ArrayBaseMutex<BaseMutex>::increment_lock_count(const IntType& a_index)
+{
+    ++(m_pLockData[static_cast<size_t>(a_index)].lockCount);
+}
+
+
+template <typename BaseMutex>
+ptrdiff_t ArrayBaseMutex<BaseMutex>::decrement_lock_count_and_return(const IntType& a_index)
+{
+    --(m_pLockData[static_cast<size_t>(a_index)].lockCount);
+    return static_cast<ptrdiff_t>(m_pLockData[static_cast<size_t>(a_index)].lockCount);
+}
+
+
+/*///////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
+
+template <typename BaseMutex,typename... Targs>
+static inline void InvokeBlocked(Mutex<BaseMutex,Targs...>* CPPUTILS_ARG_NN a_pMutex, QObject* CPPUTILS_ARG_NN a_pObj, const TypeFunc& a_func)
+{
     if(a_pObj->thread() == QThread::currentThread()){
-        m_data_p->mutex_p->m_data_p->IncrementCurrentValue(currentValue);
         a_func();
-        m_data_p->mutex_p->m_data_p->DecrementCurrentValue();
     }
     else{
-        if(currentValue){
-            Mutex_p<BaseMutex>* const mutex_p = m_data_p->mutex_p->m_data_p;
-            QMetaObject::invokeMethod(a_pObj,[mutex_p,a_func](){
-                size_t currentValueIn = (size_t)CinternalTlsGetSpecific(mutex_p->m_tls_data);
-                mutex_p->IncrementCurrentValue(currentValueIn);
-                a_func();
-                mutex_p->DecrementCurrentValue();
-            },Qt::QueuedConnection);
+        bool bShouldBeDeleted;
+        BlockedCallerThreadId* pThreadDataCaller = (BlockedCallerThreadId*)CinternalTlsGetSpecific(a_pMutex->m_tls_data);
+        if(pThreadDataCaller){
+            bShouldBeDeleted = false;
         }
         else{
-            m_data_p->mutex_p->m_data_p->IncrementCurrentValue(currentValue);
-            QMetaObject::invokeMethod(a_pObj,[this,a_func](){
-                size_t currentValueIn = (size_t)CinternalTlsGetSpecific(m_data_p->mutex_p->m_data_p->m_tls_data);
-                m_data_p->mutex_p->m_data_p->IncrementCurrentValue(currentValueIn);
-                a_func();
-                m_data_p->mutex_p->m_data_p->DecrementCurrentValue();
-            },Qt::BlockingQueuedConnection);
-            m_data_p->mutex_p->m_data_p->DecrementCurrentValue();
+            // we are first caller, no blocked call invoked
+            pThreadDataCaller = new BlockedCallerThreadId({nullptr,::std::this_thread::get_id(),false,{}});
+            CinternalTlsSetSpecific(a_pMutex->m_tls_data,(void*)pThreadDataCaller);
+            bShouldBeDeleted = true;
         }
-    }    
+        QMetaObject::invokeMethod(a_pObj,[a_pMutex,pThreadDataCaller,a_func](){
+            bool bShouldBeDeletedIn;
+            BlockedCallerThreadId* pThreadDataCallee = (BlockedCallerThreadId*)CinternalTlsGetSpecific(a_pMutex->m_tls_data);
+            if(pThreadDataCallee){
+                pThreadDataCallee->isBlockedCall = true;
+                bShouldBeDeletedIn = false;
+            }
+            else{
+                pThreadDataCallee = new BlockedCallerThreadId({pThreadDataCaller,::std::this_thread::get_id(),true,{}});
+                CinternalTlsSetSpecific(a_pMutex->m_tls_data,(void*)pThreadDataCallee);
+                bShouldBeDeletedIn = true;
+            }
+            a_func();
+            if(bShouldBeDeletedIn){
+                CinternalTlsSetSpecific(a_pMutex->m_tls_data,(void*)0);
+                delete pThreadDataCallee;
+            }
+        },Qt::QueuedConnection);
+        if(bShouldBeDeleted){
+            CinternalTlsSetSpecific(a_pMutex->m_tls_data,(void*)0);
+            delete pThreadDataCaller;
+        }
+    }  //  else of if(a_pObj->thread() == QThread::currentThread()){
 }
 
 

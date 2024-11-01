@@ -33,7 +33,7 @@ namespace db{
 
 QTUTILS_EXPORT QString GetLastSqlQuery(const SqlQuery& a_qry);
 QTUTILS_EXPORT bool StartTransactionOrSaveStateGlb(SqlQuery* CPPUTILS_ARG_NN a_qry_p, QString* CPPUTILS_ARG_NN a_pSavepointStr);
-QTUTILS_EXPORT bool CheckAndTryToReconnectDbGlb(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p, SqlQuery* CPPUTILS_ARG_NN a_qry_p);
+QTUTILS_EXPORT bool CheckAndTryToReconnectDbGlb(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p);
 QTUTILS_EXPORT bool LockOfTablesGlb2(SqlQuery* CPPUTILS_ARG_NN a_qry_p, const QStringList& a_tablesNames, const QString& a_lockMode = QString("SHARE ROW EXCLUSIVE"));
 QTUTILS_EXPORT bool LockOfTablesGlbRaw(SqlQuery* CPPUTILS_ARG_NN a_qry_p, const QString& a_tablesNames, const QString& a_lockMode = QString("SHARE ROW EXCLUSIVE"));
 QTUTILS_EXPORT void PrintErrorStatRawGlb(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p, const QString& a_extraText, const char* a_file, int a_line, const char* a_function);
@@ -54,15 +54,18 @@ public:
     MutexPg& operator=(const MutexPg&)=delete;
     MutexPg& operator=(MutexPg&&)=delete;
     
-    void SetQuery(SqlQuery* CPPUTILS_ARG_NN a_qry_p);
+    void SetQuery(SqlQuery* a_qry_p);
     void SetOkStatus(bool a_bIsOk);
     void lock(SqlQuery* CPPUTILS_ARG_NN a_qry_p);
     void lock();
     void unlock();
+    bool isOk()const;
+    SqlQuery* qry()const;
     
-private:
+public:
     const QString       m_tablesNamesStr;
     const QString       m_lockMode;
+protected:
     QString             m_savePointStr;
     SqlQuery*           m_qry_p;
     bool                m_bOk;
