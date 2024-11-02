@@ -351,11 +351,15 @@ void MutexPg::lock(SqlQuery* CPPUTILS_ARG_NN a_qry_p)
 void MutexPg::unlock()
 {
     if(m_savePointStr.size()>1){
-        m_qry_p->exec( m_bOk ? (QString("RELEASE TO SAVEPOINT ") + m_savePointStr + ";") : (QString("ROLLBACK TO SAVEPOINT ") + m_savePointStr + ";"));
+        const QString execString = m_bOk ? (QString("RELEASE TO SAVEPOINT ") + m_savePointStr + ";") : (QString("ROLLBACK TO SAVEPOINT ") + m_savePointStr + ";");
+        const bool bOk = m_qry_p->exec( execString);
+        if(!bOk) {m_bOk=false;}
         m_savePointStr = QString();
     }
     else{
-        m_qry_p->exec( m_bOk ? QString("COMMIT;") : QString("ROLLBACK;"));
+        const QString execString = m_bOk ? QString("COMMIT;") : QString("ROLLBACK;");
+        const bool bOk = m_qry_p->exec( execString);
+        if(!bOk) {m_bOk=false;}
     }
 }
 
