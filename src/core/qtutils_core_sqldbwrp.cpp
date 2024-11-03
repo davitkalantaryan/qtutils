@@ -313,6 +313,17 @@ MutexPg::MutexPg(const QStringList& a_tablesNames, const QString& a_lockMode )
 }
 
 
+MutexPg::MutexPg(const QString& a_tablesNamesStr, const QString& a_lockMode )
+    :
+      m_tablesNamesStr(a_tablesNamesStr),
+      m_lockMode(a_lockMode),
+      m_qry_p(nullptr)
+{
+    m_bOk = false;
+    static_cast<void>(m_reserved01);
+}
+
+
 void MutexPg::SetQuery(SqlQuery* a_qry_p)
 {
     m_qry_p = a_qry_p;
