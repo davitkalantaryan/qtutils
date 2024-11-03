@@ -292,13 +292,19 @@ static inline bool StartTransactionOrSaveStateInline(SqlQuery* CPPUTILS_ARG_NN a
     }
     
     const bool bHasTransaction = a_qry_p->first();
-    if(bHasTransaction){
-        *a_pSavepointStr = GetUniqueNameForDbSavepointInline();
-        return a_qry_p->exec("SAVEPOINT "+ (*a_pSavepointStr) + ";");
+    if(!bHasTransaction){
+        *a_pSavepointStr = QString();
+        return a_qry_p->exec("BEGIN;");
     }
     
-    *a_pSavepointStr = QString();
-    return a_qry_p->exec("BEGIN;");
+    const QVariant hasTransVar = a_qry_p->value(0);
+    if(hasTransVar.isNull()){
+        *a_pSavepointStr = QString();
+        return a_qry_p->exec("BEGIN;");
+    }
+    
+    *a_pSavepointStr = GetUniqueNameForDbSavepointInline();
+    return a_qry_p->exec("SAVEPOINT "+ (*a_pSavepointStr) + ";");    
 }
 
 
