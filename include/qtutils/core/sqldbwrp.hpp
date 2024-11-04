@@ -44,33 +44,28 @@ QTUTILS_EXPORT bool InitializeSQLiteGlb(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p, 
 QTUTILS_EXPORT bool CloneAndOpenDbGlb(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p, const SqlDbWrpBase_p& a_dbInp, const QString& a_connectionName);
 QTUTILS_EXPORT bool CloneAndOpenDbGlb(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p, const QString& a_oldConnectionName, const QString& a_newConnectionName);
 
+
 class QTUTILS_EXPORT MutexPg
 {
 public:
-    MutexPg(const QStringList& a_tablesNames, const QString& a_lockMode = QString("SHARE ROW EXCLUSIVE"));
     MutexPg(const QString& a_tablesNamesStr, const QString& a_lockMode = QString("SHARE ROW EXCLUSIVE"));
+    MutexPg(const QStringList& a_tablesNames, const QString& a_lockMode = QString("SHARE ROW EXCLUSIVE"));
     MutexPg(const MutexPg&)=delete;
-    MutexPg(MutexPg&&)=delete;
     MutexPg& operator=(const MutexPg&)=delete;
-    MutexPg& operator=(MutexPg&&)=delete;
     
-    void SetQuery(SqlQuery* a_qry_p);
-    void SetOkStatus(bool a_bIsOk);
-    void lock(SqlQuery* CPPUTILS_ARG_NN a_qry_p);
     void lock();
     void unlock();
-    bool isOk()const;
-    SqlQuery* qry()const;
+    bool isLockOk()const;
+    void setQuery(QSqlQuery* CPPUTILS_ARG_NN a_qry_p)const;
     
-public:
+private:
     const QString       m_tablesNamesStr;
     const QString       m_lockMode;
-protected:
-    QString             m_savePointStr;
-    SqlQuery*           m_qry_p;
-    bool                m_bOk;
-    bool                m_reserved01[(sizeof(void*)-sizeof(bool))/sizeof(bool)];
+    mutable QSqlQuery*  m_qry_p;
+    bool                m_bIsLockOk;
+    bool                m_reserved01[7];
 };
+
 
 }  //  namespace db{
 

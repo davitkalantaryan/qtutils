@@ -12,6 +12,9 @@ TEMPLATE = app
 include ( "$${PWD}/../../common/common_qt/flagsandsys_common.pri" )
 DESTDIR     = "$${artifactRoot}/sys/$${CODENAME}/$$CONFIGURATION/test"
 
+
+QT += sql
+
 DEFINES += QTUTILS_HTTP_SERVER_TOOLS
 
 
@@ -43,7 +46,10 @@ CONFIG += c++17
 
 #SOURCES += $$files($${qtutilsRepoRoot}/src/tests/some_qt_tests/*.cpp,true)
 SOURCES += "$${qtutilsRepoRoot}/src/tests/main_mutexandblockedinvoker_test.cpp"
+SOURCES += "$${qtutilsRepoRoot}/src/core/qtutils_core_sqldbwrp.cpp"
 
+HEADERS += "$${qtutilsRepoRoot}/include/qtutils/core/impl/qtutils_core_mutexandblockedinvoker.impl.hpp"
 HEADERS += "$${qtutilsRepoRoot}/include/qtutils/export_symbols.h"
 HEADERS += "$${qtutilsRepoRoot}/include/qtutils/core/mutexandblockedinvoker.hpp"
-HEADERS += "$${qtutilsRepoRoot}/include/qtutils/core/impl/qtutils_core_mutexandblockedinvoker.impl.hpp"
+HEADERS += "$${qtutilsRepoRoot}/include/qtutils/core/sqldbwrp.hpp"
+HEADERS += "$${qtutilsRepoRoot}/include/qtutils/core/sqldbwrp_p.hpp"

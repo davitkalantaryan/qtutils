@@ -6,8 +6,11 @@
 //
 
 #include <qtutils/core/sqldbwrp_p.hpp>
+#include <cinternal/thread_local_sys.h>
 #include <mutex>
 #include <atomic>
+#include <stddef.h>
+#include <stdint.h>
 #ifdef QTUTILS_LOGGER_IS_USED
 #include <qtutils/core/logger.hpp>
 #define QtUtilsCriticalMacro        QtUtilsCritical
@@ -25,6 +28,24 @@
 
 
 namespace qtutils { namespace core{
+
+
+static CinternalTlsData     s_tls_data;
+class CPPUTILS_DLL_PRIVATE MutexTlsInitDeInit{
+public:
+    ~MutexTlsInitDeInit();
+    MutexTlsInitDeInit();
+}static s_mutexTlsInitDeInit;
+static void PthreadKeyCreateDeleteClbk(void*){}
+MutexTlsInitDeInit::~MutexTlsInitDeInit(){
+    if(s_tls_data){CinternalTlsDelete(s_tls_data);}
+}
+MutexTlsInitDeInit::MutexTlsInitDeInit(){
+    CinternalTlsAlloc(&s_tls_data,&PthreadKeyCreateDeleteClbk);
+    if(s_tls_data==CINTERNAL_TLS_OUT_OF_INDEXES){
+        throw "Failure on constructor. Unable to create TLS";
+    }
+}
 
 
 static inline void PrintErrorStatRawInline(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p, const QString& a_extraText, const char* a_file, int a_line, const char* a_function)
@@ -308,89 +329,71 @@ static inline bool StartTransactionOrSaveStateInline(SqlQuery* CPPUTILS_ARG_NN a
 }
 
 
-MutexPg::MutexPg(const QStringList& a_tablesNames, const QString& a_lockMode )
-    :
-      m_tablesNamesStr(TableNamesStrFromListInline(a_tablesNames)),
-      m_lockMode(a_lockMode),
-      m_qry_p(nullptr)
-{
-    m_bOk = false;
-    static_cast<void>(m_reserved01);
-}
-
-
-MutexPg::MutexPg(const QString& a_tablesNamesStr, const QString& a_lockMode )
+MutexPg::MutexPg(const QString& a_tablesNamesStr, const QString& a_lockMode)
     :
       m_tablesNamesStr(a_tablesNamesStr),
       m_lockMode(a_lockMode),
-      m_qry_p(nullptr)
+      m_qry_p(nullptr),
+      m_bIsLockOk(false)
 {
-    m_bOk = false;
     static_cast<void>(m_reserved01);
 }
 
 
-void MutexPg::SetQuery(SqlQuery* a_qry_p)
+MutexPg::MutexPg(const QStringList& a_tablesNames, const QString& a_lockMode)
+    :
+      m_tablesNamesStr(TableNamesStrFromListInline(a_tablesNames)),
+      m_lockMode(a_lockMode),
+      m_qry_p(nullptr),
+      m_bIsLockOk(false)
 {
-    m_qry_p = a_qry_p;
-}
-
-
-void MutexPg::SetOkStatus(bool a_bIsOk)
-{
-    m_bOk = a_bIsOk;
+    static_cast<void>(m_reserved01);
 }
 
 
 void MutexPg::lock()
 {
-    if(m_qry_p){
-        m_bOk = StartTransactionOrSaveStateInline(m_qry_p,&m_savePointStr);
-        if(!m_bOk){
-            return;
-        }
-        m_bOk = LockOfTablesInlineMacro(m_qry_p,m_tablesNamesStr,m_lockMode);
-    }  //  if(m_qry_p){
-}
-
-
-void MutexPg::lock(SqlQuery* CPPUTILS_ARG_NN a_qry_p)
-{
-    m_qry_p = a_qry_p;
-    m_bOk = StartTransactionOrSaveStateInline(m_qry_p,&m_savePointStr);
-    if(!m_bOk){
-        return;
+    ptrdiff_t currentLocks = (ptrdiff_t)CinternalTlsGetSpecific(s_tls_data);
+    if((++currentLocks)<2){
+        const bool bIsLockOk1 = m_qry_p->exec("BEGIN;");
+        if(!bIsLockOk1){return;}
     }
-    m_bOk = LockOfTablesInlineMacro(m_qry_p,m_tablesNamesStr,m_lockMode);
+    
+    const bool bIsLockOk2 = m_qry_p->exec("LOCK TABLE " + m_tablesNamesStr + " IN " + m_lockMode + " MODE;");
+    if(!bIsLockOk2){return;}
+    
+    CinternalTlsSetSpecific(s_tls_data,(void*)currentLocks);
+    m_bIsLockOk = true;
 }
 
 
 void MutexPg::unlock()
 {
-    if(m_savePointStr.size()>1){
-        const QString execString = m_bOk ? (QString("RELEASE TO SAVEPOINT ") + m_savePointStr + ";") : (QString("ROLLBACK TO SAVEPOINT ") + m_savePointStr + ";");
-        const bool bOk = m_qry_p->exec( execString);
-        if(!bOk) {m_bOk=false;}
-        m_savePointStr = QString();
-    }
-    else{
-        const QString execString = m_bOk ? QString("COMMIT;") : QString("ROLLBACK;");
-        const bool bOk = m_qry_p->exec( execString);
-        if(!bOk) {m_bOk=false;}
-    }
+    ptrdiff_t currentLocks = (ptrdiff_t)CinternalTlsGetSpecific(s_tls_data);
+    if(currentLocks>0){
+        if((--currentLocks)<1){
+            m_qry_p->exec("COMMIT;");
+        }        
+        
+        CinternalTlsSetSpecific(s_tls_data,(void*)currentLocks);
+    }  //  if(currentLocks>0){
+    
+    
+    m_bIsLockOk = false;
 }
 
 
-bool MutexPg::isOk()const
+bool MutexPg::isLockOk()const
 {
-    return m_bOk;
+    return m_bIsLockOk;
 }
 
 
-SqlQuery* MutexPg::qry()const
+void MutexPg::setQuery(QSqlQuery* CPPUTILS_ARG_NN a_qry_p)const
 {
-    return m_qry_p;
+    m_qry_p = a_qry_p;
 }
+
 
 
 QTUTILS_EXPORT QString GetLastSqlQuery(const SqlQuery& a_qry)
