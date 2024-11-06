@@ -1,0 +1,8 @@
+<Type Name="QString">
+    <DisplayString Condition="d->ref.isStatic() == 0">{d->data}</DisplayString>
+    <DisplayString Condition="d->ref.isStatic() == 1">null</DisplayString>
+    <Expand>
+        <Item Name="String Length">d->size</Item>
+        <Item Name="Data">d->data, su</Item>
+    </Expand>
+</Type>
