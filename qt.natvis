@@ -1,8 +1,21 @@
-<Type Name="QString">
-    <DisplayString Condition="d->ref.isStatic() == 0">{d->data}</DisplayString>
-    <DisplayString Condition="d->ref.isStatic() == 1">null</DisplayString>
-    <Expand>
-        <Item Name="String Length">d->size</Item>
-        <Item Name="Data">d->data, su</Item>
-    </Expand>
-</Type>
+<?xml version="1.0" encoding="utf-8"?>
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+    <!-- Visualization for QString -->
+    <Type Name="QString">
+        <DisplayString Condition="d->ref.isStatic() == 0">{d->data}</DisplayString>
+        <DisplayString Condition="d->ref.isStatic() == 1">null</DisplayString>
+        <Expand>
+            <Item Name="String Length">d->size</Item>
+            <Item Name="Data">d->data, su</Item>
+        </Expand>
+    </Type>
+
+    <!-- Visualization for QByteArray -->
+    <Type Name="QByteArray">
+        <DisplayString>{d->data, d->size}</DisplayString>
+        <Expand>
+            <Item Name="Size">d->size</Item>
+            <Item Name="Data">d->data, su</Item>
+        </Expand>
+    </Type>
+</AutoVisualizer>
