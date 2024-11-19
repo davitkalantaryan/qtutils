@@ -19,12 +19,11 @@ namespace qtutils { namespace core{
 
 
 
-class QTUTILS_EXPORT SqlDbWrpBase_p
-{   
-public:
-    SqlDatabase                     m_db;
+struct SqlDbWrpBase_p{   
+    SqlDatabase*                    m_db_p;
     QString                         m_type;
     QString                         m_connectionName;
+    bool                            m_isConnectionOwnedByThis;
 };
 
 #ifndef QTUTILS_DBUSE_CLASS_API
