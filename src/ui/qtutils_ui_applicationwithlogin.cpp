@@ -30,4 +30,20 @@ bool ApplicationWithLogin::isVisible()const
 }
 
 
+void ApplicationWithLogin::SetVisible()
+{
+}
+
+
+void ApplicationWithLogin::SetInvisible()
+{
+}
+
+
+bool ApplicationWithLogin::hasInvisiblePossibility()const
+{
+    return false;
+}
+
+
 }}  //  namespace qtutils { namespace ui {
