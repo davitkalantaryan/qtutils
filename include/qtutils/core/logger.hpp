@@ -35,7 +35,7 @@ class CPPUTILS_DLL_PRIVATE Logger_p;
 class QTUTILS_EXPORT Logger final
 {
 public:
-    typedef ::std::function<void(void*,QtMsgType, const QMessageLogContext &, const QString &)> TypeLogger;
+    typedef ::std::function<void(void*,QtMsgType, const QMessageLogContext &, const QString &, const char* a_category)> TypeLogger;
 public:
     Logger(const TypeLogger& a_logger=nullptr, void* a_pOwner=nullptr);
     Logger(const Logger&)=delete;
