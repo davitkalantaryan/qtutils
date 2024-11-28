@@ -34,14 +34,13 @@ static QtMessageHandler s_defaultHandler    = nullptr;
 static Logger_p* s_pFirstLogger             = nullptr;
 static mutex_ml s_logsMutex;
 
-static void MessageHandlerStaticForRet(QtMsgType a_type, const QMessageLogContext& a_context,const QString& a_message);
-static void MessageHandlerStatic(QtMsgType a_type, const QMessageLogContext& a_context,const QString& a_message, const char* a_category);
+static void MessageHandlerStatic(QtMsgType a_type, const QMessageLogContext& a_context,const QString& a_message);
 
-static void MessageHandlerStaticForNull(void*,QtMsgType, const QMessageLogContext &,const QString &, const char*)
+static void MessageHandlerStaticForNull(void*,QtMsgType, const QMessageLogContext &,const QString &)
 {
 }
 
-static void MessageHandlerStaticForDefault(void* a_def,QtMsgType a_msgType, const QMessageLogContext& a_ctx,const QString& a_msg,const char*)
+static void MessageHandlerStaticForDefault(void* a_def,QtMsgType a_msgType, const QMessageLogContext& a_ctx,const QString& a_msg)
 {
     const QtMessageHandler defhand = (QtMessageHandler)a_def;
     defhand(a_msgType,a_ctx,a_msg);
@@ -112,7 +111,7 @@ QtMessageHandler Logger::DefaultHandler()
             retHandler = s_defaultHandler;
         }
         else{
-            retHandler = s_defaultHandler = qInstallMessageHandler(&MessageHandlerStaticForRet);
+            retHandler = s_defaultHandler = qInstallMessageHandler(&MessageHandlerStatic);
             qInstallMessageHandler(s_defaultHandler);
         }
 
@@ -170,7 +169,7 @@ void Logger_p::MessageHandler(QtMsgType a_type, const QMessageLogContext& a_cont
         }  //  switch (a_type) {
     }  //  if(a_context.line>0){
 
-    m_logger(m_pOwner,a_type,a_context,msgCntx+a_message,a_context.category);
+    m_logger(m_pOwner,a_type,a_context,msgCntx+a_message);
 }
 
 
@@ -189,7 +188,7 @@ Logger_p::Logger_p(const Logger::TypeLogger& a_logger, void* a_pOwner)
     }
     else{
         if(!s_defaultHandler){
-            s_defaultHandler = qInstallMessageHandler(&MessageHandlerStaticForRet);
+            s_defaultHandler = qInstallMessageHandler(&MessageHandlerStatic);
         }
     }
 
@@ -212,9 +211,8 @@ Logger_p::~Logger_p()
 }
 
 
-static void MessageHandlerStatic(QtMsgType a_type, const QMessageLogContext& a_context,const QString& a_message, const char* a_category)
+static void MessageHandlerStatic(QtMsgType a_type, const QMessageLogContext& a_context,const QString& a_message)
 {
-    static_cast<void>(a_category);
     Logger_p* pLogger;
     ::std::lock_guard<mutex_ml> aGuard(s_logsMutex);
     pLogger = s_pFirstLogger;
@@ -222,12 +220,6 @@ static void MessageHandlerStatic(QtMsgType a_type, const QMessageLogContext& a_c
         pLogger->MessageHandler(a_type,a_context,a_message);
         pLogger = pLogger->m_next;
     }
-}
-
-
-static void MessageHandlerStaticForRet(QtMsgType a_type, const QMessageLogContext& a_context,const QString& a_message)
-{
-    MessageHandlerStatic(a_type,a_context,a_message,"");
 }
 
 
