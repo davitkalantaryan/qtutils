@@ -62,7 +62,7 @@ public:
     template <typename WidgType>
     void CreateAndShowSpecWidget(const QPoint& a_glbPos, const QSize& a_size, WidgType** CPPUTILS_ARG_NN a_ppWidget);
     
-private:
+protected:
     void CleanData();
     
 protected:

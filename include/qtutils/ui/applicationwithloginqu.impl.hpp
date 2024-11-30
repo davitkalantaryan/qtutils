@@ -17,6 +17,7 @@
 #include <qtutils/disable_utils_warnings.h>
 #include <QMetaObject>
 #include <QTimer>
+#include <QCoreApplication>
 
 
 namespace qtutils { namespace ui {
@@ -41,7 +42,7 @@ ApplicationWithLoginBase<TypeApp>::ApplicationWithLoginBase(ApplicationWithLogin
     m_data_p->m_flagsFS.wr_all = CPPUTILS_FOURSTATE_MAKE_ALL_BITS_FALSE;
     m_data_p->m_flagsBS.wr.shouldRun = CPPUTILS_BISTATE_MAKE_BITS_TRUE;
     
-    QObject::connect(this,&QObject::destroyed,this,[this](){
+    QObject::connect(this,&QCoreApplication::aboutToQuit,this,[this](){
         CleanData();
     });
     
