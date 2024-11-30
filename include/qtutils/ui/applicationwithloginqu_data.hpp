@@ -27,7 +27,10 @@ namespace qtutils { namespace ui {
 
 CPPUTILS_BISTATE_FLAGS_UN_NM(
         BistateFlags,
-        shouldRun,doNotCollectEarlyLogs, cleanCalled);
+        shouldRun,doNotCollectEarlyLogs, cleanCalled,
+        isSocketConnected, isServiceSocketConnected, isSocket2Connected, isSocket3Connected,
+        isClockedIn, isKeybMonitorRunning, isMouseMonitorRunning, keyStoringEnabled,
+        shouldLoginWithSystemEvent);
 CPPUTILS_FOURSTATE_FLAGS_UN_NM(
         FourstateFlags,
         loggedIn, clockedIn);
