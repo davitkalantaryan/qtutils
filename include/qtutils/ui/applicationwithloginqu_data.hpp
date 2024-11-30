@@ -8,6 +8,9 @@
 
 #pragma once
 
+#ifndef QTUTILS_INCLUDE_QTUTILS_UI_APPLICATIONWITHLOGIN_DATA_HPP
+#define QTUTILS_INCLUDE_QTUTILS_UI_APPLICATIONWITHLOGIN_DATA_HPP
+
 #include <qtutils/export_symbols.h>
 #include <cinternal/bistateflags.h>
 #include <cinternal/fourstateflags.h>
@@ -24,7 +27,7 @@ namespace qtutils { namespace ui {
 
 CPPUTILS_BISTATE_FLAGS_UN_NM(
         BistateFlags,
-        shouldRun,doNotCollectEarlyLogs);
+        shouldRun,doNotCollectEarlyLogs, cleanCalled);
 CPPUTILS_FOURSTATE_FLAGS_UN_NM(
         FourstateFlags,
         loggedIn, clockedIn);
@@ -47,6 +50,9 @@ public:
     virtual void StartThreadsByApp();
     virtual void StopThreadsByApp();
     
+    template <typename ObjType>
+    void CreateObject(ObjType** CPPUTILS_ARG_NN a_ppWidget);
+    
 public:
     QString             m_username;
     QString             m_loginBaseUrl;
@@ -56,15 +62,15 @@ public:
 
 
 template <typename WidgType>
-static inline void ShutdownWindowInline(WidgType** CPPUTILS_ARG_NN a_ppWidget){
-    WidgType*& pWidget = *a_ppWidget;
-    if(pWidget){
-        WidgType* const pWidgetTmp = pWidget;
-        pWidget = nullptr;
-        pWidgetTmp->setHidden(true);
-        pWidgetTmp->deleteLater();
-    }
-}
+static inline void ShutdownWindowInline(WidgType** CPPUTILS_ARG_NN a_ppWidget);
 
 
 }}  //  namespace qtutils { namespace ui {
+
+
+#ifndef QTUTILS_INCLUDE_QTUTILS_UI_APPLICATIONWITHLOGIN_DATA_IMPL_HPP
+#include <qtutils/ui/applicationwithloginqu_data.impl.hpp>
+#endif
+
+
+#endif  //  #ifndef QTUTILS_INCLUDE_QTUTILS_UI_APPLICATIONWITHLOGIN_DATA_HPP

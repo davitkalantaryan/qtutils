@@ -15,11 +15,12 @@
 #include <qtutils/ui/applicationwithloginqu_data.hpp>
 #include <qtutils/core/networkaccessmanagerqu.hpp>
 #include <qtutils/disable_utils_warnings.h>
-#include <QPoint>
 #include <QString>
 #include <QSettings>
 #if defined(QT_WIDGETS_LIB)
 #include <QApplication>
+#include <QPoint>
+#include <QSize>
 #elif defined(QT_GUI_LIB)
 #include <QGuiApplication>
 #elif defined(QT_CORE_LIB)
@@ -54,8 +55,15 @@ public:
     virtual bool hasInvisiblePossibility()const;
     virtual void showAboutInfo()const;
     void ExitAppCommonPart();
+    template <typename ObjType>
+    void CreateObject(ObjType** CPPUTILS_ARG_NN a_ppWidget);
     template <typename WidgType>
-    void StartWidget(const QPoint& a_glbPos, WidgType** CPPUTILS_ARG_NN a_ppWidget);
+    void CreateAndShowAnyWidget(const QPoint& a_glbPos, const QSize& a_size, WidgType** CPPUTILS_ARG_NN a_ppWidget);
+    template <typename WidgType>
+    void CreateAndShowSpecWidget(const QPoint& a_glbPos, const QSize& a_size, WidgType** CPPUTILS_ARG_NN a_ppWidget);
+    
+private:
+    void CleanData();
     
 protected:
     ApplicationWithLogin_data* const        m_data_p;
@@ -125,8 +133,8 @@ class QTUTILS_EXPORT ApplicationWithLoginWidget : public ApplicationWithLoginBas
 {
     Q_OBJECT
 public:
-    virtual void ShowSettingsWnd(const QPoint& a_glbPos) = 0;
-    virtual void ShowLogsWnd(const QPoint& a_glbPos) = 0;
+    virtual void ShowSettingsWnd(const QPoint& a_glbPos, const QSize& a_size) = 0;
+    virtual void ShowLogsWnd(const QPoint& a_glbPos, const QSize& a_size) = 0;
     QTUTILS_DEFINE_LOGIN_APP_FNCS(ApplicationWithLoginWidget, QApplication)
 signals:
     QTUTILS_DEFINE_LOGIN_APP_SIGS(ApplicationWithLoginWidget, QApplication)

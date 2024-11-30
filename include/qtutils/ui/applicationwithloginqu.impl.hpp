@@ -16,6 +16,7 @@
 #endif
 #include <qtutils/disable_utils_warnings.h>
 #include <QMetaObject>
+#include <QTimer>
 
 
 namespace qtutils { namespace ui {
@@ -25,9 +26,6 @@ template <typename TypeApp>
 ApplicationWithLoginBase<TypeApp>::~ApplicationWithLoginBase()
 {
     m_data_p->m_flagsBS.wr.shouldRun = CPPUTILS_BISTATE_MAKE_BITS_FALSE;
-    m_data_p->CleanWhileThreadsAliveByApp();
-    m_data_p->StopThreadsByApp();
-    m_data_p->CleanAfterThreadsByApp();
     delete m_data_p;
 }
 
@@ -43,9 +41,29 @@ ApplicationWithLoginBase<TypeApp>::ApplicationWithLoginBase(ApplicationWithLogin
     m_data_p->m_flagsFS.wr_all = CPPUTILS_FOURSTATE_MAKE_ALL_BITS_FALSE;
     m_data_p->m_flagsBS.wr.shouldRun = CPPUTILS_BISTATE_MAKE_BITS_TRUE;
     
-    m_data_p->InitBeforeThreadsByApp();
-    m_data_p->StartThreadsByApp();
-    m_data_p->InitAfterThreadsByApp();
+    QObject::connect(this,&QObject::destroyed,this,[this](){
+        CleanData();
+    });
+    
+    QTimer::singleShot(0,this,[this](){
+        m_data_p->InitBeforeThreadsByApp();
+        m_data_p->StartThreadsByApp();
+        m_data_p->InitAfterThreadsByApp();
+    });
+    
+}
+
+
+template <typename TypeApp>
+void ApplicationWithLoginBase<TypeApp>::CleanData()
+{
+    m_data_p->m_flagsBS.wr.shouldRun = CPPUTILS_BISTATE_MAKE_BITS_FALSE;
+    if(m_data_p->m_flagsBS.rd.cleanCalled_false){
+        m_data_p->m_flagsBS.wr.cleanCalled = CPPUTILS_BISTATE_MAKE_BITS_TRUE;
+        m_data_p->CleanWhileThreadsAliveByApp();
+        m_data_p->StopThreadsByApp();
+        m_data_p->CleanAfterThreadsByApp();
+    }
 }
 
 
@@ -135,18 +153,46 @@ void ApplicationWithLoginBase<TypeApp>::ExitAppCommonPart()
 
 
 template <typename TypeApp>
+template <typename ObjType>
+void ApplicationWithLoginBase<TypeApp>::CreateObject(ObjType** CPPUTILS_ARG_NN a_ppObject)
+{
+    m_data_p->CreateObject(a_ppObject);
+}
+
+
+template <typename TypeApp>
 template <typename WidgType>
-void ApplicationWithLoginBase<TypeApp>::StartWidget(const QPoint& a_glbPos, WidgType** CPPUTILS_ARG_NN a_ppWidget)
+void ApplicationWithLoginBase<TypeApp>::CreateAndShowAnyWidget(const QPoint& a_glbPos, const QSize& a_size, WidgType** CPPUTILS_ARG_NN a_ppWidget)
 {
     if(m_data_p->m_flagsBS.rd.shouldRun_true){
-        QMetaObject::invokeMethod(this,[this,a_glbPos,a_ppWidget](){
+        QMetaObject::invokeMethod(this,[this,a_glbPos,a_size,a_ppWidget](){
             if(m_data_p->m_flagsBS.rd.shouldRun_true){
                 WidgType*& pWidget = *a_ppWidget;
                 if(!pWidget){
                     pWidget = new WidgType();
-                    pWidget->resize(500,500);
+                    pWidget->resize(a_size);
                 }
-            
+                pWidget->move(a_glbPos);
+                pWidget->show();
+                pWidget->activateWindow();
+            }  //  if(m_appbase_data_p->m_flagsBS.rd.shouldRun_true){   II
+        });  //  QMetaObject::invokeMethod(this,[this,a_glbPos](){
+    }  //  if(m_appbase_data_p->m_flagsBS.rd.shouldRun_true){
+}
+
+
+template <typename TypeApp>
+template <typename WidgType>
+void ApplicationWithLoginBase<TypeApp>::CreateAndShowSpecWidget(const QPoint& a_glbPos, const QSize& a_size, WidgType** CPPUTILS_ARG_NN a_ppWidget)
+{
+    if(m_data_p->m_flagsBS.rd.shouldRun_true){
+        QMetaObject::invokeMethod(this,[this,a_glbPos,a_size,a_ppWidget](){
+            if(m_data_p->m_flagsBS.rd.shouldRun_true){
+                WidgType*& pWidget = *a_ppWidget;
+                if(!pWidget){
+                    pWidget = new WidgType();
+                    pWidget->resize(a_size);
+                }
                 pWidget->move(a_glbPos);
                 pWidget->InitAndShow();
                 pWidget->activateWindow();
