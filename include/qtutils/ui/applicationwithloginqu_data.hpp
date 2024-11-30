@@ -30,10 +30,12 @@ CPPUTILS_BISTATE_FLAGS_UN_NM(
         shouldRun,doNotCollectEarlyLogs, cleanCalled,
         isSocketConnected, isServiceSocketConnected, isSocket2Connected, isSocket3Connected,
         isClockedIn, isKeybMonitorRunning, isMouseMonitorRunning, keyStoringEnabled,
-        shouldLoginWithSystemEvent);
+        shouldLoginWithSystemEvent, appMonitorEnabled, keybMonitorEnabled,mouseMonitorEnabled,
+        clockInEnabled,shouldSpinClockin,shouldSpinBreak,screenshotEnabled,
+        signalInited);
 CPPUTILS_FOURSTATE_FLAGS_UN_NM(
         FourstateFlags,
-        loggedIn, clockedIn);
+        loggedIn, clockedIn, inBreak);
 
 
 class QTUTILS_EXPORT ApplicationWithLogin_data
