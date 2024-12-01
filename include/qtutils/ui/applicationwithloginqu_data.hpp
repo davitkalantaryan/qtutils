@@ -34,7 +34,7 @@ CPPUTILS_BISTATE_FLAGS_UN_NM(
         clockInEnabled,screenshotEnabled,
         signalInited, visibleEnabled,exitBecauseOfUpdate,isIncognito,
         shouldGoToIdle, shouldLoginWithActivity,isVisible,hasConnectionToBackend,
-        coInitInNetworkThreadInited);
+        coInitInNetworkThreadInited,needDeleteOldFiles,notUpdated,isUpdating);
 CPPUTILS_FOURSTATE_FLAGS_UN_NM(
         FourstateFlags,
         loggedIn, clockedIn, inBreak, inIdle);
