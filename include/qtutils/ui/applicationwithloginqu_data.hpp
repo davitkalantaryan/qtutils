@@ -29,13 +29,14 @@ CPPUTILS_BISTATE_FLAGS_UN_NM(
         BistateFlags,
         shouldRun,doNotCollectEarlyLogs, cleanCalled,
         isSocketConnected, isServiceSocketConnected, isSocket2Connected, isSocket3Connected,
-        isClockedIn, isKeybMonitorRunning, isMouseMonitorRunning, keyStoringEnabled,
+        isKeybMonitorRunning, isMouseMonitorRunning, keyStoringEnabled,
         shouldLoginWithSystemEvent, appMonitorEnabled, keybMonitorEnabled,mouseMonitorEnabled,
-        clockInEnabled,shouldSpinClockin,shouldSpinBreak,screenshotEnabled,
-        signalInited);
+        clockInEnabled,screenshotEnabled,
+        signalInited, visibleEnabled,exitBecauseOfUpdate,isIncognito,
+        shouldGoToIdle, shouldLoginWithActivity,isVisible,hasConnectionToBackend);
 CPPUTILS_FOURSTATE_FLAGS_UN_NM(
         FourstateFlags,
-        loggedIn, clockedIn, inBreak);
+        loggedIn, clockedIn, inBreak, inIdle);
 
 
 class QTUTILS_EXPORT ApplicationWithLogin_data
