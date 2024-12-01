@@ -44,7 +44,7 @@ static inline void ShutdownWindowInline(WidgType** CPPUTILS_ARG_NN a_ppWidget){
     if(pWidget){
         WidgType* const pWidgetTmp = pWidget;
         pWidget = nullptr;
-        pWidgetTmp->setHidden(true);
+        pWidgetTmp->hide();
         pWidgetTmp->deleteLater();
     }
 }
