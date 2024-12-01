@@ -33,7 +33,8 @@ CPPUTILS_BISTATE_FLAGS_UN_NM(
         shouldLoginWithSystemEvent, appMonitorEnabled, keybMonitorEnabled,mouseMonitorEnabled,
         clockInEnabled,screenshotEnabled,
         signalInited, visibleEnabled,exitBecauseOfUpdate,isIncognito,
-        shouldGoToIdle, shouldLoginWithActivity,isVisible,hasConnectionToBackend);
+        shouldGoToIdle, shouldLoginWithActivity,isVisible,hasConnectionToBackend,
+        coInitInNetworkThreadInited);
 CPPUTILS_FOURSTATE_FLAGS_UN_NM(
         FourstateFlags,
         loggedIn, clockedIn, inBreak, inIdle);
