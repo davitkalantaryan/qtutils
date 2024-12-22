@@ -11,10 +11,20 @@
 #include <QUrl>
 #include <QRegularExpression>
 #include <QRegularExpressionMatch>
+#include <QSettings>
+#include <QVariant>
+#include <QVariantList>
+#include <QVariantMap>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QJsonDocument>
 
 
 namespace qtutils { namespace core{
 
+
+#define QTUTILS_CORE_HTTPSERVER_ALLOWED_HEADERS_KEY "qtutils/core/allowed_headers"
+#define QTUTILS_CORE_HTTPSERVER_ALLOWED_ORIGINS_KEY "qtutils/core/allowed_origins"
 
 
 class CPPUTILS_DLL_PRIVATE HttpServer_p
@@ -29,11 +39,133 @@ public:
     HttpServer::TypeListRE  wildcardRegExpRoutes;
     HttpServer::TypeListAA  anyAppearanceRoutes;
     HttpServer::TypeListAnM anyMatcherRoutes;
+    ByteArrayList           allowedHeaders;
+    ByteArrayList           allowedOrigins;
 };
 
 
 /*/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
 
+static inline void HttpServerFixResponceHeadersInline(bool a_bHasOrigin, const QByteArray& a_baOrigin, const ByteArrayList& a_allowedHeaders, QHttpServerResponse* CPPUTILS_ARG_NN a_pResp){
+    QByteArray allowedHeaders = "content-type, authorization, client-device";
+    const qsizetype headersCount = a_allowedHeaders.size();
+    QByteArray nextHeader;
+
+    for(qsizetype i(0); i<headersCount; ++i){
+        nextHeader = a_allowedHeaders.at(i);
+        allowedHeaders += ( QByteArray(", ") +  nextHeader);
+    }  //  for(qsizetype i(0); i<headersCount; ++i){
+
+    a_pResp->addHeader("Access-Control-Allow-Credentials","true");
+    a_pResp->addHeader("Access-Control-Allow-Headers",allowedHeaders);
+    a_pResp->addHeader("Access-Control-Allow-Methods","GET, OPTIONS, POST, PUT, PATCH, DELETE");
+    a_pResp->addHeader("Access-Control-Max-Age","3600");
+    if(a_bHasOrigin){
+        a_pResp->addHeader("Access-Control-Allow-Origin",a_baOrigin);
+    }
+}
+
+
+static inline bool HttpServerCheckAndFixResponceHeadersInlineRaw(const TypeRestHeaders& a_vHeaders,
+                                                                 const ByteArrayList& a_allowedHeaders, const ByteArrayList& a_allowedOrigins,
+                                                                 QHttpServerResponse* CPPUTILS_ARG_NN a_pResp){
+    bool bHasOrigin = false;
+    qsizetype i;
+    QByteArray baOrigin;
+    const qsizetype cnHeadersCount = a_vHeaders.size();
+
+    for(i = 0; i < cnHeadersCount; ++i){
+        if(a_vHeaders[i].first == QByteArray("Origin")){
+            baOrigin = a_vHeaders[i].second;
+            bHasOrigin = true;
+            break;
+        }
+    }
+
+    if(bHasOrigin){
+        QByteArray tmpAllowedOrigin;
+        const qsizetype allowedOriginsCount = a_allowedOrigins.size();
+        for(i = 0; i < allowedOriginsCount; ++i){
+            tmpAllowedOrigin = a_allowedOrigins.at(i);
+            if(tmpAllowedOrigin==baOrigin){
+                HttpServerFixResponceHeadersInline(true,baOrigin,a_allowedHeaders,a_pResp);
+                return true;
+            }  //  if(tmpAllowedOrigin==baOrigin){
+            else {
+                const QString tmpAllowedOriginStr = QString(tmpAllowedOrigin);
+                const QRegularExpression reg(tmpAllowedOriginStr);
+                const QRegularExpressionMatch matchg = reg.match(baOrigin);
+                if(matchg.hasMatch()){
+                    HttpServerFixResponceHeadersInline(true,baOrigin,a_allowedHeaders,a_pResp);
+                    return true;
+                }  //  if(matchg.hasMatch()){
+                else{
+                    const QRegularExpression rew = QRegularExpression::fromWildcard(tmpAllowedOriginStr,Qt::CaseSensitive,QRegularExpression::UnanchoredWildcardConversion);
+                    const QRegularExpressionMatch matchw = rew.match(baOrigin);
+                    if(matchw.hasMatch()){
+                        HttpServerFixResponceHeadersInline(true,baOrigin,a_allowedHeaders,a_pResp);
+                        return true;
+                    }  //  if(matchw.hasMatch()){
+                }  //  else of if(matchg.hasMatch()){
+            }  //  else of if(tmpAllowedOrigin==baOrigin){
+        }  //  for(i = 0; i < allowedOriginsCount; ++i){
+
+        // origin provided, but it is not from list
+        return false;
+    }  //  if(bHasOrigin){
+
+    HttpServerFixResponceHeadersInline(false,baOrigin,a_allowedHeaders,a_pResp);
+    return true;
+}
+
+
+static inline bool HttpServerCheckAndFixResponceHeadersInline1(const QHttpServerRequest& a_request,
+                                                               const ByteArrayList& a_allowedHeaders, const ByteArrayList& a_allowedOrigins,
+                                                               QHttpServerResponse* CPPUTILS_ARG_NN a_pResp){
+    return HttpServerCheckAndFixResponceHeadersInlineRaw(a_request.headers(),a_allowedHeaders,a_allowedOrigins,a_pResp);
+}
+
+
+static inline ByteArrayList VariantListToByteArrayListInline(const QVariantList& a_listVL){
+    ByteArrayList retList;
+    const qsizetype listSize = a_listVL.size();
+    for(qsizetype i(0); i < listSize; ++i){
+        retList.push_back(a_listVL.at(i).toByteArray());
+    }  //  for(qsizetype i(0); i < allowedHeadersCount; ++i){
+    return retList;
+}
+
+
+static inline ByteArrayList getByteArrayListFromSettingsInline(const QString& a_key, const QSettings& a_settings){
+    const QVariantList listVL = a_settings.value(a_key,QList<QVariant>()).toList();
+    return VariantListToByteArrayListInline(listVL);
+}
+
+
+template <typename ContainerType>
+static inline QVariantList  AnyDataFromAnyContainerToVariantListInline(const ContainerType& a_list){
+    QVariantList listVL;
+    const typename ContainerType::const_iterator iterEnd = a_list.cend();
+    typename ContainerType::const_iterator iter = a_list.cbegin();
+    for(;iter != iterEnd; ++iter){
+        listVL.push_back(*iter);
+    }
+    return listVL;
+}
+
+
+static inline QVariantList ByteArrayListToVariantListInline(const ByteArrayList& a_list){
+    return AnyDataFromAnyContainerToVariantListInline(a_list);
+}
+
+
+static inline void SetByteArrayListToSettingsInline(const QString& a_key, const ByteArrayList& a_list, QSettings* CPPUTILS_ARG_NN a_settings_p){
+    const QList<QVariant> listVL = ByteArrayListToVariantListInline(a_list);
+    a_settings_p->setValue(a_key,listVL);
+}
+
+
+/*/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
 
 HttpServer::~HttpServer()
 {
@@ -45,6 +177,19 @@ HttpServer::HttpServer()
     :
       m_server_data(new HttpServer_p())
 {
+    const QSettings aSettings;
+    m_server_data->allowedHeaders = getByteArrayListFromSettingsInline(QTUTILS_CORE_HTTPSERVER_ALLOWED_HEADERS_KEY,aSettings);
+    m_server_data->allowedOrigins = getByteArrayListFromSettingsInline(QTUTILS_CORE_HTTPSERVER_ALLOWED_ORIGINS_KEY,aSettings);
+
+    this->AddStraightRoute("qtutils_get_allowed_headers",[this](const QHttpServerRequest& a_request, QHttpServerResponder& a_responder){
+        handleAllowedHeadersRequest(a_request,a_responder);
+        return true;
+    });
+
+    this->AddStraightRoute("qtutils_get_allowed_origins",[this](const QHttpServerRequest& a_request, QHttpServerResponder& a_responder){
+        handleAllowedOriginsRequest(a_request,a_responder);
+        return true;
+    });
 }
 
 
@@ -187,6 +332,77 @@ void HttpServer::AddAnyAppearanceRoute(const QString& a_pattern, const TypeClbkA
 void HttpServer::AddAnyMatcherRoute(const TypeHasMatch& a_hasMatch, void* a_ud, const TypeClbkAnM& a_clbk)
 {
     m_server_data->anyMatcherRoutes.push_back(::std::tuple<TypeHasMatch,void*,TypeClbkAnM>(a_hasMatch,a_ud,a_clbk));
+}
+
+
+void HttpServer::SetAllowedHeaders(const ByteArrayList& a_allowedHeaders)
+{
+    QSettings aSettings;
+    m_server_data->allowedHeaders = a_allowedHeaders;
+    SetByteArrayListToSettingsInline(QTUTILS_CORE_HTTPSERVER_ALLOWED_HEADERS_KEY,a_allowedHeaders,&aSettings);
+}
+
+
+const ByteArrayList& HttpServer::getAllowedHeaders() const
+{
+    return m_server_data->allowedHeaders;
+}
+
+
+void HttpServer::SetAllowedOrifins(const ByteArrayList& a_allowedOrigins)
+{
+    QSettings aSettings;
+    m_server_data->allowedOrigins = a_allowedOrigins;
+    SetByteArrayListToSettingsInline(QTUTILS_CORE_HTTPSERVER_ALLOWED_ORIGINS_KEY,a_allowedOrigins,&aSettings);
+}
+
+
+const ByteArrayList& HttpServer::getAllowedOrigins() const
+{
+    return m_server_data->allowedOrigins;
+}
+
+
+bool HttpServer::checkAndFixResponceHeaders(const QHttpServerRequest& a_request, QHttpServerResponse* CPPUTILS_ARG_NN a_pResp) const
+{
+    return HttpServerCheckAndFixResponceHeadersInline1(a_request,m_server_data->allowedHeaders,m_server_data->allowedOrigins,a_pResp);
+}
+
+
+bool HttpServer::checkAndFixResponceHeaders(const TypeRestHeaders& a_vHeaders, QHttpServerResponse* CPPUTILS_ARG_NN a_pResp) const
+{
+    return HttpServerCheckAndFixResponceHeadersInlineRaw(a_vHeaders,m_server_data->allowedHeaders,m_server_data->allowedOrigins,a_pResp);
+}
+
+
+void HttpServer::handleAllowedHeadersRequest(const QHttpServerRequest& a_request, QHttpServerResponder& a_responder)
+{
+    const QVariantList allowedVL = ByteArrayListToVariantListInline(m_server_data->allowedHeaders);
+    const QJsonArray allowedJsonArray = QJsonArray::fromVariantList(allowedVL);
+    const QJsonDocument allowedJsonDoc ( allowedJsonArray );
+    const QByteArray allowedBA = allowedJsonDoc.toJson();
+    QHttpServerResponse aResp(allowedBA,QHttpServerResponse::StatusCode::Ok);
+    checkAndFixResponceHeaders(a_request,&aResp);
+    a_responder.sendResponse(aResp);
+}
+
+
+void HttpServer::handleAllowedOriginsRequest(const QHttpServerRequest& a_request, QHttpServerResponder& a_responder)
+{
+    const QVariantList allowedVL = ByteArrayListToVariantListInline(m_server_data->allowedHeaders);
+    const QJsonArray allowedJsonArray = QJsonArray::fromVariantList(allowedVL);
+    const QJsonDocument allowedJsonDoc ( allowedJsonArray );
+    const QByteArray allowedBA = allowedJsonDoc.toJson();
+    QHttpServerResponse aResp(allowedBA,QHttpServerResponse::StatusCode::Ok);
+    checkAndFixResponceHeaders(a_request,&aResp);
+    a_responder.sendResponse(aResp);
+}
+
+
+void HttpServer::handleAllUrlsRequest(const QHttpServerRequest& a_request, QHttpServerResponder& a_responder)
+{
+    const QVariantList strRoutesVL = AnyDataFromAnyContainerToVariantListInline(m_server_data->straightRoutes);
+    const QVariantList dirRoutesVL = AnyDataFromAnyContainerToVariantListInline(m_server_data->dirRoutes);
 }
 
 

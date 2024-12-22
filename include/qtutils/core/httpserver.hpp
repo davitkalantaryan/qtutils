@@ -19,12 +19,18 @@
 #include <QHttpServerResponder>
 #include <QAbstractHttpServer>
 #include <QString>
+#include <QList>
+#include <QByteArray>
+#include <QPair>
 #include <QRegularExpressionMatch>
 
 
 namespace qtutils { namespace core{
 
 class CPPUTILS_DLL_PRIVATE HttpServer_p;
+typedef QList<QPair<QByteArray, QByteArray> >   TypeRestHeaders;
+typedef QList<QByteArray>                       ByteArrayList;
+
 
 class QTUTILS_CORE_EXPORT HttpServer : public QAbstractHttpServer
 {
@@ -44,6 +50,10 @@ public:
 public:
     virtual ~HttpServer() override;
     HttpServer();
+    HttpServer(const HttpServer&)=delete;
+    HttpServer(HttpServer&)=delete;
+    HttpServer& operator=(const HttpServer&)=delete;
+    HttpServer& operator=(HttpServer&)=delete;
     
     const TypeHashS&  getAllStraightRoutes()const;
     const TypeHashD&  getAllDirRoutes()const;
@@ -57,19 +67,22 @@ public:
     void AddWildcardRegExpRoute(const QString& a_pattern, const TypeClbkRE& a_clbk);
     void AddAnyAppearanceRoute(const QString& a_pattern, const TypeClbkAA& a_clbk);
     void AddAnyMatcherRoute(const TypeHasMatch& a_hasMatch, void* a_ud, const TypeClbkAnM& a_clbk);
+    void SetAllowedHeaders(const ByteArrayList& a_allowedHeaders);
+    const ByteArrayList& getAllowedHeaders() const;
+    void SetAllowedOrifins(const ByteArrayList& a_allowedOrigins);
+    const ByteArrayList& getAllowedOrigins() const;
+    bool checkAndFixResponceHeaders(const TypeRestHeaders& a_vHeaders, QHttpServerResponse* CPPUTILS_ARG_NN a_pResp)const;
+    bool checkAndFixResponceHeaders(const QHttpServerRequest& a_request, QHttpServerResponse* CPPUTILS_ARG_NN a_pResp)const;
 
 protected:
     virtual bool handleRequest(const QHttpServerRequest& a_request, QHttpServerResponder& a_responder) override;
     virtual void missingHandler(const QHttpServerRequest& a_request, QHttpServerResponder&& a_responder) override;
-    
+    virtual void handleAllowedHeadersRequest(const QHttpServerRequest& a_request, QHttpServerResponder& a_responder);
+    virtual void handleAllowedOriginsRequest(const QHttpServerRequest& a_request, QHttpServerResponder& a_responder);
+    virtual void handleAllUrlsRequest(const QHttpServerRequest& a_request, QHttpServerResponder& a_responder);
+        
 private:
-    HttpServer(const HttpServer&)=delete;
-    HttpServer(HttpServer&&)=delete;
-    HttpServer& operator=(const HttpServer&)=delete;
-    HttpServer& operator=(HttpServer&&)=delete;
-    
-private:
-    HttpServer_p*const      m_server_data;
+    HttpServer_p* const     m_server_data;
 };
 
 
