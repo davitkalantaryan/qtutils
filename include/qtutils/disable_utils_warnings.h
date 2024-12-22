@@ -36,6 +36,7 @@
 #pragma warning (disable:5027)  //  'QtPrivate::RefCount': move assignment operator was implicitly defined as deleted
 #pragma warning (disable:4514)  //  qtnoop.h(11,13): warning C4514: 'qt_noop': unreferenced inline function has been removed
 #pragma warning (disable:4623)
+#pragma warning (disable:4251)
 #endif
 
 

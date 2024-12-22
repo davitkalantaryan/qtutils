@@ -9,10 +9,12 @@
 
 
 #include <qtutils/export_symbols.h>
+#include <cinternal/disable_compiler_warnings.h>
 #include <functional>
 #include <qtutils/disable_utils_warnings.h>
 #include <QDebug>
 #include <QMessageLogger>
+#include <cinternal/undisable_compiler_warnings.h>
 
 
 namespace qtutils { 
