@@ -12,7 +12,10 @@
 
 #define cinternal_unnamed_sema_wait_ms_needed
 #include <cinternal/unnamed_semaphore.h>
+#include <cinternal/bistateflags.h>
+#include <cinternal/disable_compiler_warnings.h>
 #include <memory>
+#include <cinternal/undisable_compiler_warnings.h>
 
 
 namespace qtutils{
@@ -28,6 +31,10 @@ public:
     ThreadLS_p(const ThreadLS::TypeConstruct& a_construct, const ThreadLS::TypeDestruct& a_destruct, void* a_pData, const ThreadLS::TypeMain& a_main);
 public:
     cinternal_unnamed_sema_t	m_sema;
+    CPPUTILS_BISTATE_FLAGS_UN(
+        shouldRun,
+        hasExceptionHandling
+    )flags;
 private:
     const ThreadLS::TypeConstruct       m_construct;
     const ThreadLS::TypeDestruct        m_destruct;
@@ -79,6 +86,7 @@ ThreadLS::ThreadLS(const TypeMain& a_main, const TypeConstruct& a_construct, con
 ThreadLS::~ThreadLS()
 {
 	if(m_thr_data_p){
+        m_thr_data_p->flags.wr.shouldRun = CPPUTILS_BISTATE_MAKE_BITS_FALSE;
 		m_thr_data_p->quit();
 		m_thr_data_p->wait();
 		delete m_thr_data_p;
@@ -100,6 +108,23 @@ QThread* ThreadLS::qThread()const
     return m_thr_data_p;
 }
 
+void ThreadLS::EnableExceptionsHandling()
+{
+    m_thr_data_p->flags.wr.hasExceptionHandling = CPPUTILS_BISTATE_MAKE_BITS_TRUE;
+}
+
+
+void ThreadLS::DisableExceptionsHandling()
+{
+    m_thr_data_p->flags.wr.hasExceptionHandling = CPPUTILS_BISTATE_MAKE_BITS_FALSE;
+}
+
+
+bool ThreadLS::hasExceptionHandling()const
+{
+    return static_cast<bool>(m_thr_data_p->flags.rd.hasExceptionHandling_true);
+}
+
 
 /*////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
 
@@ -111,6 +136,9 @@ ThreadLS_p::ThreadLS_p(const ThreadLS::TypeConstruct& a_construct, const ThreadL
       m_main([this](void* a_pData){DefaultMain(a_pData);}),
       m_userData(a_pData)
 {
+    this->flags.wr_all = CPPUTILS_BISTATE_MAKE_ALL_BITS_FALSE;
+    this->flags.wr.shouldRun = CPPUTILS_BISTATE_MAKE_BITS_TRUE;
+    this->flags.wr.hasExceptionHandling = CPPUTILS_BISTATE_MAKE_BITS_TRUE;
 	cinternal_unnamed_sema_create(&(this->m_sema),0);
 }
 
@@ -145,7 +173,17 @@ void ThreadLS_p::run()
 
 void ThreadLS_p::DefaultMain(void*)
 {
-    QThread::exec();
+    do{
+        try{
+            QThread::exec();
+        }
+        catch(...){
+            if(this->flags.rd.hasExceptionHandling_false){
+                throw;
+            }
+        }
+    }
+    while((this->flags.rd.shouldRun_true) && (this->flags.rd.hasExceptionHandling_true));
 }
 
 

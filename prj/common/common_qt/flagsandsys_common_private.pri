@@ -12,8 +12,6 @@ message("!!! $${PWD}/flagsandsys_common_private.pri")
 
 isEmpty(qtutilsFlagsAndSysCommonPrivateIncluded){
     qtutilsFlagsAndSysCommonPrivateIncluded = 1
-
-	include("$${PWD}/flagsandsys_common.pri")
-
+    include("$${PWD}/flagsandsys_common.pri")
     INCLUDEPATH += $${qtutilsRepoRoot}/src/include
 }

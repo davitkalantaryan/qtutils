@@ -9,15 +9,10 @@
 #define QTUTILS_INCLUDE_QTUTILS_CORE_DISABLE_UTILS_WARNINGS_H
 
 #include <qtutils/export_symbols.h>
-#ifdef CPPUTILS_COMPILER_WARNINGS_PUSH_POP
-#undef CPPUTILS_COMPILER_WARNINGS_PUSH_POP
-#define CPPUTILS_COMPILER_WARNINGS_PUSH_POP_defined
-#endif
+#ifndef CINTERNAL_INCLUDE_CINTERNAL_DISABLE_COMPILER_WARNINGS_H
 #include <cinternal/disable_compiler_warnings.h>
-#ifdef CPPUTILS_COMPILER_WARNINGS_PUSH_POP_defined
-#define CPPUTILS_COMPILER_WARNINGS_PUSH_POP
+#include <cinternal/undisable_compiler_warnings.h>
 #endif
-
 
 // https://docs.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warnings-c4800-through-c4999?view=msvc-160 (type convertion)
 // https://docs.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warning-level-1-c4946?view=msvc-160  (reinterpret cast is not proper)

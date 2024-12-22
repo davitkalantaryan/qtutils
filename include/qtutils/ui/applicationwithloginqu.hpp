@@ -19,8 +19,8 @@
 #include <QSettings>
 #if defined(QT_WIDGETS_LIB)
 #include <QApplication>
-#include <QPoint>
 #include <QSize>
+#include <QPoint>
 #elif defined(QT_GUI_LIB)
 #include <QGuiApplication>
 #elif defined(QT_CORE_LIB)

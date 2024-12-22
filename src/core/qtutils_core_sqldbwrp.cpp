@@ -5,12 +5,19 @@
 // created by:		Davit Kalantaryan (davit.kalantaryan@gmail.com)
 //
 
+#ifdef _MSC_VER
+#pragma warning (disable:4251)
+#endif
+
 #include <qtutils/core/sqldbwrp_p.hpp>
 #include <cinternal/thread_local_sys.h>
+#include <cinternal/disable_compiler_warnings.h>
 #include <mutex>
 #include <atomic>
 #include <stddef.h>
 #include <stdint.h>
+#include <cinternal/undisable_compiler_warnings.h>
+#include <qtutils/disable_utils_warnings.h>
 #ifdef QTUTILS_LOGGER_IS_USED
 #include <qtutils/core/logger.hpp>
 #define QtUtilsCriticalMacro        QtUtilsCritical
@@ -22,7 +29,6 @@
 #define QtUtilsWarningMacro         qWarning
 #define QtUtilsInfoMacro            qInfo
 #endif
-#include <qtutils/disable_utils_warnings.h>
 #include <QSqlError>
 #include <QMessageLogger>
 

@@ -41,6 +41,9 @@ public:
     ThreadLS& operator=(ThreadLS&&);
 
     QThread* qThread()const;
+    void EnableExceptionsHandling();
+    void DisableExceptionsHandling();
+    bool hasExceptionHandling()const;
 
 private:
     ThreadLS_p*        m_thr_data_p;

@@ -8,7 +8,7 @@
 message("!!! $${_PRO_FILE_}")
 
 include ( "$${PWD}/../../common/common_qt/flagsandsys_common.pri" )
-DESTDIR     = "$${artifactRoot}/sys/$${CODENAME}/$$CONFIGURATION/test"
+DESTDIR = "$${ArifactFinal}/test"
 
 #QT -= gui
 #QT -= core
@@ -21,9 +21,9 @@ win32{
 }
 
 
-SOURCES	+=		\
-	"$${qtutilsRepoRoot}/src/tests/main_any_quick_test.cpp"
+SOURCES	+= "$${qtutilsRepoRoot}/src/tests/main_any_quick_test.cpp"
+#SOURCES += $$files($${qtutilsRepoRoot}/src/core/*.cpp,true)
 
 
 HEADERS += $$files($${qtutilsRepoRoot}/include/*.h,true)
-HEADERS += $$files($${qtutilsRepoRoot}/include/*.h,true)
+#HEADERS += $$files($${qtutilsRepoRoot}/include/*.hpp,true)

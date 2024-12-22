@@ -5,11 +5,12 @@
 // created by:		Davit Kalantaryan (davit.kalantaryan@gmail.com)
 //
 
-
 #include <qtutils/core/logger.hpp>
 #define cinternal_lw_recursive_mutex_create_needed
 #include <cinternal/lw_mutex_recursive.h>
+#include <cinternal/disable_compiler_warnings.h>
 #include <mutex>
+#include <cinternal/undisable_compiler_warnings.h>
 #include <qtutils/disable_utils_warnings.h>
 #include <QFileInfo>
 #include <QDateTime>
