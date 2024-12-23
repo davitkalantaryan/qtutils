@@ -154,6 +154,32 @@ static inline QVariantList  AnyDataFromAnyContainerToVariantListInline(const Con
 }
 
 
+template <typename ContainerType>
+static inline QVariantList  AnyDataFromAnyMapContainerToVariantListInline(const ContainerType& a_list){
+    QVariantList listVL;
+    const typename ContainerType::const_iterator iterEnd = a_list.cend();
+    typename ContainerType::const_iterator iter = a_list.cbegin();
+    for(;iter != iterEnd; ++iter){
+        listVL.push_back(iter->first);
+    }
+    return listVL;
+}
+
+
+template <typename ContainerType>
+static inline QVariantList  AnyDataFromAnyTupleContainerToVariantListInline(const ContainerType& a_list){
+    QVariantList listVL;
+    const void* pFunc;
+    const typename ContainerType::const_iterator iterEnd = a_list.cend();
+    typename ContainerType::const_iterator iter = a_list.cbegin();
+    for(;iter != iterEnd; ++iter){
+        pFunc = reinterpret_cast<const void*>(::std::get<0>(*iter).target< bool(*)(const QUrl&, void*)>());
+        listVL.push_back( QString::asprintf("fa: %p",pFunc) );
+    }
+    return listVL;
+}
+
+
 static inline QVariantList ByteArrayListToVariantListInline(const ByteArrayList& a_list){
     return AnyDataFromAnyContainerToVariantListInline(a_list);
 }
@@ -188,6 +214,11 @@ HttpServer::HttpServer()
 
     this->AddStraightRoute("qtutils_get_allowed_origins",[this](const QHttpServerRequest& a_request, QHttpServerResponder& a_responder){
         handleAllowedOriginsRequest(a_request,a_responder);
+        return true;
+    });
+
+    this->AddStraightRoute("qtutils_get_all_urls",[this](const QHttpServerRequest& a_request, QHttpServerResponder& a_responder){
+        handleAllUrlsRequest(a_request,a_responder);
         return true;
     });
 }
@@ -380,7 +411,7 @@ void HttpServer::handleAllowedHeadersRequest(const QHttpServerRequest& a_request
     const QVariantList allowedVL = ByteArrayListToVariantListInline(m_server_data->allowedHeaders);
     const QJsonArray allowedJsonArray = QJsonArray::fromVariantList(allowedVL);
     const QJsonDocument allowedJsonDoc ( allowedJsonArray );
-    const QByteArray allowedBA = allowedJsonDoc.toJson();
+    const QByteArray allowedBA = allowedJsonDoc.toJson(QJsonDocument::Indented);
     QHttpServerResponse aResp(allowedBA,QHttpServerResponse::StatusCode::Ok);
     checkAndFixResponceHeaders(a_request,&aResp);
     a_responder.sendResponse(aResp);
@@ -392,7 +423,7 @@ void HttpServer::handleAllowedOriginsRequest(const QHttpServerRequest& a_request
     const QVariantList allowedVL = ByteArrayListToVariantListInline(m_server_data->allowedHeaders);
     const QJsonArray allowedJsonArray = QJsonArray::fromVariantList(allowedVL);
     const QJsonDocument allowedJsonDoc ( allowedJsonArray );
-    const QByteArray allowedBA = allowedJsonDoc.toJson();
+    const QByteArray allowedBA = allowedJsonDoc.toJson(QJsonDocument::Indented);
     QHttpServerResponse aResp(allowedBA,QHttpServerResponse::StatusCode::Ok);
     checkAndFixResponceHeaders(a_request,&aResp);
     a_responder.sendResponse(aResp);
@@ -401,8 +432,25 @@ void HttpServer::handleAllowedOriginsRequest(const QHttpServerRequest& a_request
 
 void HttpServer::handleAllUrlsRequest(const QHttpServerRequest& a_request, QHttpServerResponder& a_responder)
 {
-    const QVariantList strRoutesVL = AnyDataFromAnyContainerToVariantListInline(m_server_data->straightRoutes);
-    const QVariantList dirRoutesVL = AnyDataFromAnyContainerToVariantListInline(m_server_data->dirRoutes);
+    const QVariantList strRoutesVL = AnyDataFromAnyMapContainerToVariantListInline(m_server_data->straightRoutes);
+    const QVariantList dirRoutesVL = AnyDataFromAnyMapContainerToVariantListInline(m_server_data->dirRoutes);
+    const QVariantList regExpRoutesVL = AnyDataFromAnyMapContainerToVariantListInline(m_server_data->globRegExpRoutes);
+    const QVariantList wldcardRegExpRoutesVL = AnyDataFromAnyMapContainerToVariantListInline(m_server_data->wildcardRegExpRoutes);
+    const QVariantList anyApperanceRoutesVL = AnyDataFromAnyMapContainerToVariantListInline(m_server_data->anyAppearanceRoutes);
+    const QVariantList anyMatcherRoutesVL = AnyDataFromAnyTupleContainerToVariantListInline(m_server_data->anyMatcherRoutes);
+    const QVariantMap replyVariantMap = {
+        {"straightRoutes",strRoutesVL},
+        {"dirRoutes",dirRoutesVL},
+        {"regExpRoutes",regExpRoutesVL},
+        {"wildcardRegExpRoutes",wldcardRegExpRoutesVL},
+        {"anyApperanceRoutes",anyApperanceRoutesVL},
+        {"anyMatcherRoutes",anyMatcherRoutesVL}
+    };
+    const QJsonDocument replyJsonDoc = QJsonDocument(QJsonObject::fromVariantMap(replyVariantMap));
+    const QByteArray replyBA = replyJsonDoc.toJson(QJsonDocument::Indented);
+    QHttpServerResponse aResp(replyBA,QHttpServerResponse::StatusCode::Ok);
+    checkAndFixResponceHeaders(a_request,&aResp);
+    a_responder.sendResponse(aResp);
 }
 
 
