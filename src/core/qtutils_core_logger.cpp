@@ -199,5 +199,22 @@ QTUTILS_EXPORT void RemoveDefaultlyAddedLogger(void) noexcept
 }
 
 
+QTUTILS_EXPORT Base* AddDefaultlyAddedLogger(void)
+{
+    return new Default();
+}
+
+
+QTUTILS_EXPORT void RemoveLogger(Base* a_logger) noexcept
+{
+    if(a_logger){
+        if(a_logger==s_pDefaultLogger){
+            s_pDefaultLogger = nullptr;
+        }  //  if(a_logger==s_pDefaultLogger){
+        delete a_logger;
+    }  //  if(a_logger){
+}
+
+
 
 }}}  //  namespace qtutils { namespace core{ namespace logger{

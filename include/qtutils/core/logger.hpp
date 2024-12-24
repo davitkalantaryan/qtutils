@@ -21,7 +21,7 @@ namespace qtutils { namespace core{ namespace logger{
 
 #define QtUtilsDebugNVC(_category)              QMessageLogger(__FILE__, __LINE__, "",_category).debug()
 #define QtUtilsDebugNV                          QMessageLogger(__FILE__, __LINE__, "").debug
-#define QtUtilsDebug()                          QMessageLogger(__FILE__, __LINE__, __FUNCTION__).debug
+#define QtUtilsDebug                            QMessageLogger(__FILE__, __LINE__, __FUNCTION__).debug
 #define QtUtilsDebugCategory(_category)         QMessageLogger(__FILE__, __LINE__, __FUNCTION__,_category).debug()
 #define QtUtilsInfo                             QMessageLogger("",-1, "").info
 #define QtUtilsInfoV                            QMessageLogger(__FILE__, __LINE__, "").info
@@ -66,7 +66,9 @@ protected:
 
 
 QTUTILS_EXPORT Base* GetDefaultlyAddedLogger(void) noexcept;
-QTUTILS_EXPORT void RemoveDefaultlyAddedLogger(void) noexcept;
+QTUTILS_EXPORT Base* AddDefaultlyAddedLogger(void);
+QTUTILS_EXPORT void  RemoveDefaultlyAddedLogger(void) noexcept;
+QTUTILS_EXPORT void  RemoveLogger(Base* a_logger) noexcept;
 
 
 }}}  //  namespace qtutils { namespace core{ namespace logger{
