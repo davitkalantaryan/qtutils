@@ -20,12 +20,14 @@
 #define QTUTILS_DBDATA_DEF_CONTAINER
 #define QTUTILS_DBDATA_DEF_CONTAINER_KEY
 #endif
+#include <cinternal/disable_compiler_warnings.h>
 #include <memory>
 #include <qtutils/disable_utils_warnings.h>
 #include <QVariantMap>
 #include <QJsonObject>
 #include <QVariant>
 #include <QByteArray>
+#include <cinternal/undisable_compiler_warnings.h>
 
 
 namespace qtutils{ namespace core{

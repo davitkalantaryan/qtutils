@@ -17,7 +17,7 @@
 #include <utility>
 
 
-namespace qtutils{ namespace tools{
+namespace qtutils{ namespace core{
 
 #ifndef QTUTILS_TOOLS_DBDATA_GETID
 #define QTUTILS_TOOLS_DBDATA_GETID  id
@@ -155,7 +155,7 @@ bool GroupOfType<Type,ContKey,ContType>::operator!=(const GroupOfType& a_cM)cons
 }
 
 
-}}  //  namespace qtutils{ namespace tools{
+}}  //  namespace qtutils{ namespace core{
 
 
 #endif  //  #ifndef QTUTILS_INCLUDE_QTUTILS_TOOLS_DBDATA_IMPL_HPP

@@ -29,16 +29,17 @@ class QTUTILS_EXPORT ToFile : public Base
 public:
     ~ToFile() override;
     ToFile();
-    void                        RecreateLogFile();
-    void                        SetExtraLogger(const Logger::TypeLogger& a_logger, void* a_pOwner=nullptr);
-    void                        SetCurrentDate(const QDate& a_newDate);
-    void                        SetLogsDir(const QDir& a_logsDir);
-    QDate                       currentDate()const;
-    Logger::TypeLogger          extraLogger()const;
-    void*                       extraLogUserData()const;
-    QDir                        logsDir()const;
-    QString                     logFilePathCurrentDate()const;
-    QString                     logFilePath(const QDate& a_date)const;
+    ToFile(const ToFile&) = delete;
+    ToFile(ToFile&&) = delete;
+    ToFile& operator=(const ToFile&) = delete;
+    ToFile& operator=(ToFile&&) = delete;
+    void    RecreateLogFile();
+    void    SetCurrentDate(const QDate& a_newDate);
+    void    SetLogsDir(const QDir& a_logsDir);
+    QDate   currentDate()const;
+    QDir    logsDir()const;
+    QString logFilePathCurrentDate()const;
+    QString logFilePath(const QDate& a_date)const;
 
 protected:
     virtual void LoggerClbk(CinternalLogCategory a_categoryEnm, const char* CPPUTILS_ARG_NN a_categoryStr, char* CPPUTILS_ARG_NN a_log, size_t a_logStrLen) override;
