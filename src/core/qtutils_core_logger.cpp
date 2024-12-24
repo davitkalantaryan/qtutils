@@ -145,7 +145,7 @@ Base& Base::operator=(Base&& a_mM) noexcept
 }
 
 
-void Base::LoggerClbkSt(void* a_userData, enum CinternalLogCategory a_categoryEnm, const char* CPPUTILS_ARG_NN a_categoryStr, char* CPPUTILS_ARG_NN a_log, size_t a_logStrLen)
+void Base::LoggerClbkSt(void* a_userData, enum CinternalLogCategory a_categoryEnm, const char* CPPUTILS_ARG_NN a_categoryStr, const char* CPPUTILS_ARG_NN a_log, size_t a_logStrLen)
 {
     Base* const thisPtr = static_cast<Base*>(a_userData);
     thisPtr->LoggerClbk(a_categoryEnm,a_categoryStr,a_log,a_logStrLen);
@@ -154,7 +154,7 @@ void Base::LoggerClbkSt(void* a_userData, enum CinternalLogCategory a_categoryEn
 
 /*////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
 
-void Default::LoggerClbk(CinternalLogCategory a_categoryEnm, const char* CPPUTILS_ARG_NN a_categoryStr, char* CPPUTILS_ARG_NN a_log, size_t a_logStrLen)
+void Default::LoggerClbk(CinternalLogCategory a_categoryEnm, const char* CPPUTILS_ARG_NN a_categoryStr, const char* CPPUTILS_ARG_NN a_log, size_t a_logStrLen)
 {
     // QtMsgType a_type, const QMessageLogContext& a_context,const QString& a_message
     const QtMsgType qtLogType = CinternalLogCategoryQtLogTypeInline(a_categoryEnm);

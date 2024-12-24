@@ -42,7 +42,7 @@ public:
     QString logFilePath(const QDate& a_date)const;
 
 protected:
-    virtual void LoggerClbk(CinternalLogCategory a_categoryEnm, const char* CPPUTILS_ARG_NN a_categoryStr, char* CPPUTILS_ARG_NN a_log, size_t a_logStrLen) override;
+    virtual void LoggerClbk(CinternalLogCategory a_categoryEnm, const char* CPPUTILS_ARG_NN a_categoryStr, const char* CPPUTILS_ARG_NN a_log, size_t a_logStrLen) override;
 
 private:
     LoggerToFile_p*const   m_logger_data_p;

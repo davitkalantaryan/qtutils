@@ -6,10 +6,12 @@
 //
 
 #include <qtutils/core/loggertofile.hpp>
+#include <cinternal/disable_compiler_warnings.h>
 #include <mutex>
 #include <qtutils/disable_utils_warnings.h>
 #include <QFileInfo>
 #include <QStandardPaths>
+#include <cinternal/undisable_compiler_warnings.h>
 
 
 namespace qtutils { namespace core{ namespace logger{
@@ -47,7 +49,6 @@ ToFile::ToFile()
     QFileInfo aFileInfo02(dbDir,"logs");
 
     m_logger_data_p->m_logsDir.setPath(aFileInfo02.filePath());
-    m_logger_data_p->m_pOwner = nullptr;
 }
 
 
@@ -104,7 +105,7 @@ QString ToFile::logFilePathCurrentDate()const
 }
 
 
-void ToFile::LoggerClbk(CinternalLogCategory a_categoryEnm, const char* CPPUTILS_ARG_NN a_categoryStr, char* CPPUTILS_ARG_NN a_log, size_t a_logStrLen)
+void ToFile::LoggerClbk(CinternalLogCategory a_categoryEnm, const char* CPPUTILS_ARG_NN a_categoryStr, const char* CPPUTILS_ARG_NN a_log, size_t a_logStrLen)
 {
     const ::std::shared_ptr<QFile> logFile = m_logger_data_p->CreateLogFileInline();
     QFile* const logFile_p = logFile.get();
@@ -121,28 +122,6 @@ void ToFile::LoggerClbk(CinternalLogCategory a_categoryEnm, const char* CPPUTILS
 
 
 /*//////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
-
-void LoggerToFile_p::MessageHandler(QtMsgType a_msgType, const QMessageLogContext& a_ctx, const QString& a_msg)
-{
-    ::std::shared_ptr<QFile>  logFile = CreateLogFileInline();
-    QFile* logFile_p = logFile.get();
-
-    if(logFile_p && logFile_p->isOpen()){
-        QTextStream out(logFile_p);
-        out << a_msg<< "\n";
-#if defined(QTUTILS_LOG_TO_FILE_CALL_DEFAULT_LOGS)
-        QtMessageHandler defHandler = ::qtutils::Logger::DefaultHandler();
-        (*defHandler)(a_msgType,a_ctx,a_msg);
-#endif
-    }
-    else{
-        QtMessageHandler defHandler = ::qtutils::Logger::DefaultHandler();
-        (*defHandler)(a_msgType,a_ctx,a_msg);
-    }
-
-    m_extraLoggerClbk(m_pOwner,a_msgType,a_ctx,a_msg);
-}
-
 
 inline QString LoggerToFile_p::logFilePathInline(const QDate& a_date)const
 {
@@ -176,10 +155,10 @@ inline void LoggerToFile_p::CreateLogFileNoCheckNoLockInline()
 inline ::std::shared_ptr<QFile> LoggerToFile_p::CreateLogFileInline()
 {
     ::std::shared_ptr<QFile> pfFileRet = m_logFile;
-    QFile* pfFileRet_p = pfFileRet.get();
+    QFile* const pfFileRet_p = pfFileRet.get();
 
     if(!pfFileRet_p){
-        ::std::lock_guard<mutex_ml> aGuard(m_mutex);
+        ::std::lock_guard< ::std::recursive_mutex> aGuard(m_mutex);
         CreateLogFileNoCheckNoLockInline();
         pfFileRet = m_logFile;
     }  // if(!pfFileRet_p){
@@ -187,28 +166,6 @@ inline ::std::shared_ptr<QFile> LoggerToFile_p::CreateLogFileInline()
     return pfFileRet;
 }
 
-
-/*////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
-
-mutex_ml::mutex_ml()
-{
-	cinternal_lw_recursive_mutex_create(&m_mutex);
-}
-
-mutex_ml::~mutex_ml()
-{
-	cinternal_lw_recursive_mutex_destroy(&m_mutex);
-}
-
-void mutex_ml::lock()
-{
-	cinternal_lw_recursive_mutex_lock(&m_mutex);
-}
-
-void mutex_ml::unlock()
-{
-	cinternal_lw_recursive_mutex_unlock(&m_mutex);
-}
 
 
 }}}  //  namespace qtutils { namespace core{ namespace logger{
