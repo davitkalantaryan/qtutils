@@ -17,7 +17,7 @@
 #include <cinternal/undisable_compiler_warnings.h>
 
 
-namespace qtutils { namespace logger{
+namespace qtutils { namespace core{ namespace logger{
 
 #define QtUtilsDebugNVC(_category)              QMessageLogger(__FILE__, __LINE__, "",_category).debug()
 #define QtUtilsDebugNV                          QMessageLogger(__FILE__, __LINE__, "").debug
@@ -57,7 +57,7 @@ private:
 class QTUTILS_EXPORT Default : public Base
 {
 public:
-    virtual ~Default() noexcept = default;
+    virtual ~Default() noexcept override = default;
     using Base::Base;
 
 protected:
@@ -69,4 +69,4 @@ QTUTILS_EXPORT Base* GetDefaultlyAddedLogger(void) noexcept;
 QTUTILS_EXPORT void RemoveDefaultlyAddedLogger(void) noexcept;
 
 
-}}  //  namespace qtutils { namespace logger{
+}}}  //  namespace qtutils { namespace core{ namespace logger{

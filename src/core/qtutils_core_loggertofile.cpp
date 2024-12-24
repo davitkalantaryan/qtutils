@@ -5,80 +5,41 @@
 // created by:		Davit Kalantaryan (davit.kalantaryan@gmail.com)
 //
 
-#include <qtutils/tools/loggertofile.hpp>
-#define cinternal_lw_recursive_mutex_create_needed
-#include <cinternal/lw_mutex_recursive.h>
+#include <qtutils/core/loggertofile.hpp>
 #include <mutex>
 #include <qtutils/disable_utils_warnings.h>
 #include <QFileInfo>
 #include <QStandardPaths>
 
 
-namespace qtutils{ namespace tools{
+namespace qtutils { namespace core{ namespace logger{
 
-
-class CPPUTILS_DLL_PRIVATE mutex_ml final{
-public:
-	mutex_ml();
-	~mutex_ml();
-	void lock();
-	void unlock();
-	
-private:
-	cinternal_lw_recursive_mutex_t m_mutex;
-};
 
 
 class CPPUTILS_DLL_PRIVATE LoggerToFile_p final
 {
 public:
-    mutex_ml					m_mutex;
-    Logger::TypeLogger          m_extraLoggerClbk;
     void*                       m_pOwner;
     ::std::shared_ptr<QFile>    m_logFile;
     QDate                       m_currentDate;
     QDir                        m_logsDir;
-    ::qtutils::Logger           m_logger;
 public:
-    void MessageHandler(QtMsgType a_msgType, const QMessageLogContext& a_ctx, const QString& a_msg);
     inline QString logFilePathInline(const QDate& a_date)const;
     inline ::std::shared_ptr<QFile> CreateLogFileInline();
     inline void CreateLogFileNoCheckNoLockInline();
 };
 
 
-static void NoLogDefaultClbk(void*,QtMsgType,const QMessageLogContext&, const QString&)
-{
-}
-
-
-static void MessageHandlerSt(void* a_pLogger, QtMsgType a_msgType, const QMessageLogContext& a_ctx, const QString& a_msg)
-{
-    if(a_pLogger){
-        LoggerToFile_p*const pLogger = static_cast<LoggerToFile_p*>(a_pLogger);
-        pLogger->MessageHandler(a_msgType, a_ctx,a_msg);
-    }
-    else{
-        QtMessageHandler defHandler = ::qtutils::Logger::DefaultHandler();
-        (*defHandler)(a_msgType,a_ctx,a_msg);
-    }
-}
-
 
 // m_logger.SetNewLogger(MessageHandlerSt,this);
 
-LoggerToFile::~LoggerToFile()
+ToFile::~ToFile()
 {
-    m_logger_data_p->m_logger.SetNewLogger([](void*,QtMsgType a_msgType,const QMessageLogContext& a_ctx, const QString& a_msg){
-        QtMessageHandler defHandler = ::qtutils::Logger::DefaultHandler();
-        (*defHandler)(a_msgType,a_ctx,a_msg);
-    });
-
     delete m_logger_data_p;
 }
 
 
-LoggerToFile::LoggerToFile()
+ToFile::ToFile()
     :
       m_logger_data_p(new LoggerToFile_p())
 {
@@ -86,9 +47,7 @@ LoggerToFile::LoggerToFile()
     QFileInfo aFileInfo02(dbDir,"logs");
 
     m_logger_data_p->m_logsDir.setPath(aFileInfo02.filePath());
-    m_logger_data_p->m_extraLoggerClbk = &NoLogDefaultClbk;
     m_logger_data_p->m_pOwner = nullptr;
-    m_logger_data_p->m_logger.SetNewLogger(&MessageHandlerSt,m_logger_data_p);
 }
 
 
@@ -256,4 +215,4 @@ void mutex_ml::unlock()
 }
 
 
-}}  //  namespace qtutils{ namespace tools{
+}}}  //  namespace qtutils { namespace core{ namespace logger{

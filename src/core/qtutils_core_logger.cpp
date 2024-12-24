@@ -6,17 +6,15 @@
 //
 
 #include <qtutils/core/logger.hpp>
-#define cinternal_lw_recursive_mutex_create_needed
-#include <cinternal/lw_mutex_recursive.h>
 #include <cinternal/disable_compiler_warnings.h>
 #include <new>
-#include <cinternal/undisable_compiler_warnings.h>
 #include <qtutils/disable_utils_warnings.h>
 #include <QFileInfo>
 #include <QDateTime>
+#include <cinternal/undisable_compiler_warnings.h>
 
 
-namespace qtutils { namespace logger{
+namespace qtutils { namespace core{ namespace logger{
 
 
 class CPPUTILS_DLL_PRIVATE DefaultLogDeleter final
@@ -202,4 +200,4 @@ QTUTILS_EXPORT void RemoveDefaultlyAddedLogger(void) noexcept
 
 
 
-}}  //  namespace qtutils { namespace logger{
+}}}  //  namespace qtutils { namespace core{ namespace logger{

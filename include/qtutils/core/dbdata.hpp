@@ -28,7 +28,7 @@
 #include <QByteArray>
 
 
-namespace qtutils{ namespace tools{
+namespace qtutils{ namespace core{
 
 
 QTUTILS_EXPORT QVariantMap  TypeVmToVariantMap(const QByteArray& a_ba);
@@ -105,7 +105,7 @@ static inline TypeSharedPtr FromQVariant(const QVariant& a_qv, int* a_pnChanges=
 #define QTUTILS_TOOLS_FIND_FIELD(_field)    QTUTILS_TOOLS_FIND_FIELD02(a_variantMap,*this,_field)
 
 
-}}  //  namespace qtutils{ namespace tools{
+}}  //  namespace qtutils{ namespace core{
 
 
 #ifndef QTUTILS_INCLUDE_QTUTILS_TOOLS_DBDATA_IMPL_HPP
