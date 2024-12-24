@@ -17,10 +17,19 @@
 namespace qtutils { namespace core{ namespace logger{
 
 
+#define QTUTILS_CORE_LOGGER_NEW_CONTEXT     -2143
+
+
 class CPPUTILS_DLL_PRIVATE DefaultLogDeleter final
 {
 public:
     ~DefaultLogDeleter();
+};
+
+struct MessageLogContextExtra{
+    const char* m_realFileName;
+    int         m_realLineNumber;
+    int         m_logLevel;
 };
 
 static Base*            s_pDefaultLogger = nullptr;
@@ -170,10 +179,22 @@ void Default::LoggerClbk(CinternalLogCategory a_categoryEnm, const char* CPPUTIL
 
 static void MessageHandlerStatic(QtMsgType a_type, const QMessageLogContext& a_context,const QString& a_message)
 {
+    int logLevel = 0;
+    int nLine = a_context.line;
+    const char* cpcFileName = a_context.file;
     const CinternalLogCategory logType = QtCategoryToCinternalInline(a_type);
     const ::std::string logMsg = a_message.toStdString();
     const char* const pcLogMsg = logMsg.c_str();
-    CinternalLoggerMakeLog(0,a_context.category,a_context.file,a_context.line,a_context.file,CinternalLogTypeCompleteLoggingWithPlaceAndFunc,logType,"%s",pcLogMsg);
+    if(nLine==QTUTILS_CORE_LOGGER_NEW_CONTEXT){
+        const MessageLogContextExtra* const pExtraContext = (const MessageLogContextExtra*)(a_context.file);
+        cpcFileName = pExtraContext->m_realFileName;
+        nLine = pExtraContext->m_realLineNumber;
+        logLevel = pExtraContext->m_logLevel;
+    }  //  if(nLine==QTUTILS_CORE_LOGGER_NEW_CONTEXT){
+
+    CinternalLoggerMakeLog(logLevel,a_context.category,
+                           cpcFileName,nLine,a_context.function,
+                           CinternalLogTypeCompleteLoggingWithPlaceAndFunc,logType,"%s",pcLogMsg);
 }
 
 
@@ -187,6 +208,31 @@ DefaultLogDeleter::~DefaultLogDeleter()
 
 /*////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
 
+MessageLogger::~MessageLogger()
+{
+    delete m_extraContext;
+}
+
+
+static inline char* CreateExtraContextInline(MessageLogContextExtra** CPPUTILS_ARG_NN a_ppBuf,const char* a_fileName, int a_lineNumber,int a_logLevel){
+    *a_ppBuf = new MessageLogContextExtra();
+    (*a_ppBuf)->m_realFileName = a_fileName;
+    (*a_ppBuf)->m_realLineNumber = a_lineNumber;
+    (*a_ppBuf)->m_logLevel = a_logLevel;
+    return (char*)(*a_ppBuf);
+}
+
+
+MessageLogger::MessageLogger(const char* a_fileName, int a_lineNumber, const char* a_functionName, const char* a_categoryName, int a_logLevel)
+    :
+    QMessageLogger(CreateExtraContextInline(&m_extraContext,a_fileName,a_lineNumber,a_logLevel),QTUTILS_CORE_LOGGER_NEW_CONTEXT,a_functionName,a_categoryName)
+{
+}
+
+
+/*////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
+
+
 QTUTILS_EXPORT Base* GetDefaultlyAddedLogger(void) noexcept
 {
     return s_pDefaultLogger;
@@ -199,9 +245,9 @@ QTUTILS_EXPORT void RemoveDefaultlyAddedLogger(void) noexcept
 }
 
 
-QTUTILS_EXPORT Base* AddDefaultlyAddedLogger(void)
+QTUTILS_EXPORT Base* AddDefaultLogger(const char* a_endStr)
 {
-    return new Default();
+    return new Default(a_endStr);
 }
 
 

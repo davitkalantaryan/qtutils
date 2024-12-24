@@ -19,6 +19,24 @@
 
 namespace qtutils { namespace core{ namespace logger{
 
+
+struct MessageLogContextExtra;
+
+
+class QTUTILS_EXPORT MessageLogger : public QMessageLogger
+{
+public:
+    ~MessageLogger();
+    MessageLogger(const char* a_fileName, int a_lineNumber, const char* a_functionName, const char* a_categoryName, int a_logLevel);
+    MessageLogger(const MessageLogger&)=delete;
+    MessageLogger(MessageLogger&&)=delete;
+    MessageLogger& operator=(const MessageLogger&)=delete;
+    MessageLogger& operator=(MessageLogger&&)=delete;
+public:
+    MessageLogContextExtra*     m_extraContext;
+};
+
+
 #define QtUtilsDebugNVC(_category)              QMessageLogger(__FILE__, __LINE__, "",_category).debug()
 #define QtUtilsDebugNV                          QMessageLogger(__FILE__, __LINE__, "").debug
 #define QtUtilsDebug                            QMessageLogger(__FILE__, __LINE__, __FUNCTION__).debug
@@ -31,6 +49,8 @@ namespace qtutils { namespace core{ namespace logger{
 #define QtUtilsFatal                            QMessageLogger(__FILE__, __LINE__, __FUNCTION__).fatal
 #define QtUtilsSimpleLog(_qdebug)               QMessageLogger("", -1, "")._qdebug()
 #define QtUtilsSimpleLogCat(_qdebug,_category)  QMessageLogger("", -1, "",_category)._qdebug()
+#define QtUtilsDebugLogLvlCat(_ll,_cat)         ::qtutils::core::logger::MessageLogger(__FILE__, __LINE__, __FUNCTION__,_cat,_ll).debug()
+#define QtUtilsDebugLogLvl(_ll)                 QtUtilsDebugLogLvlCat(_ll,"")
 
 
 class QTUTILS_EXPORT Base
@@ -66,7 +86,7 @@ protected:
 
 
 QTUTILS_EXPORT Base* GetDefaultlyAddedLogger(void) noexcept;
-QTUTILS_EXPORT Base* AddDefaultlyAddedLogger(void);
+QTUTILS_EXPORT Base* AddDefaultLogger(const char* a_endStr);
 QTUTILS_EXPORT void  RemoveDefaultlyAddedLogger(void) noexcept;
 QTUTILS_EXPORT void  RemoveLogger(Base* a_logger) noexcept;
 
