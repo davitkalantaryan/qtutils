@@ -140,7 +140,7 @@ Base& Base::operator=(const Base& a_cM)
 
 Base& Base::operator=(Base&& a_mM) noexcept
 {
-    const CinternalLoggerItem* const loggerItem = m_loggerItem;
+    CinternalLoggerItem* const loggerItem = m_loggerItem;
     m_loggerItem = a_mM.m_loggerItem;
     a_mM.m_loggerItem = loggerItem;
     return *this;
@@ -160,7 +160,7 @@ void Default::LoggerClbk(CinternalLogCategory a_categoryEnm, const char* CPPUTIL
 {
     // QtMsgType a_type, const QMessageLogContext& a_context,const QString& a_message
     const QtMsgType qtLogType = CinternalLogCategoryQtLogTypeInline(a_categoryEnm);
-    const QMessageLogContext aCtx({2,-1,"","",a_categoryStr});
+    const QMessageLogContext aCtx("",-1,"",a_categoryStr);
     const QString aMessage = QString(a_log);
 
     static_cast<void>(a_logStrLen);
