@@ -60,6 +60,10 @@ public:
     virtual ~LogWnd() override;
     template<typename... Targs>
     LogWnd(Targs... a_args);
+    LogWnd(const LogWnd&) = delete;
+    LogWnd(LogWnd&&) = delete;
+    LogWnd& operator=(const LogWnd&) = delete;
+    LogWnd& operator=(LogWnd&&) = delete;
 
     void InitSettings();
 

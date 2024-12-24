@@ -127,6 +127,10 @@ class CPPUTILS_DLL_PRIVATE LogWnd_p final : public core::logger::Base
 {
 public:
     LogWnd_p(LogWnd* a_pParent);
+    LogWnd_p(const LogWnd_p&) = delete;
+    LogWnd_p(LogWnd_p&&) = delete;
+    LogWnd_p& operator=(const LogWnd_p&) = delete;
+    LogWnd_p& operator=(LogWnd_p&&) = delete;
 
     void ConnectSignals();
     inline void InitAndShowBase();
