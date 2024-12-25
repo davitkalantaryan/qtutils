@@ -43,6 +43,7 @@ ToFile::~ToFile()
 
 ToFile::ToFile()
     :
+      Base("\n\r"),
       m_logger_data_p(new LoggerToFile_p())
 {
     const QDir dbDir = QDir(QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation));
@@ -112,6 +113,7 @@ void ToFile::LoggerClbk(CinternalLogCategory a_categoryEnm, const char* CPPUTILS
 
     if(logFile_p && logFile_p->isOpen()){
         logFile_p->write(a_log,static_cast<qint64>(a_logStrLen));
+        logFile_p->flush();
         return;
     }
 

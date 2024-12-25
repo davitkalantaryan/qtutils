@@ -32,6 +32,7 @@ struct MessageLogContextExtra{
     int         m_logLevel;
 };
 
+static bool             s_bInited = false;
 static Base*            s_pDefaultLogger = nullptr;
 static QtMessageHandler s_defaultHandler = nullptr;
 
@@ -88,11 +89,13 @@ static inline QtMsgType CinternalLogCategoryQtLogTypeInline(const CinternalLogCa
 
 
 static inline void InitializeQtLogger(){
-    if(!s_defaultHandler){
-        AddDefaultLoggerInline();
-        s_defaultHandler = qInstallMessageHandler(&MessageHandlerStatic);
-        CinternalLoggerRemoveDefaultlyAddedLogger();
+    if(s_bInited){
+        return;
     }
+    s_bInited = true;
+    s_defaultHandler = qInstallMessageHandler(&MessageHandlerStatic);
+    AddDefaultLoggerInline();
+    CinternalLoggerRemoveDefaultlyAddedLogger();
 }
 
 

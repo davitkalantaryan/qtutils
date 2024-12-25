@@ -204,17 +204,17 @@ HttpServer::HttpServer()
     m_server_data->allowedHeaders = GetByteArrayListFromSettingsInline(QTUTILS_CORE_HTTPSERVER_ALLOWED_HEADERS_KEY,aSettings);
     m_server_data->allowedOrigins = GetByteArrayListFromSettingsInline(QTUTILS_CORE_HTTPSERVER_ALLOWED_ORIGINS_KEY,aSettings);
 
-    this->AddStraightRoute("qtutils_get_allowed_headers",[this](const QHttpServerRequest& a_request, QHttpServerResponder& a_responder){
+    this->AddStraightRoute("/qtutils_get_allowed_headers",[this](const QHttpServerRequest& a_request, QHttpServerResponder& a_responder){
         handleAllowedHeadersRequest(a_request,a_responder);
         return true;
     });
 
-    this->AddStraightRoute("qtutils_get_allowed_origins",[this](const QHttpServerRequest& a_request, QHttpServerResponder& a_responder){
+    this->AddStraightRoute("/qtutils_get_allowed_origins",[this](const QHttpServerRequest& a_request, QHttpServerResponder& a_responder){
         handleAllowedOriginsRequest(a_request,a_responder);
         return true;
     });
 
-    this->AddStraightRoute("qtutils_get_all_urls",[this](const QHttpServerRequest& a_request, QHttpServerResponder& a_responder){
+    this->AddStraightRoute("/qtutils_get_all_urls",[this](const QHttpServerRequest& a_request, QHttpServerResponder& a_responder){
         handleAllUrlsRequest(a_request,a_responder);
         return true;
     });
@@ -433,7 +433,7 @@ void HttpServer::handleAllowedHeadersRequest(const QHttpServerRequest& a_request
 
 void HttpServer::handleAllowedOriginsRequest(const QHttpServerRequest& a_request, QHttpServerResponder& a_responder)
 {
-    const QVariantList allowedVL = ByteArrayListToVariantListInline(m_server_data->allowedHeaders);
+    const QVariantList allowedVL = ByteArrayListToVariantListInline(m_server_data->allowedOrigins);
     const QJsonArray allowedJsonArray = QJsonArray::fromVariantList(allowedVL);
     const QJsonDocument allowedJsonDoc ( allowedJsonArray );
     const QByteArray allowedBA = allowedJsonDoc.toJson(QJsonDocument::Indented);

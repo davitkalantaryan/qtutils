@@ -57,7 +57,7 @@ class QTUTILS_EXPORT Base
 {
 public:
     virtual ~Base() noexcept;
-    Base(const char* a_cpcEndStr = "\n\r");
+    Base(const char* a_cpcEndStr = "");
     Base(const Base& a_cM);
     Base(Base&& a_mM) noexcept;
     Base& operator=(const Base& a_cM);
