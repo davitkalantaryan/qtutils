@@ -27,6 +27,9 @@
 
 namespace qtutils { namespace core{
 
+#define QTUTILS_CORE_HTTPSERVER_ALLOWED_HEADERS_KEY "qtutils/core/allowed_headers"
+#define QTUTILS_CORE_HTTPSERVER_ALLOWED_ORIGINS_KEY "qtutils/core/allowed_origins"
+
 class CPPUTILS_DLL_PRIVATE HttpServer_p;
 typedef QList<QPair<QByteArray, QByteArray> >   TypeRestHeaders;
 typedef QList<QByteArray>                       ByteArrayList;
