@@ -132,7 +132,7 @@ static inline ByteArrayList VariantListToByteArrayListInline(const QVariantList&
 }
 
 
-static inline ByteArrayList getByteArrayListFromSettingsInline(const QString& a_key, const QSettings& a_settings){
+static inline ByteArrayList GetByteArrayListFromSettingsInline(const QString& a_key, const QSettings& a_settings){
     const QVariantList listVL = a_settings.value(a_key,QList<QVariant>()).toList();
     return VariantListToByteArrayListInline(listVL);
 }
@@ -161,6 +161,7 @@ static inline QVariantList  AnyDataFromAnyMapContainerToVariantListInline(const 
     return listVL;
 }
 
+typedef bool(*TypeAnyMatcherApiRaw)(const QUrl&, void*);
 
 template <typename ContainerType>
 static inline QVariantList  AnyDataFromAnyTupleContainerToVariantListInline(const ContainerType& a_list){
@@ -169,7 +170,7 @@ static inline QVariantList  AnyDataFromAnyTupleContainerToVariantListInline(cons
     const typename ContainerType::const_iterator iterEnd = a_list.cend();
     typename ContainerType::const_iterator iter = a_list.cbegin();
     for(;iter != iterEnd; ++iter){
-        pFunc = reinterpret_cast<const void*>(::std::get<0>(*iter).target< bool(*)(const QUrl&, void*)>());
+        pFunc = reinterpret_cast<const void*>(::std::get<0>(*iter).template target< TypeAnyMatcherApiRaw >());
         listVL.push_back( QString::asprintf("fa: %p",pFunc) );
     }
     return listVL;
@@ -200,8 +201,8 @@ HttpServer::HttpServer()
       m_server_data(new HttpServer_p())
 {
     const QSettings aSettings;
-    m_server_data->allowedHeaders = getByteArrayListFromSettingsInline(QTUTILS_CORE_HTTPSERVER_ALLOWED_HEADERS_KEY,aSettings);
-    m_server_data->allowedOrigins = getByteArrayListFromSettingsInline(QTUTILS_CORE_HTTPSERVER_ALLOWED_ORIGINS_KEY,aSettings);
+    m_server_data->allowedHeaders = GetByteArrayListFromSettingsInline(QTUTILS_CORE_HTTPSERVER_ALLOWED_HEADERS_KEY,aSettings);
+    m_server_data->allowedOrigins = GetByteArrayListFromSettingsInline(QTUTILS_CORE_HTTPSERVER_ALLOWED_ORIGINS_KEY,aSettings);
 
     this->AddStraightRoute("qtutils_get_allowed_headers",[this](const QHttpServerRequest& a_request, QHttpServerResponder& a_responder){
         handleAllowedHeadersRequest(a_request,a_responder);
@@ -376,7 +377,7 @@ const ByteArrayList& HttpServer::getAllowedHeaders() const
 }
 
 
-void HttpServer::SetAllowedOrifins(const ByteArrayList& a_allowedOrigins)
+void HttpServer::SetAllowedOrigins(const ByteArrayList& a_allowedOrigins)
 {
     QSettings aSettings;
     m_server_data->allowedOrigins = a_allowedOrigins;
@@ -471,6 +472,25 @@ void HttpServer::handleAllUrlsRequest(const QHttpServerRequest& a_request, QHttp
 
 HttpServer_p::HttpServer_p()
 {
+}
+
+/*/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
+
+QTUTILS_CORE_EXPORT ByteArrayList VariantListToByteArrayList(const QVariantList& a_listVL)
+{
+    return VariantListToByteArrayListInline(a_listVL);
+}
+
+
+QTUTILS_CORE_EXPORT ByteArrayList GetByteArrayListFromSettings(const QString& a_key, const QSettings& a_settings)
+{
+    return GetByteArrayListFromSettingsInline(a_key,a_settings);
+}
+
+
+QTUTILS_CORE_EXPORT void SetByteArrayListToSettings(const QString& a_key, const ByteArrayList& a_list, QSettings* CPPUTILS_ARG_NN a_settings_p)
+{
+    SetByteArrayListToSettingsInline(a_key,a_list,a_settings_p);
 }
 
 

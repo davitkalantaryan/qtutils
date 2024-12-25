@@ -22,6 +22,8 @@
 #include <QList>
 #include <QByteArray>
 #include <QPair>
+#include <QSettings>
+#include <QVariantList>
 #include <QRegularExpressionMatch>
 
 
@@ -72,7 +74,7 @@ public:
     void AddAnyMatcherRoute(const TypeHasMatch& a_hasMatch, void* a_ud, const TypeClbkAnM& a_clbk);
     void SetAllowedHeaders(const ByteArrayList& a_allowedHeaders);
     const ByteArrayList& getAllowedHeaders() const;
-    void SetAllowedOrifins(const ByteArrayList& a_allowedOrigins);
+    void SetAllowedOrigins(const ByteArrayList& a_allowedOrigins);
     const ByteArrayList& getAllowedOrigins() const;
     bool checkAndFixResponceHeaders(const TypeRestHeaders& a_vHeaders, QHttpServerResponse* CPPUTILS_ARG_NN a_pResp)const;
     bool checkAndFixResponceHeaders(const QHttpServerRequest& a_request, QHttpServerResponse* CPPUTILS_ARG_NN a_pResp)const;
@@ -89,6 +91,11 @@ protected:
 private:
     HttpServer_p* const     m_server_data;
 };
+
+
+QTUTILS_CORE_EXPORT ByteArrayList VariantListToByteArrayList(const QVariantList& a_listVL);
+QTUTILS_CORE_EXPORT ByteArrayList GetByteArrayListFromSettings(const QString& a_key, const QSettings& a_settings);
+QTUTILS_CORE_EXPORT void SetByteArrayListToSettings(const QString& a_key, const ByteArrayList& a_list, QSettings* CPPUTILS_ARG_NN a_settings_p);
 
 
 }}  //  namespace qtutils { namespace core{
