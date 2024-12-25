@@ -73,6 +73,8 @@ public:
     const ByteArrayList& getAllowedOrigins() const;
     bool checkAndFixResponceHeaders(const TypeRestHeaders& a_vHeaders, QHttpServerResponse* CPPUTILS_ARG_NN a_pResp)const;
     bool checkAndFixResponceHeaders(const QHttpServerRequest& a_request, QHttpServerResponse* CPPUTILS_ARG_NN a_pResp)const;
+    void SendResponse(const QHttpServerRequest& a_request, QHttpServerResponse* CPPUTILS_ARG_NN a_responce_p, QHttpServerResponder& a_responder);
+    void SendResponse(const TypeRestHeaders& a_headers, QHttpServerResponse* CPPUTILS_ARG_NN a_responce_p, QHttpServerResponder& a_responder);
 
 protected:
     virtual bool handleRequest(const QHttpServerRequest& a_request, QHttpServerResponder& a_responder) override;

@@ -406,6 +406,22 @@ bool HttpServer::checkAndFixResponceHeaders(const TypeRestHeaders& a_vHeaders, Q
 }
 
 
+void HttpServer::SendResponse(const QHttpServerRequest& a_request, QHttpServerResponse* CPPUTILS_ARG_NN a_responce_p, QHttpServerResponder& a_responder)
+{
+    QHttpServerResponse aResponce = ::std::move(*a_responce_p);
+    HttpServerCheckAndFixResponceHeadersInline1(a_request,m_server_data->allowedHeaders,m_server_data->allowedOrigins,&aResponce);
+    a_responder.sendResponse( aResponce );
+}
+
+
+void HttpServer::SendResponse(const TypeRestHeaders& a_headers, QHttpServerResponse* CPPUTILS_ARG_NN a_responce_p, QHttpServerResponder& a_responder)
+{
+    QHttpServerResponse aResponce = ::std::move(*a_responce_p);
+    HttpServerCheckAndFixResponceHeadersInlineRaw(a_headers,m_server_data->allowedHeaders,m_server_data->allowedOrigins,&aResponce);
+    a_responder.sendResponse( aResponce );
+}
+
+
 void HttpServer::handleAllowedHeadersRequest(const QHttpServerRequest& a_request, QHttpServerResponder& a_responder)
 {
     const QVariantList allowedVL = ByteArrayListToVariantListInline(m_server_data->allowedHeaders);
