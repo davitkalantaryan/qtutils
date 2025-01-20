@@ -9,54 +9,86 @@
 
 
 #include <qtutils/export_symbols.h>
-#include <functional>
+#include <cinternal/logger.h>
+#include <cinternal/disable_compiler_warnings.h>
 #include <qtutils/disable_utils_warnings.h>
 #include <QDebug>
 #include <QMessageLogger>
+#include <cinternal/undisable_compiler_warnings.h>
 
 
-namespace qtutils { 
-
-class CPPUTILS_DLL_PRIVATE Logger_p;
-
-#define QtUtilsDebugNVC(_category)          QMessageLogger(__FILE__, __LINE__, __FUNCTION__,_category).debug()
-#define QtUtilsDebugNV                      QMessageLogger(__FILE__, __LINE__, __FUNCTION__).debug
-#define QtUtilsDebug()                      (QtUtilsDebugNV()<< ::qtutils::Logger::FileAndLineString(__FILE__,__LINE__) << ": ")
-#define QtUtilsDebugCategory(_category)     (QtUtilsDebugNVC(_category)<< ::qtutils::Logger::FileAndLineString(__FILE__,__LINE__) << ": ")
-#define QtUtilsDebugV()                     (QtUtilsDebugNV()<< ::qtutils::Logger::FileLineAndFunctionString(__FILE__,__LINE__,__FUNCTION__) << ": ")
-#define QtUtilsInfo                         QMessageLogger(__FILE__, __LINE__, __FUNCTION__).info
-#define QtUtilsWarning                      QMessageLogger(__FILE__, __LINE__, __FUNCTION__).warning
-#define QtUtilsCriticalRaw(_fl,_ln,_fnc)    QMessageLogger(_fl, _ln, _fnc).critical()
-#define QtUtilsCritical                     QMessageLogger(__FILE__, __LINE__, __FUNCTION__).critical
-#define QtUtilsFatal                        QMessageLogger(__FILE__, __LINE__, __FUNCTION__).fatal
-#define QtUtilsSimpleLog(_qdebug)           QMessageLogger(__FILE__, -1, __FUNCTION__)._qdebug()
+namespace qtutils { namespace core{ namespace logger{
 
 
-class QTUTILS_EXPORT Logger final
+struct MessageLogContextExtra;
+
+
+class QTUTILS_EXPORT MessageLogger : public QMessageLogger
 {
 public:
-    typedef ::std::function<void(void*,QtMsgType, const QMessageLogContext &, const QString &)> TypeLogger;
+    ~MessageLogger();
+    MessageLogger(const char* a_fileName, int a_lineNumber, const char* a_functionName, const char* a_categoryName, int a_logLevel);
+    MessageLogger(const MessageLogger&)=delete;
+    MessageLogger(MessageLogger&&)=delete;
+    MessageLogger& operator=(const MessageLogger&)=delete;
+    MessageLogger& operator=(MessageLogger&&)=delete;
 public:
-    Logger(const TypeLogger& a_logger=nullptr, void* a_pOwner=nullptr);
-    Logger(const Logger&)=delete;
-    Logger(Logger&&)=delete;
-    ~Logger();
-    Logger& operator=(const Logger&)=delete;
-    Logger& operator=(Logger&&)=delete;
-
-    void SetNewLogger(const TypeLogger& a_logger, void* a_pOwner=nullptr);
-    void SetLoggerToDefault();
-
-    static QtMessageHandler DefaultHandler();
-    static QString          FileAndLineString(const char* a_fileName, int a_line);
-    static QString          FileLineAndFunctionString(const char* a_fileName, int a_line, const char* a_cpcFunction);
-
-private:
-    Logger_p*const      m_logger_data_p;
+    MessageLogContextExtra*     m_extraContext;
 };
 
 
-#define QtUtilsInfoV()    (QtUtilsInfo()<< ::qtutils::Logger::FileAndLineString(__FILE__,__LINE__) << ": ")
+#define QtUtilsDebugNVC(_category)              QMessageLogger(__FILE__, __LINE__, "",_category).debug()
+#define QtUtilsDebugNV                          QMessageLogger(__FILE__, __LINE__, "").debug
+#define QtUtilsDebug                            QMessageLogger(__FILE__, __LINE__, __FUNCTION__).debug
+#define QtUtilsDebugCategory(_category)         QMessageLogger(__FILE__, __LINE__, __FUNCTION__,_category).debug()
+#define QtUtilsInfo                             QMessageLogger("",-1, "").info
+#define QtUtilsInfoV                            QMessageLogger(__FILE__, __LINE__, "").info
+#define QtUtilsInfoVV                           QMessageLogger(__FILE__, __LINE__, __FUNCTION__).info
+#define QtUtilsWarning                          QMessageLogger(__FILE__, __LINE__, __FUNCTION__).warning
+#define QtUtilsCritical                         QMessageLogger(__FILE__, __LINE__, __FUNCTION__).critical
+#define QtUtilsFatal                            QMessageLogger(__FILE__, __LINE__, __FUNCTION__).fatal
+#define QtUtilsSimpleLog(_qdebug)               QMessageLogger("", -1, "")._qdebug()
+#define QtUtilsSimpleLogCat(_qdebug,_category)  QMessageLogger("", -1, "",_category)._qdebug()
+#define QtUtilsDebugLogLvlCat(_ll,_cat)         ::qtutils::core::logger::MessageLogger(__FILE__, __LINE__, __FUNCTION__,_cat,_ll).debug()
+#define QtUtilsDebugLogLvl(_ll)                 QtUtilsDebugLogLvlCat(_ll,"")
 
 
-}  // namespace qtutils{
+class QTUTILS_EXPORT Base
+{
+public:
+    virtual ~Base() noexcept;
+    Base(const char* a_cpcEndStr = "");
+    Base(const Base& a_cM);
+    Base(Base&& a_mM) noexcept;
+    Base& operator=(const Base& a_cM);
+    Base& operator=(Base&& a_mM) noexcept;
+
+private:
+    virtual void LoggerClbk(CinternalLogCategory a_categoryEnm, const char* CPPUTILS_ARG_NN a_categoryStr, const char* CPPUTILS_ARG_NN a_log, size_t a_logStrLen) = 0;
+
+private:
+    static void LoggerClbkSt(void* a_userData, enum CinternalLogCategory a_categoryEnm, const char* CPPUTILS_ARG_NN a_categoryStr, const char* CPPUTILS_ARG_NN a_log, size_t a_logStrLen);
+
+private:
+    CinternalLoggerItem*    m_loggerItem;
+};
+
+
+class QTUTILS_EXPORT Default : public Base
+{
+public:
+    virtual ~Default() noexcept override = default;
+    using Base::Base;
+
+protected:
+    virtual void LoggerClbk(CinternalLogCategory a_categoryEnm, const char* CPPUTILS_ARG_NN a_categoryStr, const char* CPPUTILS_ARG_NN a_log, size_t a_logStrLen) override;
+};
+
+
+QTUTILS_EXPORT Base* GetDefaultlyAddedLogger(void) noexcept;
+QTUTILS_EXPORT Base* AddDefaultLogger(const char* a_endStr);
+QTUTILS_EXPORT void  RemoveDefaultlyAddedLogger(void) noexcept;
+QTUTILS_EXPORT void  RemoveLogger(Base* a_logger) noexcept;
+
+
+}}}  //  namespace qtutils { namespace core{ namespace logger{

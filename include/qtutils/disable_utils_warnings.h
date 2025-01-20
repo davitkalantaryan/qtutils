@@ -9,15 +9,10 @@
 #define QTUTILS_INCLUDE_QTUTILS_CORE_DISABLE_UTILS_WARNINGS_H
 
 #include <qtutils/export_symbols.h>
-#ifdef CPPUTILS_COMPILER_WARNINGS_PUSH_POP
-#undef CPPUTILS_COMPILER_WARNINGS_PUSH_POP
-#define CPPUTILS_COMPILER_WARNINGS_PUSH_POP_defined
+#ifdef CINTERNAL_INCLUDE_CINTERNAL_DISABLE_COMPILER_WARNINGS_H
+#include <cinternal/undisable_compiler_warnings.h>
+#define CINTERNAL_INCLUDE_CINTERNAL_DISABLE_COMPILER_WARNINGS_H_SHOULD_BE_DEFINED
 #endif
-#include <cinternal/disable_compiler_warnings.h>
-#ifdef CPPUTILS_COMPILER_WARNINGS_PUSH_POP_defined
-#define CPPUTILS_COMPILER_WARNINGS_PUSH_POP
-#endif
-
 
 // https://docs.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warnings-c4800-through-c4999?view=msvc-160 (type convertion)
 // https://docs.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warning-level-1-c4946?view=msvc-160  (reinterpret cast is not proper)
@@ -36,6 +31,11 @@
 #pragma warning (disable:5027)  //  'QtPrivate::RefCount': move assignment operator was implicitly defined as deleted
 #pragma warning (disable:4514)  //  qtnoop.h(11,13): warning C4514: 'qt_noop': unreferenced inline function has been removed
 #pragma warning (disable:4623)
+#pragma warning (disable:4251)
+#endif
+
+#ifdef CINTERNAL_INCLUDE_CINTERNAL_DISABLE_COMPILER_WARNINGS_H_SHOULD_BE_DEFINED
+#include <cinternal/disable_compiler_warnings.h>
 #endif
 
 

@@ -20,15 +20,17 @@
 #define QTUTILS_DBDATA_DEF_CONTAINER
 #define QTUTILS_DBDATA_DEF_CONTAINER_KEY
 #endif
+#include <cinternal/disable_compiler_warnings.h>
 #include <memory>
 #include <qtutils/disable_utils_warnings.h>
 #include <QVariantMap>
 #include <QJsonObject>
 #include <QVariant>
 #include <QByteArray>
+#include <cinternal/undisable_compiler_warnings.h>
 
 
-namespace qtutils{ namespace tools{
+namespace qtutils{ namespace core{
 
 
 QTUTILS_EXPORT QVariantMap  TypeVmToVariantMap(const QByteArray& a_ba);
@@ -105,7 +107,7 @@ static inline TypeSharedPtr FromQVariant(const QVariant& a_qv, int* a_pnChanges=
 #define QTUTILS_TOOLS_FIND_FIELD(_field)    QTUTILS_TOOLS_FIND_FIELD02(a_variantMap,*this,_field)
 
 
-}}  //  namespace qtutils{ namespace tools{
+}}  //  namespace qtutils{ namespace core{
 
 
 #ifndef QTUTILS_INCLUDE_QTUTILS_TOOLS_DBDATA_IMPL_HPP

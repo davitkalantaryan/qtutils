@@ -28,10 +28,12 @@ public:
     //typedef void (*TypeDestruct)(void*);
 	typedef ::std::function<void(void*)>	TypeConstruct;
 	typedef ::std::function<void(void*)>	TypeDestruct;
+    typedef ::std::function<void(void*)>	TypeMain;
 	
 public:
     ThreadLS();
     ThreadLS(const TypeConstruct& a_construct, const TypeDestruct& a_destruct, void* a_data);
+    ThreadLS(const TypeMain& a_main, const TypeConstruct& a_construct, const TypeDestruct& a_destruct, void* a_data);
     ~ThreadLS();
     ThreadLS(const ThreadLS&)=delete;
     ThreadLS(ThreadLS&&);
@@ -39,6 +41,9 @@ public:
     ThreadLS& operator=(ThreadLS&&);
 
     QThread* qThread()const;
+    void EnableExceptionsHandling();
+    void DisableExceptionsHandling();
+    bool hasExceptionHandling()const;
 
 private:
     ThreadLS_p*        m_thr_data_p;

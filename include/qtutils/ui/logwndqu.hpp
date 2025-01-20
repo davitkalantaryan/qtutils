@@ -11,6 +11,7 @@
 #define QTUTILS_INCLUDE_QTUTILS_UI_LOGWND_HPP
 
 #include <qtutils/export_symbols.h>
+#include <qtutils/core/logger.hpp>
 #include <qtutils/ui/sizeapplywindow.hpp>
 #include <qtutils/disable_utils_warnings.h>
 #include <QWidget>
@@ -36,19 +37,13 @@ enum class LogTypes {
 }}  //  namespace qtutils{ namespace ui{
 
 
-QTUTILS_UI_NTDT_NSP_P1
-
-
-class QTUTILS_EXPORT CategoryNoty final
+class QTUTILS_EXPORT qtutils_ui_CategoryNoty final
 {
 public:
     QString                     name;
     ::qtutils::ui::LogTypes     type;
 };
-Q_DECLARE_METATYPE(QTUTILS_UI_NTDT_NSP CategoryNoty)
-
-
-QTUTILS_UI_NTDT_NSP_P2
+Q_DECLARE_METATYPE(qtutils_ui_CategoryNoty)
 
 
 namespace qtutils{ namespace ui{
@@ -65,6 +60,10 @@ public:
     virtual ~LogWnd() override;
     template<typename... Targs>
     LogWnd(Targs... a_args);
+    LogWnd(const LogWnd&) = delete;
+    LogWnd(LogWnd&&) = delete;
+    LogWnd& operator=(const LogWnd&) = delete;
+    LogWnd& operator=(LogWnd&&) = delete;
 
     void InitSettings();
 
@@ -79,7 +78,6 @@ public:
     void DisableCategoryType(const QString& a_categoryName, const LogTypes& a_type);
     bool isEnabledCategoryType(const QString& a_categoryName, const LogTypes& a_type);
     void ClearAllCategories();
-    void AddLog(QtMsgType a_msgType, const QMessageLogContext& a_ctx, const QString& a_msg);
     void SetMaxNumberOfLogs(size_t a_logsCount);
 
 protected:
@@ -91,8 +89,8 @@ private:
 
 private:
 signals:
-    void CategoryTypeEnabledSignal(QTUTILS_UI_NTDT_NSP CategoryNoty);
-    void CategoryTypeDisabledSignal(QTUTILS_UI_NTDT_NSP CategoryNoty);
+    void CategoryTypeEnabledSignal(qtutils_ui_CategoryNoty);
+    void CategoryTypeDisabledSignal(qtutils_ui_CategoryNoty);
 
 private:
     LogWnd_p*const   m_logwnd_data_p;

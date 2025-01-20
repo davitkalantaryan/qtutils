@@ -6,12 +6,12 @@
 //
 
 #include <qtutils/export_symbols.h>
-#include <qtutils/tools/dbdata.hpp>
+#include <qtutils/core/dbdata.hpp>
 #include <qtutils/disable_utils_warnings.h>
 #include <QJsonDocument>
 
 
-namespace qtutils{ namespace tools{
+namespace qtutils{ namespace core{
 
 
 QTUTILS_EXPORT QVariantMap TypeVmToVariantMap(const QByteArray& a_ba)
@@ -40,4 +40,4 @@ QTUTILS_EXPORT const QVariantMap& TypeVmToVariantMap(const QVariantMap& a_vm)
 }
 
 
-}}  //  namespace qtutils{ namespace tools{
+}}  //  namespace qtutils{ namespace core{
