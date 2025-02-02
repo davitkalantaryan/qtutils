@@ -6,8 +6,10 @@
 //
 
 #include <qtutils/core/logger.hpp>
+#include <cinternal/signals.h>
 #include <cinternal/disable_compiler_warnings.h>
 #include <new>
+#include <atomic>
 #include <qtutils/disable_utils_warnings.h>
 #include <QFileInfo>
 #include <QDateTime>
@@ -20,21 +22,15 @@ namespace qtutils { namespace core{ namespace logger{
 #define QTUTILS_CORE_LOGGER_NEW_CONTEXT     -2143
 
 
-class CPPUTILS_DLL_PRIVATE DefaultLogDeleter final
-{
-public:
-    ~DefaultLogDeleter();
-};
-
 struct MessageLogContextExtra{
     const char* m_realFileName;
     int         m_realLineNumber;
     int         m_logLevel;
 };
 
-static bool             s_bInited = false;
-static Base*            s_pDefaultLogger = nullptr;
-static QtMessageHandler s_defaultHandler = nullptr;
+static ::std::atomic<int>   s_numberOfInstances = 0;
+static Base*                s_pDefaultLogger = nullptr;
+static QtMessageHandler     s_defaultHandler = nullptr;
 
 static void MessageHandlerStatic(QtMsgType a_type, const QMessageLogContext& a_context,const QString& a_message);
 
@@ -89,13 +85,18 @@ static inline QtMsgType CinternalLogCategoryQtLogTypeInline(const CinternalLogCa
 
 
 static inline void InitializeQtLogger(){
-    if(s_bInited){
-        return;
-    }
-    s_bInited = true;
     s_defaultHandler = qInstallMessageHandler(&MessageHandlerStatic);
     AddDefaultLoggerInline();
     CinternalLoggerRemoveDefaultlyAddedLogger();
+}
+
+
+static inline void CleanQLogger() noexcept {
+    DeleteDefaultLogInline();
+    if(s_defaultHandler){
+        qInstallMessageHandler(s_defaultHandler);
+        s_defaultHandler = nullptr;
+    }
 }
 
 
@@ -105,6 +106,11 @@ static inline void InitializeQtLogger(){
 Base::~Base() noexcept
 {
     CinternalLoggerRemoveLogger(m_loggerItem);
+    
+    const int numberOfInstances = s_numberOfInstances.fetch_sub(1);
+    if(numberOfInstances==1){
+        CleanQLogger();
+    }  //  if(numberOfInstances){
 }
 
 
@@ -112,10 +118,19 @@ Base::Base(const char* a_cpcEndStr)
     :
     m_loggerItem(CinternalLoggerAddLogger(&Base::LoggerClbkSt,this,a_cpcEndStr))
 {
-    InitializeQtLogger();
     if(!m_loggerItem){
         throw ::std::bad_alloc();
     }
+    
+    const int numberOfInstances = s_numberOfInstances.fetch_add(1);
+    if(numberOfInstances){
+        while(!s_pDefaultLogger){
+            CinternalSleepInterruptableMs(1);
+        }  //  while(!s_pDefaultLogger){
+        return;
+    }  //  if(numberOfInstances){
+    
+    InitializeQtLogger();
 }
 
 
@@ -126,6 +141,8 @@ Base::Base(const Base& a_cM)
     if(!m_loggerItem){
         throw ::std::bad_alloc();
     }
+    
+    ++s_numberOfInstances;
 }
 
 
@@ -134,6 +151,7 @@ Base::Base(Base&& a_mM) noexcept
     m_loggerItem(a_mM.m_loggerItem)
 {
     a_mM.m_loggerItem = nullptr;
+    ++s_numberOfInstances;
 }
 
 
@@ -180,6 +198,29 @@ void Default::LoggerClbk(CinternalLogCategory a_categoryEnm, const char* CPPUTIL
 
 /*////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
 
+static inline const char* ContextStringInline(QtMsgType a_type, const QMessageLogContext& a_context) {
+    const char* const cpcCategoryFromContext = a_context.category ? a_context.category : "unknown";
+    const QByteArray baCategoryFromContext(cpcCategoryFromContext);
+    if(baCategoryFromContext.compare("default")){
+        return cpcCategoryFromContext;
+    }
+    
+    switch(a_type){
+    case QtDebugMsg:
+        return "debug";
+    case QtWarningMsg:
+        return "warning";
+    case QtCriticalMsg:
+        return "critical";
+    case QtInfoMsg:
+        return "info";
+    default:
+        break;
+    }  //  switch(a_type){
+    
+    return cpcCategoryFromContext;
+}
+
 static void MessageHandlerStatic(QtMsgType a_type, const QMessageLogContext& a_context,const QString& a_message)
 {
     int logLevel = 0;
@@ -195,17 +236,9 @@ static void MessageHandlerStatic(QtMsgType a_type, const QMessageLogContext& a_c
         logLevel = pExtraContext->m_logLevel;
     }  //  if(nLine==QTUTILS_CORE_LOGGER_NEW_CONTEXT){
 
-    CinternalLoggerMakeLog(logLevel,a_context.category,
+    CinternalLoggerMakeLog(logLevel,ContextStringInline(a_type,a_context),
                            cpcFileName,nLine,a_context.function,
                            CinternalLogTypeCompleteLoggingWithPlaceAndFunc,logType,"%s",pcLogMsg);
-}
-
-
-/*////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
-
-DefaultLogDeleter::~DefaultLogDeleter()
-{
-    DeleteDefaultLogInline();
 }
 
 
