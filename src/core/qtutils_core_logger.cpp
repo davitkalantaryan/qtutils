@@ -190,8 +190,9 @@ void Base::LoggerClbkSt(void* a_userData, enum CinternalLogCategory a_categoryEn
 void Default::LoggerClbk(CinternalLogCategory a_categoryEnm, const char* CPPUTILS_ARG_NN a_categoryStr, const char* CPPUTILS_ARG_NN a_log, size_t a_logStrLen)
 {
     // QtMsgType a_type, const QMessageLogContext& a_context,const QString& a_message
+    static_cast<void>(a_categoryStr);
     const QtMsgType qtLogType = CinternalLogCategoryQtLogTypeInline(a_categoryEnm);
-    const QMessageLogContext aCtx("",-1,"",a_categoryStr);
+    const QMessageLogContext aCtx("",-1,"",nullptr);
     const QString aMessage = QString(a_log);
 
     static_cast<void>(a_logStrLen);
