@@ -124,9 +124,6 @@ Base::Base(const char* a_cpcEndStr)
     
     const int numberOfInstances = s_numberOfInstances.fetch_add(1);
     if(numberOfInstances){
-        while(!s_pDefaultLogger){
-            CinternalSleepInterruptableMs(1);
-        }  //  while(!s_pDefaultLogger){
         return;
     }  //  if(numberOfInstances){
     
@@ -172,6 +169,12 @@ Base& Base::operator=(Base&& a_mM) noexcept
     m_loggerItem = a_mM.m_loggerItem;
     a_mM.m_loggerItem = loggerItem;
     return *this;
+}
+
+
+void Base::LoggerClbk(CinternalLogCategory, const char* CPPUTILS_ARG_NN, const char* CPPUTILS_ARG_NN, size_t)
+{
+    //
 }
 
 
