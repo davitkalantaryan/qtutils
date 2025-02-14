@@ -85,10 +85,8 @@ protected:
 };
 
 
-QTUTILS_EXPORT Base* GetDefaultlyAddedLogger(void) noexcept;
-QTUTILS_EXPORT Base* AddDefaultLogger(const char* a_endStr);
-QTUTILS_EXPORT void  RemoveDefaultlyAddedLogger(void) noexcept;
-QTUTILS_EXPORT void  RemoveLogger(Base* a_logger) noexcept;
+QTUTILS_EXPORT QtMsgType CinternalLogCategoryQtLogType(const CinternalLogCategory& a_logCat) noexcept;
+QTUTILS_EXPORT CinternalLogCategory QtCategoryToCinternal(const QtMsgType& a_cat) noexcept;
 
 
 }}}  //  namespace qtutils { namespace core{ namespace logger{
