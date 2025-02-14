@@ -29,25 +29,9 @@ struct MessageLogContextExtra{
 };
 
 static ::std::atomic<int>   s_numberOfInstances = 0;
-static Base*                s_pDefaultLogger = nullptr;
 static QtMessageHandler     s_defaultHandler = nullptr;
 
 static void MessageHandlerStatic(QtMsgType a_type, const QMessageLogContext& a_context,const QString& a_message);
-
-
-static void DeleteDefaultLogInline(void) noexcept {
-    if(s_pDefaultLogger){
-        delete s_pDefaultLogger;
-        s_pDefaultLogger = nullptr;
-    }
-}
-
-
-static void AddDefaultLoggerInline(void){
-    if(!s_pDefaultLogger){
-        s_pDefaultLogger = new Default();
-    }
-}
 
 
 static inline CinternalLogCategory QtCategoryToCinternalInline(const QtMsgType& a_cat) noexcept {
@@ -67,7 +51,7 @@ static inline CinternalLogCategory QtCategoryToCinternalInline(const QtMsgType& 
 }
 
 
-static inline QtMsgType CinternalLogCategoryQtLogTypeInline(const CinternalLogCategory& a_logCat){
+static inline QtMsgType CinternalLogCategoryQtLogTypeInline(const CinternalLogCategory& a_logCat) noexcept {
     switch(a_logCat){
     case CinternalLogCategoryFatal:
         return QtFatalMsg;
@@ -86,13 +70,11 @@ static inline QtMsgType CinternalLogCategoryQtLogTypeInline(const CinternalLogCa
 
 static inline void InitializeQtLogger(){
     s_defaultHandler = qInstallMessageHandler(&MessageHandlerStatic);
-    AddDefaultLoggerInline();
     CinternalLoggerRemoveDefaultlyAddedLogger();
 }
 
 
 static inline void CleanQLogger() noexcept {
-    DeleteDefaultLogInline();
     if(s_defaultHandler){
         qInstallMessageHandler(s_defaultHandler);
         s_defaultHandler = nullptr;
@@ -273,34 +255,16 @@ MessageLogger::MessageLogger(const char* a_fileName, int a_lineNumber, const cha
 /*////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
 
 
-QTUTILS_EXPORT Base* GetDefaultlyAddedLogger(void) noexcept
+QTUTILS_EXPORT QtMsgType CinternalLogCategoryQtLogType(const CinternalLogCategory& a_logCat) noexcept
 {
-    return s_pDefaultLogger;
+    return CinternalLogCategoryQtLogTypeInline(a_logCat);
 }
 
 
-QTUTILS_EXPORT void RemoveDefaultlyAddedLogger(void) noexcept
+QTUTILS_EXPORT CinternalLogCategory QtCategoryToCinternal(const QtMsgType& a_cat) noexcept
 {
-    DeleteDefaultLogInline();
+    return QtCategoryToCinternalInline(a_cat);
 }
-
-
-QTUTILS_EXPORT Base* AddDefaultLogger(const char* a_endStr)
-{
-    return new Default(a_endStr);
-}
-
-
-QTUTILS_EXPORT void RemoveLogger(Base* a_logger) noexcept
-{
-    if(a_logger){
-        if(a_logger==s_pDefaultLogger){
-            s_pDefaultLogger = nullptr;
-        }  //  if(a_logger==s_pDefaultLogger){
-        delete a_logger;
-    }  //  if(a_logger){
-}
-
 
 
 }}}  //  namespace qtutils { namespace core{ namespace logger{
