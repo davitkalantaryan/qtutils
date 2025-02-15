@@ -6,8 +6,10 @@
 //
 
 #include <qtutils/core/logger.hpp>
+#include <cinternal/signals.h>
 #include <cinternal/disable_compiler_warnings.h>
 #include <new>
+#include <atomic>
 #include <qtutils/disable_utils_warnings.h>
 #include <QFileInfo>
 #include <QDateTime>
@@ -20,38 +22,16 @@ namespace qtutils { namespace core{ namespace logger{
 #define QTUTILS_CORE_LOGGER_NEW_CONTEXT     -2143
 
 
-class CPPUTILS_DLL_PRIVATE DefaultLogDeleter final
-{
-public:
-    ~DefaultLogDeleter();
-};
-
 struct MessageLogContextExtra{
     const char* m_realFileName;
     int         m_realLineNumber;
     int         m_logLevel;
 };
 
-static bool             s_bInited = false;
-static Base*            s_pDefaultLogger = nullptr;
-static QtMessageHandler s_defaultHandler = nullptr;
+static ::std::atomic<int>   s_numberOfInstances = 0;
+static QtMessageHandler     s_defaultHandler = nullptr;
 
 static void MessageHandlerStatic(QtMsgType a_type, const QMessageLogContext& a_context,const QString& a_message);
-
-
-static void DeleteDefaultLogInline(void) noexcept {
-    if(s_pDefaultLogger){
-        delete s_pDefaultLogger;
-        s_pDefaultLogger = nullptr;
-    }
-}
-
-
-static void AddDefaultLoggerInline(void){
-    if(!s_pDefaultLogger){
-        s_pDefaultLogger = new Default();
-    }
-}
 
 
 static inline CinternalLogCategory QtCategoryToCinternalInline(const QtMsgType& a_cat) noexcept {
@@ -71,7 +51,7 @@ static inline CinternalLogCategory QtCategoryToCinternalInline(const QtMsgType& 
 }
 
 
-static inline QtMsgType CinternalLogCategoryQtLogTypeInline(const CinternalLogCategory& a_logCat){
+static inline QtMsgType CinternalLogCategoryQtLogTypeInline(const CinternalLogCategory& a_logCat) noexcept {
     switch(a_logCat){
     case CinternalLogCategoryFatal:
         return QtFatalMsg;
@@ -89,13 +69,16 @@ static inline QtMsgType CinternalLogCategoryQtLogTypeInline(const CinternalLogCa
 
 
 static inline void InitializeQtLogger(){
-    if(s_bInited){
-        return;
-    }
-    s_bInited = true;
     s_defaultHandler = qInstallMessageHandler(&MessageHandlerStatic);
-    AddDefaultLoggerInline();
     CinternalLoggerRemoveDefaultlyAddedLogger();
+}
+
+
+static inline void CleanQLogger() noexcept {
+    if(s_defaultHandler){
+        qInstallMessageHandler(s_defaultHandler);
+        s_defaultHandler = nullptr;
+    }
 }
 
 
@@ -105,6 +88,11 @@ static inline void InitializeQtLogger(){
 Base::~Base() noexcept
 {
     CinternalLoggerRemoveLogger(m_loggerItem);
+    
+    const int numberOfInstances = s_numberOfInstances.fetch_sub(1);
+    if(numberOfInstances==1){
+        CleanQLogger();
+    }  //  if(numberOfInstances){
 }
 
 
@@ -112,10 +100,16 @@ Base::Base(const char* a_cpcEndStr)
     :
     m_loggerItem(CinternalLoggerAddLogger(&Base::LoggerClbkSt,this,a_cpcEndStr))
 {
-    InitializeQtLogger();
     if(!m_loggerItem){
         throw ::std::bad_alloc();
     }
+    
+    const int numberOfInstances = s_numberOfInstances.fetch_add(1);
+    if(numberOfInstances){
+        return;
+    }  //  if(numberOfInstances){
+    
+    InitializeQtLogger();
 }
 
 
@@ -126,6 +120,8 @@ Base::Base(const Base& a_cM)
     if(!m_loggerItem){
         throw ::std::bad_alloc();
     }
+    
+    ++s_numberOfInstances;
 }
 
 
@@ -134,6 +130,7 @@ Base::Base(Base&& a_mM) noexcept
     m_loggerItem(a_mM.m_loggerItem)
 {
     a_mM.m_loggerItem = nullptr;
+    ++s_numberOfInstances;
 }
 
 
@@ -157,6 +154,12 @@ Base& Base::operator=(Base&& a_mM) noexcept
 }
 
 
+void Base::LoggerClbk(CinternalLogCategory, const char* CPPUTILS_ARG_NN, const char* CPPUTILS_ARG_NN, size_t)
+{
+    //
+}
+
+
 void Base::LoggerClbkSt(void* a_userData, enum CinternalLogCategory a_categoryEnm, const char* CPPUTILS_ARG_NN a_categoryStr, const char* CPPUTILS_ARG_NN a_log, size_t a_logStrLen)
 {
     Base* const thisPtr = static_cast<Base*>(a_userData);
@@ -169,8 +172,9 @@ void Base::LoggerClbkSt(void* a_userData, enum CinternalLogCategory a_categoryEn
 void Default::LoggerClbk(CinternalLogCategory a_categoryEnm, const char* CPPUTILS_ARG_NN a_categoryStr, const char* CPPUTILS_ARG_NN a_log, size_t a_logStrLen)
 {
     // QtMsgType a_type, const QMessageLogContext& a_context,const QString& a_message
+    static_cast<void>(a_categoryStr);
     const QtMsgType qtLogType = CinternalLogCategoryQtLogTypeInline(a_categoryEnm);
-    const QMessageLogContext aCtx("",-1,"",a_categoryStr);
+    const QMessageLogContext aCtx("",-1,"",nullptr);
     const QString aMessage = QString(a_log);
 
     static_cast<void>(a_logStrLen);
@@ -179,6 +183,29 @@ void Default::LoggerClbk(CinternalLogCategory a_categoryEnm, const char* CPPUTIL
 
 
 /*////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
+
+static inline const char* ContextStringInline(QtMsgType a_type, const QMessageLogContext& a_context) {
+    const char* const cpcCategoryFromContext = a_context.category ? a_context.category : "unknown";
+    const QByteArray baCategoryFromContext(cpcCategoryFromContext);
+    if(baCategoryFromContext.compare("default")){
+        return cpcCategoryFromContext;
+    }
+    
+    switch(a_type){
+    case QtDebugMsg:
+        return "debug";
+    case QtWarningMsg:
+        return "warning";
+    case QtCriticalMsg:
+        return "critical";
+    case QtInfoMsg:
+        return "info";
+    default:
+        break;
+    }  //  switch(a_type){
+    
+    return cpcCategoryFromContext;
+}
 
 static void MessageHandlerStatic(QtMsgType a_type, const QMessageLogContext& a_context,const QString& a_message)
 {
@@ -195,17 +222,9 @@ static void MessageHandlerStatic(QtMsgType a_type, const QMessageLogContext& a_c
         logLevel = pExtraContext->m_logLevel;
     }  //  if(nLine==QTUTILS_CORE_LOGGER_NEW_CONTEXT){
 
-    CinternalLoggerMakeLog(logLevel,a_context.category,
+    CinternalLoggerMakeLog(logLevel,ContextStringInline(a_type,a_context),
                            cpcFileName,nLine,a_context.function,
                            CinternalLogTypeCompleteLoggingWithPlaceAndFunc,logType,"%s",pcLogMsg);
-}
-
-
-/*////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
-
-DefaultLogDeleter::~DefaultLogDeleter()
-{
-    DeleteDefaultLogInline();
 }
 
 
@@ -236,34 +255,16 @@ MessageLogger::MessageLogger(const char* a_fileName, int a_lineNumber, const cha
 /*////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
 
 
-QTUTILS_EXPORT Base* GetDefaultlyAddedLogger(void) noexcept
+QTUTILS_EXPORT QtMsgType CinternalLogCategoryQtLogType(const CinternalLogCategory& a_logCat) noexcept
 {
-    return s_pDefaultLogger;
+    return CinternalLogCategoryQtLogTypeInline(a_logCat);
 }
 
 
-QTUTILS_EXPORT void RemoveDefaultlyAddedLogger(void) noexcept
+QTUTILS_EXPORT CinternalLogCategory QtCategoryToCinternal(const QtMsgType& a_cat) noexcept
 {
-    DeleteDefaultLogInline();
+    return QtCategoryToCinternalInline(a_cat);
 }
-
-
-QTUTILS_EXPORT Base* AddDefaultLogger(const char* a_endStr)
-{
-    return new Default(a_endStr);
-}
-
-
-QTUTILS_EXPORT void RemoveLogger(Base* a_logger) noexcept
-{
-    if(a_logger){
-        if(a_logger==s_pDefaultLogger){
-            s_pDefaultLogger = nullptr;
-        }  //  if(a_logger==s_pDefaultLogger){
-        delete a_logger;
-    }  //  if(a_logger){
-}
-
 
 
 }}}  //  namespace qtutils { namespace core{ namespace logger{

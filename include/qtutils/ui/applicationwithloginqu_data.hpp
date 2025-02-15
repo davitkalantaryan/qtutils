@@ -27,7 +27,7 @@ namespace qtutils { namespace ui {
 
 CPPUTILS_BISTATE_FLAGS_UN_NM(
         BistateFlags,
-        shouldRun,doNotCollectEarlyLogs, cleanCalled,
+        shouldRun,cleanCalled,
         isSocketConnected, isServiceSocketConnected, isSocket2Connected, isSocket3Connected,
         isKeybMonitorRunning, isMouseMonitorRunning, keyStoringEnabled,
         shouldLoginWithSystemEvent, appMonitorEnabled, keybMonitorEnabled,mouseMonitorEnabled,
