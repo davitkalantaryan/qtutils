@@ -43,7 +43,7 @@ ToFile::~ToFile()
 
 ToFile::ToFile()
     :
-      Base("\n\r"),
+      Base(""),
       m_logger_data_p(new LoggerToFile_p())
 {
     const QDir dbDir = QDir(QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation));
@@ -111,8 +111,10 @@ void ToFile::LoggerClbk(CinternalLogCategory a_categoryEnm, const char* CPPUTILS
     const ::std::shared_ptr<QFile> logFile = m_logger_data_p->CreateLogFileInline();
     QFile* const logFile_p = logFile.get();
 
+    static_cast<void>(a_logStrLen);
+
     if(logFile_p && logFile_p->isOpen()){
-        logFile_p->write(a_log,static_cast<qint64>(a_logStrLen));
+        logFile_p->write(a_log);
         logFile_p->flush();
         return;
     }
@@ -143,7 +145,7 @@ inline void LoggerToFile_p::CreateLogFileNoCheckNoLockInline()
     }
 
     QFile*const pfFileRet_p = new QFile(logFilePathInline(m_currentDate));
-    pfFileRet_p->open(QIODevice::Append);
+    pfFileRet_p->open(QIODevice::Append|QIODevice::Text);
     if(!pfFileRet_p->isOpen()){
         delete pfFileRet_p;
         m_logFile = ::std::shared_ptr<QFile>();

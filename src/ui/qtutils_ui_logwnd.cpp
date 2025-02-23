@@ -367,7 +367,9 @@ inline void LogWnd_p::InitAndShowBase()
 
 void LogWnd_p::LoggerClbk(enum CinternalLogCategory a_categoryEnm, const char* CPPUTILS_ARG_NN a_categoryStr, const char* CPPUTILS_ARG_NN a_log, size_t a_logStrLen)
 {
-    const QString categoryName = QString(a_categoryStr);
+    //const QString categoryName = QString(a_categoryStr);
+    const QString categoryName = "default";
+    static_cast<void>(a_categoryStr);
 
     const HashCategories::const_iterator citer = m_categories.find(categoryName);
     if(citer==m_categories.end()){return;}
