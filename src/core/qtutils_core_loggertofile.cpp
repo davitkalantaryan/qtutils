@@ -43,7 +43,7 @@ ToFile::~ToFile()
 
 ToFile::ToFile()
     :
-      Base(""),
+      Base("\r\n"),
       m_logger_data_p(new LoggerToFile_p())
 {
     const QDir dbDir = QDir(QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation));
