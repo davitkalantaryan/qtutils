@@ -132,5 +132,14 @@ uint64_t TokenCarier::isInvalid()const noexcept
 }
 
 
+void TokenCarier::Reset() noexcept
+{
+    m_token.clear();
+    m_parseRes.clear();
+    m_flags.wr_all = CPPUTILS_BISTATE_MAKE_ALL_BITS_FALSE;
+    m_exp = -1;
+}
+
+
 
 }}  //  namespace qtutils { namespace core{
