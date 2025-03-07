@@ -38,6 +38,8 @@ public:
     qlonglong expTime()const noexcept;
     uint64_t isOk()const noexcept;
     uint64_t isInvalid()const noexcept;
+    bool isOk(qlonglong a_currentTime)const noexcept;
+    bool isInvalid(qlonglong a_currentTime)const noexcept;
     void Reset() noexcept;
     void SetToken(const QByteArray& a_token);
     void SetToken(QByteArray&& a_token);
