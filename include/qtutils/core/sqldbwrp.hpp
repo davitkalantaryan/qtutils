@@ -84,6 +84,8 @@ public:
     bool InitializeSQLite(const QString& a_dbPath, const QString* a_connectionName_p=nullptr);
     bool CloneAndOpenDb(const SqlDbWrpBase_p& a_dbInp, const QString& a_connectionName);
     bool CloneAndOpenDb(const QString& a_oldConnectionName, const QString& a_newConnectionName);
+    bool copyThisToBase(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p,const QString& a_connectionName)const;
+    bool copyThisToOther(SqlDbWrp* CPPUTILS_ARG_NN a_other,const QString& a_connectionName)const;
     
     const SqlDatabase& getQtSqlDb()const;
     SqlDatabase& getQtSqlDb();
@@ -93,6 +95,8 @@ public:
     
     void lock();
     void unlock();
+
+    SqlDbWrpBase_p* getBasePointer()const;
     
 protected:
     SqlDbWrp_p* const m_db_data_p;

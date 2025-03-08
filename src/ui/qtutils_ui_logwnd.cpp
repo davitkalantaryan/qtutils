@@ -8,6 +8,7 @@
 
 #include <qtutils/ui/logwndqu.hpp>
 #include <qtutils/core/settings.hpp>
+#include <cinternal/disable_compiler_warnings.h>
 #include <unordered_map>
 #include <list>
 #include <memory>
@@ -17,6 +18,8 @@
 #include <QTextEdit>
 #include <QLabel>
 #include <QCheckBox>
+#include <QGuiApplication>
+#include <cinternal/undisable_compiler_warnings.h>
 
 
 namespace qtutils{ namespace ui{
@@ -367,28 +370,36 @@ inline void LogWnd_p::InitAndShowBase()
 
 void LogWnd_p::LoggerClbk(enum CinternalLogCategory a_categoryEnm, const char* CPPUTILS_ARG_NN a_categoryStr, const char* CPPUTILS_ARG_NN a_log, size_t a_logStrLen)
 {
-    const QString categoryName = QString(a_categoryStr);
+    QGuiApplication* const pThisApp = dynamic_cast<QGuiApplication*>(qApp);
+    if(pThisApp){
+        QMetaObject::invokeMethod(pThisApp,[this,a_categoryEnm,a_categoryStr,a_log,a_logStrLen](){
+            //const QString categoryName = QString(a_categoryStr);
+            const QString categoryName = "default";
+            static_cast<void>(a_categoryStr);
 
-    const HashCategories::const_iterator citer = m_categories.find(categoryName);
-    if(citer==m_categories.end()){return;}
-    const CategoryData* pCategoryData = citer->second.get();
+            const HashCategories::const_iterator citer = m_categories.find(categoryName);
+            if(citer==m_categories.end()){return;}
+            const CategoryData* pCategoryData = citer->second.get();
 
-    const QString aMsg ( a_log );
-    const size_t cunIndex = QtMsgTypeToIndex(a_categoryEnm);
-    const uint32_t isEnabled = QTUTILS_UI_LOGWND_BIT_VALUE(pCategoryData->m_flags.b.isEnabledVect,cunIndex);
-    if(isEnabled){
-        const QColor aColor = pCategoryData->m_colors[cunIndex];
-        m_edit.setTextColor(aColor);
-        m_edit.append(aMsg);
-        m_logs.push_back({citer->second,cunIndex,aMsg});
-        ClearExtraLogs();
+            const QString aMsg ( a_log );
+            const size_t cunIndex = QtMsgTypeToIndex(a_categoryEnm);
+            const uint32_t isEnabled = QTUTILS_UI_LOGWND_BIT_VALUE(pCategoryData->m_flags.b.isEnabledVect,cunIndex);
+            if(isEnabled){
+                const QColor aColor = pCategoryData->m_colors[cunIndex];
+                m_edit.setTextColor(aColor);
+                m_edit.append(aMsg);
+                m_logs.push_back({citer->second,cunIndex,aMsg});
+                ClearExtraLogs();
+            }
+            else if(pCategoryData->m_flags.b.shouldKeep){
+                m_logs.push_back({citer->second,cunIndex,aMsg});
+                ClearExtraLogs();
+            }
+
+            static_cast<void>(a_logStrLen);
+        });
     }
-    else if(pCategoryData->m_flags.b.shouldKeep){
-        m_logs.push_back({citer->second,cunIndex,aMsg});
-        ClearExtraLogs();
-    }
 
-    static_cast<void>(a_logStrLen);
 }
 
 

@@ -113,7 +113,8 @@ static inline bool InitializeInline(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p, cons
         return true;
     }
     
-    CleanupDbInline(a_db_p);
+    //CleanupDbInline(a_db_p);
+    // Cleanup shoud be done by caller
     
     return false;
 }
@@ -239,6 +240,12 @@ SqlDbWrp::SqlDbWrp()
 }
 
 
+SqlDbWrpBase_p* SqlDbWrp::getBasePointer()const
+{
+    return static_cast<SqlDbWrpBase_p*>(m_db_data_p);
+}
+
+
 void SqlDbWrp::CleanupDb()
 {
     ::std::lock_guard<SqlDbWrp> aGuard(*this);
@@ -276,6 +283,18 @@ bool SqlDbWrp::CloneAndOpenDb(const SqlDbWrpBase_p& a_dbInp, const QString& a_co
 bool SqlDbWrp::CloneAndOpenDb(const QString& a_oldConnectionName, const QString& a_newConnectionName)
 {
     return CloneAndOpenDbInline(m_db_data_p,a_oldConnectionName,a_newConnectionName,true);
+}
+
+
+bool SqlDbWrp::copyThisToBase(SqlDbWrpBase_p* CPPUTILS_ARG_NN a_db_p,const QString& a_connectionName)const
+{
+    return CloneAndOpenDbInline(a_db_p,*m_db_data_p,a_connectionName,true);
+}
+
+
+bool SqlDbWrp::copyThisToOther(SqlDbWrp* CPPUTILS_ARG_NN a_other,const QString& a_connectionName)const
+{
+    return CloneAndOpenDbInline(a_other->m_db_data_p,*m_db_data_p,a_connectionName,true);
 }
 
 
