@@ -8,6 +8,9 @@
 
 #pragma once
 
+#ifndef QTUTILS_INCLUDE_QTUTILS_CORE_TOKENCARIER_HPP
+#define QTUTILS_INCLUDE_QTUTILS_CORE_TOKENCARIER_HPP
+
 #include <qtutils/export_symbols.h>
 #include <cinternal/bistateflags.h>
 #include <cinternal/disable_compiler_warnings.h>
@@ -38,11 +41,14 @@ public:
     qlonglong expTime()const noexcept;
     uint64_t isOk()const noexcept;
     uint64_t isInvalid()const noexcept;
-    bool isOk(qlonglong a_currentTime)const noexcept;
-    bool isInvalid(qlonglong a_currentTime)const noexcept;
     void Reset() noexcept;
     void SetToken(const QByteArray& a_token);
     void SetToken(QByteArray&& a_token);
+
+    template <typename TypeInt>
+    bool isOk(const TypeInt& a_currentTime)const noexcept;
+    template <typename TypeInt>
+    bool isInvalid(const TypeInt& a_currentTime)const noexcept;
     
 private:
     QByteArray          m_token;
@@ -55,3 +61,11 @@ private:
 
 
 }}  //  namespace qtutils { namespace core{
+
+
+#ifndef QTUTILS_INCLUDE_QTUTILS_CORE_TOKENCARIER_IMPL_HPP
+#include <qtutils/core/tokencarier.impl.hpp>
+#endif
+
+
+#endif  //  #ifndef QTUTILS_INCLUDE_QTUTILS_CORE_TOKENCARIER_HPP

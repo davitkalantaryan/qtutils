@@ -132,18 +132,6 @@ uint64_t TokenCarier::isInvalid()const noexcept
 }
 
 
-bool TokenCarier::isOk(qlonglong a_currentTime)const noexcept
-{
-    return (m_exp > static_cast<qlonglong>(a_currentTime));
-}
-
-
-bool TokenCarier::isInvalid(qlonglong a_currentTime)const noexcept
-{
-    return (static_cast<qlonglong>(a_currentTime) > m_exp);
-}
-
-
 void TokenCarier::Reset() noexcept
 {
     m_token.clear();
