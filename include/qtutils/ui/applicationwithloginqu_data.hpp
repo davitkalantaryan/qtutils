@@ -29,7 +29,7 @@ CPPUTILS_BISTATE_FLAGS_UN_NM(
         BistateFlags,
         shouldRun,cleanCalled,
         isSocketConnected, isServiceSocketConnected, isSocket2Connected, isSocket3Connected,
-        isKeybMonitorRunning, isMouseMonitorRunning, keyStoringEnabled,
+        isKeybMonitorRunning2, isMouseMonitorRunning2, keyStoringEnabled2,
         shouldLoginWithSystemEvent, appMonitorEnabled, keybMonitorEnabled,mouseMonitorEnabled,
         clockInEnabled,screenshotEnabled,
         signalInited, visibleEnabled,exitBecauseOfUpdate,isIncognito,
