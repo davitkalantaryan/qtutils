@@ -14,10 +14,14 @@
 #ifndef QTUTILS_INCLUDE_QTUTILS_UI_APPLICATIONWITHLOGIN_HPP
 #include <qtutils/ui/applicationwithloginqu.hpp>
 #endif
+#include <cinternal/disable_compiler_warnings.h>
 #include <qtutils/disable_utils_warnings.h>
 #include <QMetaObject>
 #include <QTimer>
 #include <QCoreApplication>
+#include <QPoint>
+#include <QSize>
+#include <cinternal/undisable_compiler_warnings.h>
 
 
 namespace qtutils { namespace ui {
