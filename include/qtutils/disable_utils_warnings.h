@@ -32,6 +32,9 @@
 #pragma warning (disable:4514)  //  qtnoop.h(11,13): warning C4514: 'qt_noop': unreferenced inline function has been removed
 #pragma warning (disable:4623)
 #pragma warning (disable:4251)
+#pragma warning (disable:5246)
+#pragma warning (disable:5249)
+#pragma warning (disable:4365)
 #endif
 
 #ifdef CINTERNAL_INCLUDE_CINTERNAL_DISABLE_COMPILER_WARNINGS_H_SHOULD_BE_DEFINED
