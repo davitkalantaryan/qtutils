@@ -597,25 +597,41 @@ void CategoryData::ConnectSignals()
     QCheckBox* pNextCheckBox;
 
     pNextCheckBox = &(m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Debug)]);
+#if QT_VERSION < QT_VERSION_CHECK(6, 7, 0)
     QObject::connect(pNextCheckBox,&QCheckBox::stateChanged,&m_categoryControlWgt,[this](int a_state){
+#else
+    QObject::connect(pNextCheckBox,&QCheckBox::checkStateChanged,&m_categoryControlWgt,[this](int a_state){
+#endif
         const bool isCheckedByGui = (a_state != Qt::Unchecked);
         SetTypeEnable(LogTypes::Debug,isCheckedByGui);
     });
 
     pNextCheckBox = &(m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Info)]);
+#if QT_VERSION < QT_VERSION_CHECK(6, 7, 0)
     QObject::connect(pNextCheckBox,&QCheckBox::stateChanged,&m_categoryControlWgt,[this](int a_state){
+#else
+    QObject::connect(pNextCheckBox,&QCheckBox::checkStateChanged,&m_categoryControlWgt,[this](int a_state){
+#endif
         const bool isCheckedByGui = (a_state != Qt::Unchecked);
         SetTypeEnable(LogTypes::Info,isCheckedByGui);
     });
 
     pNextCheckBox = &(m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Warning)]);
+#if QT_VERSION < QT_VERSION_CHECK(6, 7, 0)
     QObject::connect(pNextCheckBox,&QCheckBox::stateChanged,&m_categoryControlWgt,[this](int a_state){
+#else
+    QObject::connect(pNextCheckBox,&QCheckBox::checkStateChanged,&m_categoryControlWgt,[this](int a_state){
+#endif
         const bool isCheckedByGui = (a_state != Qt::Unchecked);
         SetTypeEnable(LogTypes::Warning,isCheckedByGui);
     });
 
     pNextCheckBox = &(m_logTypesEnabledCB[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Error)]);
+#if QT_VERSION < QT_VERSION_CHECK(6, 7, 0)
     QObject::connect(pNextCheckBox,&QCheckBox::stateChanged,&m_categoryControlWgt,[this](int a_state){
+#else
+    QObject::connect(pNextCheckBox,&QCheckBox::checkStateChanged,&m_categoryControlWgt,[this](int a_state){
+#endif
         const bool isCheckedByGui = (a_state != Qt::Unchecked);
         SetTypeEnable(LogTypes::Error,isCheckedByGui);
     });
