@@ -10,23 +10,39 @@
 
 
 #include <qtutils/export_symbols.h>
+#include <cinternal/disable_compiler_warnings.h>
 #include <qtutils/disable_utils_warnings.h>
 #include <QList>
-#include <QMap>
+#include <QMultiHash>
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+#include <QHttpHeaders>
+#endif
+#include <cinternal/undisable_compiler_warnings.h>
 
 
 namespace qtutils { namespace core{
 
 
-template <typename keyT, typename dataT>
-static inline QMap<keyT,dataT> QListFromQPairsToMapT(const QList<QPair<keyT,dataT> >& a_list)
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+
+static inline QMultiHash<QByteArray,QByteArray> QListFromQPairsToMapT(const QHttpHeaders& a_list)
 {
-    QMap<keyT,dataT> retMap;
+    return a_list.toMultiHash();
+}
+
+#else
+
+template <typename keyT, typename dataT>
+static inline QMultiHash<keyT,dataT> QListFromQPairsToMapT(const QList<QPair<keyT,dataT> >& a_list)
+{
+    QMultiHash<keyT,dataT> retMap;
     for(const auto& iter: a_list){
         retMap.insert(iter.first,iter.second);
     }
     return retMap;
 }
+
+#endif
 
 
 }}  // namespace qtutils { namespace core{

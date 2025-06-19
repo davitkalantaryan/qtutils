@@ -6,6 +6,7 @@
 //
 
 #include <qtutils/core/httpserver.hpp>
+#include <cinternal/disable_compiler_warnings.h>
 #include <qtutils/disable_utils_warnings.h>
 #include <QHttpServerResponse>
 #include <QUrl>
@@ -18,14 +19,17 @@
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QJsonDocument>
+#include <QSslServer>
+#include <cinternal/undisable_compiler_warnings.h>
 
 
 namespace qtutils { namespace core{
 
 
-class CPPUTILS_DLL_PRIVATE HttpServer_p
+class CPPUTILS_DLL_PRIVATE HttpServer_p final
 {
 public:
+    ~HttpServer_p();
     HttpServer_p();
     
 public:
@@ -36,7 +40,10 @@ public:
     HttpServer::TypeListAA  anyAppearanceRoutes;
     HttpServer::TypeListAnM anyMatcherRoutes;
     ByteArrayList           allowedHeaders;
-    ByteArrayList           allowedOrigins;
+    ByteArrayList           allowedOrigins;    
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+    QSslServer*             m_pFirstServer;
+#endif
 };
 
 
@@ -51,7 +58,8 @@ static inline void HttpServerFixResponceHeadersInline(bool a_bHasOrigin, const Q
         nextHeader = a_allowedHeaders.at(i);
         allowedHeaders += ( QByteArray(", ") +  nextHeader);
     }  //  for(qsizetype i(0); i<headersCount; ++i){
-
+        
+#if QT_VERSION < QT_VERSION_CHECK(6, 8, 0)
     a_pResp->addHeader("Access-Control-Allow-Credentials","true");
     a_pResp->addHeader("Access-Control-Allow-Headers",allowedHeaders);
     a_pResp->addHeader("Access-Control-Allow-Methods","GET, OPTIONS, POST, PUT, PATCH, DELETE");
@@ -59,6 +67,17 @@ static inline void HttpServerFixResponceHeadersInline(bool a_bHasOrigin, const Q
     if(a_bHasOrigin){
         a_pResp->addHeader("Access-Control-Allow-Origin",a_baOrigin);
     }
+#else
+    QHttpHeaders existingHeaders = a_pResp->headers();
+    existingHeaders.append("Access-Control-Allow-Credentials","true");
+    existingHeaders.append("Access-Control-Allow-Headers",allowedHeaders);
+    existingHeaders.append("Access-Control-Allow-Methods","GET, OPTIONS, POST, PUT, PATCH, DELETE");
+    existingHeaders.append("Access-Control-Max-Age","3600");
+    if(a_bHasOrigin){
+        existingHeaders.append("Access-Control-Allow-Origin",a_baOrigin);
+    }
+    a_pResp->setHeaders(existingHeaders);
+#endif
 }
 
 
@@ -70,13 +89,22 @@ static inline bool HttpServerCheckAndFixResponceHeadersInlineRaw(const TypeRestH
     QByteArray baOrigin;
     const qsizetype cnHeadersCount = a_vHeaders.size();
 
-    for(i = 0; i < cnHeadersCount; ++i){
+    for(i = 0; i < cnHeadersCount; ++i){        
+#if QT_VERSION < QT_VERSION_CHECK(6, 7, 0)
         if(a_vHeaders[i].first == QByteArray("Origin")){
             baOrigin = a_vHeaders[i].second;
             bHasOrigin = true;
             break;
-        }
-    }
+        }  //  if(a_vHeaders[i].first == QByteArray("Origin")){
+#else
+        if(a_vHeaders.nameAt(i).compare("origin",Qt::CaseInsensitive)==0){
+            const QByteArrayView baViewOrigin = a_vHeaders.valueAt(i);
+            baOrigin = QByteArray(baViewOrigin.data(),baViewOrigin.size());
+            bHasOrigin = true;
+            break;
+        }  //  if(a_vHeaders[i].first == QByteArray("Origin")){
+#endif
+    }  //  for(i = 0; i < cnHeadersCount; ++i){
 
     if(bHasOrigin){
         QByteArray tmpAllowedOrigin;
@@ -289,8 +317,11 @@ bool HttpServer::handleRequest(const QHttpServerRequest& a_request, QHttpServerR
 }
 
 
-
+#if QT_VERSION < QT_VERSION_CHECK(6, 7, 0)
 void HttpServer::missingHandler(const QHttpServerRequest& a_request, QHttpServerResponder&& a_responder)
+#else
+void HttpServer::missingHandler(const QHttpServerRequest& a_request, QHttpServerResponder& a_responder)
+#endif
 {
     static_cast<void>(a_request);
     static_cast<void>(a_responder);
@@ -467,10 +498,56 @@ void HttpServer::handleAllUrlsRequest(const QHttpServerRequest& a_request, QHttp
 }
 
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+
+quint16 HttpServer::listen(const QHostAddress& a_address, quint16 a_port)
+{
+    if(m_server_data->m_pFirstServer){
+        const quint16 listPort = m_server_data->m_pFirstServer->serverPort();
+        if(listPort>0){
+            return listPort;
+        }
+    }  //  if(m_server_data->m_pFirstServer){
+    else{
+        m_server_data->m_pFirstServer = new QSslServer();
+    }
+    
+    if(m_server_data->m_pFirstServer->listen(a_address, a_port)){
+        return m_server_data->m_pFirstServer->serverPort();
+    }
+    
+    return -1;
+}
+
+
+void HttpServer::sslSetup(const QSslConfiguration& a_sslConfiguration)
+{
+    if(!(m_server_data->m_pFirstServer)){
+        m_server_data->m_pFirstServer = new QSslServer();
+    }
+    m_server_data->m_pFirstServer->setSslConfiguration(a_sslConfiguration);
+}
+
+
+#endif
+
+
 
 /*/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
 
+HttpServer_p::~HttpServer_p()
+{    
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+    delete m_pFirstServer;
+#endif
+}
+
+
 HttpServer_p::HttpServer_p()
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+    :
+    m_pFirstServer(nullptr)
+#endif
 {
 }
 
