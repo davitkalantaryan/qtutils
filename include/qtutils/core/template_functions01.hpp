@@ -10,14 +10,7 @@
 
 
 #include <qtutils/export_symbols.h>
-#include <cinternal/disable_compiler_warnings.h>
-#include <qtutils/disable_utils_warnings.h>
-#include <QList>
-#include <QMultiHash>
-#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
-#include <QHttpHeaders>
-#endif
-#include <cinternal/undisable_compiler_warnings.h>
+#include <qtutils/core/http_data01.hpp>
 
 
 namespace qtutils { namespace core{
@@ -25,12 +18,14 @@ namespace qtutils { namespace core{
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
 
-static inline QMultiHash<QByteArray,QByteArray> QListFromQPairsToMapT(const QHttpHeaders& a_list)
+static inline HeadersMap QListFromQPairsToMapT(const TypeRestHeaders& a_list)
 {
     return a_list.toMultiHash();
 }
 
-#else
+#endif
+
+#if ( QT_VERSION < QT_VERSION_CHECK(6, 7, 0) ) || defined(Generic_QListFromQPairsToMapT_needed)
 
 template <typename keyT, typename dataT>
 static inline QMultiHash<keyT,dataT> QListFromQPairsToMapT(const QList<QPair<keyT,dataT> >& a_list)

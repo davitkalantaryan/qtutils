@@ -9,6 +9,7 @@
 #pragma once
 
 #include <qtutils/export_symbols.h>
+#include <qtutils/core/http_data01.hpp>
 #include <cinternal/disable_compiler_warnings.h>
 #include <unordered_map>
 #include <list>
@@ -38,12 +39,6 @@ namespace qtutils { namespace core{
 #define QTUTILS_CORE_HTTPSERVER_ALLOWED_ORIGINS_KEY "qtutils/core/allowed_origins"
 
 class CPPUTILS_DLL_PRIVATE HttpServer_p;
-#if QT_VERSION < QT_VERSION_CHECK(6, 7, 0)
-typedef QList<QPair<QByteArray, QByteArray> >   TypeRestHeaders;
-#else
-typedef QHttpHeaders                            TypeRestHeaders;
-#endif
-typedef QList<QByteArray>                       ByteArrayList;
 
 
 class QTUTILS_CORE_EXPORT HttpServer : public QAbstractHttpServer
