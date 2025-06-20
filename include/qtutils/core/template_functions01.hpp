@@ -87,7 +87,7 @@ static inline QByteArray GetValueFromNetworkRequestCaseInsensitive(const QNetwor
     
     const QHttpHeaders aHdrs = a_requestHeaders.headers();
     const HeadersMap hdrsMap = aHdrs.toMultiHash();
-    return GetValueFromHeadersCaseInsensitive(hdrsMap);
+    return GetValueFromHeadersCaseInsensitive(hdrsMap,a_headerName);
     
 #else
     
