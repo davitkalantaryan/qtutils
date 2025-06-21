@@ -13,7 +13,6 @@
 #include <cinternal/disable_compiler_warnings.h>
 #include <qtutils/disable_utils_warnings.h>
 #include <QByteArray>
-#include <QString>
 #include <QMultiHash>
 #include <cinternal/undisable_compiler_warnings.h>
 
@@ -24,12 +23,12 @@ namespace qtutils { namespace core{ namespace httpMPart{
 struct SinglePart{
     qsizetype   dataOffset;
     QByteArray  data;
-    QString     fileName;
 };
 
 typedef QMultiHash<QByteArray, SinglePart >    MultipartMap;
 
 QTUTILS_CORE_EXPORT void ParseMPart(const QByteArray& a_requestBodyBA, const QByteArray& a_boundary, MultipartMap* CPPUTILS_ARG_NN a_map_p);
+QTUTILS_CORE_EXPORT QByteArray TakeValueFromPart(const QByteArray& a_part, const QByteArray& a_varName);
 
 
 }}}  //  namespace qtutils { namespace core{ namespace httpMPart{
