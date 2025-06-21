@@ -513,6 +513,7 @@ quint16 HttpServer::listen(const QHostAddress& a_address, quint16 a_port)
     }
     
     if(m_server_data->m_pFirstServer->listen(a_address, a_port)){
+        bind(m_server_data->m_pFirstServer);
         return m_server_data->m_pFirstServer->serverPort();
     }
     
