@@ -9,6 +9,8 @@
 #pragma once
 
 #include <qtutils/export_symbols.h>
+#include <qtutils/core/http_data01.hpp>
+#include <cinternal/disable_compiler_warnings.h>
 #include <unordered_map>
 #include <list>
 #include <utility>
@@ -25,6 +27,10 @@
 #include <QSettings>
 #include <QVariantList>
 #include <QRegularExpressionMatch>
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+#include <QHttpHeaders>
+#endif
+#include <cinternal/undisable_compiler_warnings.h>
 
 
 namespace qtutils { namespace core{
@@ -33,8 +39,6 @@ namespace qtutils { namespace core{
 #define QTUTILS_CORE_HTTPSERVER_ALLOWED_ORIGINS_KEY "qtutils/core/allowed_origins"
 
 class CPPUTILS_DLL_PRIVATE HttpServer_p;
-typedef QList<QPair<QByteArray, QByteArray> >   TypeRestHeaders;
-typedef QList<QByteArray>                       ByteArrayList;
 
 
 class QTUTILS_CORE_EXPORT HttpServer : public QAbstractHttpServer
@@ -80,10 +84,19 @@ public:
     bool checkAndFixResponceHeaders(const QHttpServerRequest& a_request, QHttpServerResponse* CPPUTILS_ARG_NN a_pResp)const;
     void SendResponse(const QHttpServerRequest& a_request, QHttpServerResponse* CPPUTILS_ARG_NN a_responce_p, QHttpServerResponder& a_responder);
     void SendResponse(const TypeRestHeaders& a_headers, QHttpServerResponse* CPPUTILS_ARG_NN a_responce_p, QHttpServerResponder& a_responder);
+        
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+    quint16 listen(const QHostAddress& a_address = QHostAddress::Any, quint16 a_port=0);
+    void sslSetup(const QSslConfiguration& a_sslConfiguration);
+#endif
 
 protected:
-    virtual bool handleRequest(const QHttpServerRequest& a_request, QHttpServerResponder& a_responder) override;
+    virtual bool handleRequest(const QHttpServerRequest& a_request, QHttpServerResponder& a_responder) override;    
+#if QT_VERSION < QT_VERSION_CHECK(6, 7, 0)
     virtual void missingHandler(const QHttpServerRequest& a_request, QHttpServerResponder&& a_responder) override;
+#else
+    virtual void missingHandler(const QHttpServerRequest& a_request, QHttpServerResponder& a_responder) override;
+#endif
     virtual void handleAllowedHeadersRequest(const QHttpServerRequest& a_request, QHttpServerResponder& a_responder);
     virtual void handleAllowedOriginsRequest(const QHttpServerRequest& a_request, QHttpServerResponder& a_responder);
     virtual void handleAllUrlsRequest(const QHttpServerRequest& a_request, QHttpServerResponder& a_responder);
