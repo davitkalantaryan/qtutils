@@ -21,10 +21,20 @@
 #include <QJsonObject>
 #include <QJsonDocument>
 #include <QSslServer>
+#include <QThread>
 #include <cinternal/undisable_compiler_warnings.h>
 
 
 namespace qtutils { namespace core{
+
+
+
+struct SocketWithParent{
+    QObject*                parent_srv_p;
+    QIODevice*              socket_p;
+    QMetaObject::Connection cnction;
+};
+typedef typename ::std::list<SocketWithParent>      TypeSockets;
 
 
 class CPPUTILS_DLL_PRIVATE HttpServer_p final
@@ -53,37 +63,44 @@ template <typename BaseCls, typename SockCls>
 class Server : public BaseCls
 {
 public:
-    typedef typename ::std::list<QIODevice*>    TypeSocketsIn;
-public:
     ~Server() override {}
-    Server(TypeSockets* const  a_sockets_p) : m_sockets_p(a_sockets_p) {}
+    Server(QAbstractHttpServer* CPPUTILS_ARG_NN a_parent_p, TypeSockets* CPPUTILS_ARG_NN const  a_sockets_p) :
+        BaseCls(a_parent_p), m_sockets_p(a_sockets_p), m_parent_p(a_parent_p)
+    {}
 private:
     void incomingConnection(qintptr a_handle) override {
         
         BaseCls::incomingConnection(a_handle);
-        //SockCls* const socket_p_out = dynamic_cast<SockCls*>(BaseCls::nextPendingConnection());
-        //QtUtilsDebug()<<"socket_p_out:"<<socket_p_out;
-        /*////////////////////////////////////////////////////////////////////////////////////////*/
-        //SockCls* const socket_p_out = new SockCls(this);
-        //socket_p_out->setSocketDescriptor(a_handle);
-        //QObject::connect(socket_p_out, &QObject::destroyed, this, [this,socket_p_out]() {
-        //    const typename TypeSocketsIn::const_iterator iterEnd = m_sockets_p->cend();
-        //    typename TypeSocketsIn::const_iterator iter = m_sockets_p->cbegin();
-        //    for(;iter!=iterEnd;++iter){
-        //        SockCls* const socket_p_in = static_cast<SockCls*>(*iter);
-        //        if(socket_p_in==socket_p_out){
-        //            m_sockets_p->erase(iter);
-        //            return;
-        //        }  //  if(socket_p_in==socket_p_out){
-        //    }  //  for(;iter!=iterEnd;++iter){
-        //});  //  QObject::connect(socket_p_out, &QObject::destroyed, this, [this,socket_p_out]() {
-        //m_sockets_p->push_back(socket_p_out);
-        //BaseCls::addPendingConnection(socket_p_out);
-        //emit BaseCls::newConnection();        
+        const QList<SockCls*> childs = m_parent_p->findChildren<SockCls*>();
+        const qsizetype childsSize = childs.size();
+        for(qsizetype i(0); i < childsSize; ++i){
+            
+            SockCls* const socket_p_out = dynamic_cast<SockCls*>(childs.at(i));
+            if(socket_p_out){
+                
+                const QMetaObject::Connection cnction = QObject::connect(socket_p_out, &QObject::destroyed, this, [this,socket_p_out]() {
+                    const typename TypeSockets::const_iterator iterEnd = m_sockets_p->cend();
+                    typename TypeSockets::const_iterator iter = m_sockets_p->cbegin();
+                    for(;iter!=iterEnd;++iter){
+                        SockCls* const socket_p_in = static_cast<SockCls*>(iter->socket_p);
+                        if(socket_p_in==socket_p_out){
+                            m_sockets_p->erase(iter);
+                            return;
+                        }  //  if(socket_p_in==socket_p_out){
+                    }  //  for(;iter!=iterEnd;++iter){
+                });  //  QObject::connect(socket_p_out, &QObject::destroyed, this, [this,socket_p_out]() {
+                
+                const SocketWithParent sockWtPrntNew{this,socket_p_out,cnction};
+                m_sockets_p->push_back(sockWtPrntNew);
+                
+            }  //  if(socket_p_out){
+            
+        }  //  for(qsizetype i(0); i < childsSize; ++i){        
     }
 
 private:
-    TypeSocketsIn* const    m_sockets_p;
+    TypeSockets* const          m_sockets_p;
+    QAbstractHttpServer* const  m_parent_p;
 
 private:
     Server(const Server&)=delete;
@@ -480,19 +497,68 @@ bool HttpServer::checkAndFixResponceHeaders(const TypeRestHeaders& a_vHeaders, Q
 }
 
 
-void HttpServer::SendResponse(const QHttpServerRequest& a_request, QHttpServerResponse* CPPUTILS_ARG_NN a_responce_p, QHttpServerResponder& a_responder)
+void HttpServer::SendResponse(const QHttpServerRequest& a_request, QHttpServerResponse* CPPUTILS_ARG_NN a_responce_p, QHttpServerResponder& a_responder, bool a_isSsl)
 {
-    QHttpServerResponse aResponce = ::std::move(*a_responce_p);
-    HttpServerCheckAndFixResponceHeadersInline1(a_request,m_server_data->allowedHeaders,m_server_data->allowedOrigins,&aResponce);
-    a_responder.sendResponse( aResponce );
+    //CheckAndFixThreadAffinityOfSockets();
+
+#ifdef _WIN32
+    
+    (void)a_isSsl;
+    QMetaObject::invokeMethod(this,[this,&a_request,a_responce_p,&a_responder](){
+        QHttpServerResponse aResponce = ::std::move(*a_responce_p);
+        HttpServerCheckAndFixResponceHeadersInline1(a_request,m_server_data->allowedHeaders,m_server_data->allowedOrigins,&aResponce);
+        a_responder.sendResponse( aResponce );
+    }, Qt::BlockingQueuedConnection);  //  QMetaObject::invokeMethod(this,[this,&a_request,a_responce_p,&a_responder](){
+
+#else
+    
+    if(a_isSsl){
+        QHttpServerResponse aResponce = ::std::move(*a_responce_p);
+        HttpServerCheckAndFixResponceHeadersInline1(a_request,m_server_data->allowedHeaders,m_server_data->allowedOrigins,&aResponce);
+        a_responder.sendResponse( aResponce );
+    }
+    else{
+        QMetaObject::invokeMethod(this,[this,&a_request,a_responce_p,&a_responder](){
+            QHttpServerResponse aResponce = ::std::move(*a_responce_p);
+            HttpServerCheckAndFixResponceHeadersInline1(a_request,m_server_data->allowedHeaders,m_server_data->allowedOrigins,&aResponce);
+            a_responder.sendResponse( aResponce );
+        }, Qt::BlockingQueuedConnection);  //  QMetaObject::invokeMethod(this,[this,&a_request,a_responce_p,&a_responder](){
+    }  //  if(a_isSsl){
+    
+#endif
 }
 
 
-void HttpServer::SendResponse(const TypeRestHeaders& a_headers, QHttpServerResponse* CPPUTILS_ARG_NN a_responce_p, QHttpServerResponder& a_responder)
+void HttpServer::SendResponse(const TypeRestHeaders& a_headers, QHttpServerResponse* CPPUTILS_ARG_NN a_responce_p, QHttpServerResponder& a_responder, bool a_isSsl)
 {
-    QHttpServerResponse aResponce = ::std::move(*a_responce_p);
-    HttpServerCheckAndFixResponceHeadersInlineRaw(a_headers,m_server_data->allowedHeaders,m_server_data->allowedOrigins,&aResponce);
-    a_responder.sendResponse( aResponce );
+    //CheckAndFixThreadAffinityOfSockets();
+    
+#ifdef _WIN32
+    
+    (void)a_isSsl;
+    QMetaObject::invokeMethod(this,[this,&a_headers,a_responce_p,&a_responder](){
+        QHttpServerResponse aResponce = ::std::move(*a_responce_p);
+        HttpServerCheckAndFixResponceHeadersInlineRaw(a_headers,m_server_data->allowedHeaders,m_server_data->allowedOrigins,&aResponce);
+        a_responder.sendResponse( aResponce );
+    }, Qt::BlockingQueuedConnection);  //  QMetaObject::invokeMethod(this,[this,&a_headers,a_responce_p,&a_responder](){
+    
+#else
+    
+    if(a_isSsl){
+        QHttpServerResponse aResponce = ::std::move(*a_responce_p);
+        HttpServerCheckAndFixResponceHeadersInlineRaw(a_headers,m_server_data->allowedHeaders,m_server_data->allowedOrigins,&aResponce);
+        a_responder.sendResponse( aResponce );
+    }
+    else{
+        QMetaObject::invokeMethod(this,[this,&a_headers,a_responce_p,&a_responder](){
+            QHttpServerResponse aResponce = ::std::move(*a_responce_p);
+            HttpServerCheckAndFixResponceHeadersInlineRaw(a_headers,m_server_data->allowedHeaders,m_server_data->allowedOrigins,&aResponce);
+            a_responder.sendResponse( aResponce );
+        }, Qt::BlockingQueuedConnection);  //  QMetaObject::invokeMethod(this,[this,&a_headers,a_responce_p,&a_responder](){
+    }  //  if(a_isSsl){
+    
+#endif
+    
 }
 
 
@@ -546,7 +612,7 @@ void HttpServer::handleAllUrlsRequest(const QHttpServerRequest& a_request, QHttp
 
 QTcpServer* HttpServer::CreateListenBindToTcpServer(quint16 a_port, const QHostAddress& a_address)
 {
-    QTcpServer* const server_p = new Server<QTcpServer,QTcpSocket>(&(m_server_data->m_sockets));
+    QTcpServer* const server_p = new Server<QTcpServer,QTcpSocket>(this,&(m_server_data->m_sockets));
     const bool bListenRet = server_p->listen(a_address, a_port);
     if(!bListenRet){
         delete server_p;
@@ -563,7 +629,7 @@ QTcpServer* HttpServer::CreateListenBindToTcpServer(quint16 a_port, const QHostA
 
 QSslServer* HttpServer::CreateListenBindToSslServer(quint16 a_port, const QHostAddress& a_address)
 {
-    QSslServer* const server_p = new Server<QSslServer,QSslSocket>(&(m_server_data->m_sockets));
+    QSslServer* const server_p = new Server<QSslServer,QSslSocket>(this,&(m_server_data->m_sockets));
     const bool bListenRet = server_p->listen(a_address, a_port);
     if(!bListenRet){
         delete server_p;
@@ -575,6 +641,36 @@ QSslServer* HttpServer::CreateListenBindToSslServer(quint16 a_port, const QHostA
         return nullptr;
     }
     return server_p;
+}
+
+
+void HttpServer::CheckAndFixThreadAffinityOfSockets()
+{
+    const size_t socketsCount = m_server_data->m_sockets.size();
+    if(socketsCount>0){
+        QThread* const curThread = QThread::currentThread();
+        QThread* const ownThread = this->thread();
+        if(curThread==ownThread){
+            m_server_data->m_sockets.clear();
+        }  //  if(curThread==ownThread){
+        else{
+            QMetaObject::invokeMethod(this,[this,curThread](){
+                const TypeSockets::const_iterator iterEnd = m_server_data->m_sockets.cend();
+                TypeSockets::const_iterator iter = m_server_data->m_sockets.cbegin();
+                for(;iter!=iterEnd;++iter){
+                    const SocketWithParent sockAndPr = *iter;
+                    QObject::disconnect(sockAndPr.cnction);
+                    //m_server_data->m_sockets.erase(iter);
+                    QObject* const parent_p = sockAndPr.socket_p->parent();
+                    if((parent_p==nullptr)||(parent_p==(sockAndPr.parent_srv_p))||(parent_p==static_cast<QObject*>(this))){
+                        sockAndPr.socket_p->setParent(nullptr);
+                        sockAndPr.socket_p->moveToThread(curThread);
+                    }  //  if((parent_p==nullptr)||(parent_p==(sockAndPr.parent_srv_p))||(parent_p==static_cast<QObject*>(this))){
+                }  //  while(iter!=iterEnd){
+                m_server_data->m_sockets.clear();
+            },Qt::BlockingQueuedConnection);  //  QMetaObject::invokeMethod(this,[this](){
+        }  //  else of 'if(curThread==ownThread){'
+    }  //  if(socketsCount>0){
 }
 
 

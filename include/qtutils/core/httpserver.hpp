@@ -40,7 +40,6 @@ namespace qtutils { namespace core{
 #define QTUTILS_CORE_HTTPSERVER_ALLOWED_ORIGINS_KEY "qtutils/core/allowed_origins"
 
 class CPPUTILS_DLL_PRIVATE HttpServer_p;
-typedef ::std::list<QIODevice*>     TypeSockets;
 
 
 class QTUTILS_CORE_EXPORT HttpServer : public QAbstractHttpServer
@@ -84,8 +83,8 @@ public:
     const ByteArrayList& getAllowedOrigins() const;
     bool checkAndFixResponceHeaders(const TypeRestHeaders& a_vHeaders, QHttpServerResponse* CPPUTILS_ARG_NN a_pResp)const;
     bool checkAndFixResponceHeaders(const QHttpServerRequest& a_request, QHttpServerResponse* CPPUTILS_ARG_NN a_pResp)const;
-    void SendResponse(const QHttpServerRequest& a_request, QHttpServerResponse* CPPUTILS_ARG_NN a_responce_p, QHttpServerResponder& a_responder);
-    void SendResponse(const TypeRestHeaders& a_headers, QHttpServerResponse* CPPUTILS_ARG_NN a_responce_p, QHttpServerResponder& a_responder);
+    void SendResponse(const QHttpServerRequest& a_request, QHttpServerResponse* CPPUTILS_ARG_NN a_responce_p, QHttpServerResponder& a_responder, bool a_isSsl);
+    void SendResponse(const TypeRestHeaders& a_headers, QHttpServerResponse* CPPUTILS_ARG_NN a_responce_p, QHttpServerResponder& a_responder, bool a_isSsl);
     QTcpServer* CreateListenBindToTcpServer(quint16 a_port=0, const QHostAddress& a_address = QHostAddress::Any);
     QSslServer* CreateListenBindToSslServer(quint16 a_port=0, const QHostAddress& a_address = QHostAddress::Any);
         
@@ -104,6 +103,7 @@ protected:
     virtual void handleAllowedHeadersRequest(const QHttpServerRequest& a_request, QHttpServerResponder& a_responder);
     virtual void handleAllowedOriginsRequest(const QHttpServerRequest& a_request, QHttpServerResponder& a_responder);
     virtual void handleAllUrlsRequest(const QHttpServerRequest& a_request, QHttpServerResponder& a_responder);
+    void CheckAndFixThreadAffinityOfSockets();
         
 private:
     HttpServer_p* const     m_server_data;
