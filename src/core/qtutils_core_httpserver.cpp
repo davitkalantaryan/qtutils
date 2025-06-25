@@ -53,25 +53,33 @@ template <typename BaseCls, typename SockCls>
 class Server : public BaseCls
 {
 public:
-    typedef typename ::std::list<SockCls*>    TypeSocketsIn;
+    typedef typename ::std::list<QIODevice*>    TypeSocketsIn;
 public:
     ~Server() override {}
     Server(TypeSockets* const  a_sockets_p) : m_sockets_p(a_sockets_p) {}
 private:
-    void addPendingConnection(SockCls* a_socket_p) {
-        QObject::connect(a_socket_p, &QObject::destroyed, this, [this,a_socket_p]() {
-            const typename TypeSocketsIn::const_iterator iterEnd = m_sockets_p->cend();
-            typename TypeSocketsIn::const_iterator iter = m_sockets_p->cbegin();
-            for(;iter!=iterEnd;++iter){
-                SockCls* const socket_p_in = *iter;
-                if(socket_p_in==a_socket_p){
-                    m_sockets_p->erase(iter);
-                    return;
-                }  //  if(socket_p_in==socket_p_out){
-            }  //  for(;iter!=iterEnd;++iter){
-        });  //  connect(socket_p, &QObject::destroyed, this, [this]() {
-        m_sockets_p->push_back(a_socket_p);
-        BaseCls::addPendingConnection(a_socket_p);
+    void incomingConnection(qintptr a_handle) override {
+        
+        BaseCls::incomingConnection(a_handle);
+        //SockCls* const socket_p_out = dynamic_cast<SockCls*>(BaseCls::nextPendingConnection());
+        //QtUtilsDebug()<<"socket_p_out:"<<socket_p_out;
+        /*////////////////////////////////////////////////////////////////////////////////////////*/
+        //SockCls* const socket_p_out = new SockCls(this);
+        //socket_p_out->setSocketDescriptor(a_handle);
+        //QObject::connect(socket_p_out, &QObject::destroyed, this, [this,socket_p_out]() {
+        //    const typename TypeSocketsIn::const_iterator iterEnd = m_sockets_p->cend();
+        //    typename TypeSocketsIn::const_iterator iter = m_sockets_p->cbegin();
+        //    for(;iter!=iterEnd;++iter){
+        //        SockCls* const socket_p_in = static_cast<SockCls*>(*iter);
+        //        if(socket_p_in==socket_p_out){
+        //            m_sockets_p->erase(iter);
+        //            return;
+        //        }  //  if(socket_p_in==socket_p_out){
+        //    }  //  for(;iter!=iterEnd;++iter){
+        //});  //  QObject::connect(socket_p_out, &QObject::destroyed, this, [this,socket_p_out]() {
+        //m_sockets_p->push_back(socket_p_out);
+        //BaseCls::addPendingConnection(socket_p_out);
+        //emit BaseCls::newConnection();        
     }
 
 private:
@@ -536,34 +544,6 @@ void HttpServer::handleAllUrlsRequest(const QHttpServerRequest& a_request, QHttp
 }
 
 
-bool HttpServer::BindAndChangeConnectionClbk(QTcpServer* a_server_p)
-{
-    const bool bRet = bind(a_server_p);
-    if(bRet){
-        connect(a_server_p, &QTcpServer::pendingConnectionAvailable, this, [this,a_server_p]() {
-            QTcpSocket* const socket_p_out = a_server_p->nextPendingConnection();
-            QtUtilsDebug()<<"socket_p_out:"<<socket_p_out;
-            if(socket_p_out){
-                connect(socket_p_out, &QObject::destroyed, this, [this,socket_p_out]() {
-                    const TypeSockets::const_iterator iterEnd = m_server_data->m_sockets.cend();
-                    TypeSockets::const_iterator iter = m_server_data->m_sockets.cbegin();
-                    for(;iter!=iterEnd;++iter){
-                        QTcpSocket* const socket_p_in = *iter;
-                        if(socket_p_in==socket_p_out){
-                            m_server_data->m_sockets.erase(iter);
-                            return;
-                        }  //  if(socket_p_in==socket_p_out){
-                    }  //  for(;iter!=iterEnd;++iter){
-                });  //  connect(socket_p, &QObject::destroyed, this, [this]() {
-                m_server_data->m_sockets.push_back(socket_p_out);
-            }  //  if(socket_p_out){
-        });  //  connect(a_server_p, &QTcpServer::newConnection, this, [this,a_server_p]() {
-    }  //  if(bRet){
-
-    return bRet;
-}
-
-
 QTcpServer* HttpServer::CreateListenBindToTcpServer(quint16 a_port, const QHostAddress& a_address)
 {
     QTcpServer* const server_p = new Server<QTcpServer,QTcpSocket>(&(m_server_data->m_sockets));
@@ -583,7 +563,7 @@ QTcpServer* HttpServer::CreateListenBindToTcpServer(quint16 a_port, const QHostA
 
 QSslServer* HttpServer::CreateListenBindToSslServer(quint16 a_port, const QHostAddress& a_address)
 {
-    QSslServer* const server_p = new Server<QSslServer,QTcpSocket>(&(m_server_data->m_sockets));
+    QSslServer* const server_p = new Server<QSslServer,QSslSocket>(&(m_server_data->m_sockets));
     const bool bListenRet = server_p->listen(a_address, a_port);
     if(!bListenRet){
         delete server_p;

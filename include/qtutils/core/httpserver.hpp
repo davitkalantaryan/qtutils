@@ -40,7 +40,7 @@ namespace qtutils { namespace core{
 #define QTUTILS_CORE_HTTPSERVER_ALLOWED_ORIGINS_KEY "qtutils/core/allowed_origins"
 
 class CPPUTILS_DLL_PRIVATE HttpServer_p;
-typedef ::std::list<QTcpSocket*>    TypeSockets;
+typedef ::std::list<QIODevice*>     TypeSockets;
 
 
 class QTUTILS_CORE_EXPORT HttpServer : public QAbstractHttpServer
@@ -86,7 +86,6 @@ public:
     bool checkAndFixResponceHeaders(const QHttpServerRequest& a_request, QHttpServerResponse* CPPUTILS_ARG_NN a_pResp)const;
     void SendResponse(const QHttpServerRequest& a_request, QHttpServerResponse* CPPUTILS_ARG_NN a_responce_p, QHttpServerResponder& a_responder);
     void SendResponse(const TypeRestHeaders& a_headers, QHttpServerResponse* CPPUTILS_ARG_NN a_responce_p, QHttpServerResponder& a_responder);
-    bool BindAndChangeConnectionClbk(QTcpServer* a_server_p);
     QTcpServer* CreateListenBindToTcpServer(quint16 a_port=0, const QHostAddress& a_address = QHostAddress::Any);
     QSslServer* CreateListenBindToSslServer(quint16 a_port=0, const QHostAddress& a_address = QHostAddress::Any);
         
