@@ -6,9 +6,11 @@
 //
 
 #include <qtutils/core/invokeblocked.hpp>
+#include <cinternal/disable_compiler_warnings.h>
 #include <qtutils/disable_utils_warnings.h>
 #include <QMetaObject>
 #include <QThread>
+#include <cinternal/undisable_compiler_warnings.h>
 
 namespace qtutils {
 
