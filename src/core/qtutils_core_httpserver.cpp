@@ -28,15 +28,6 @@
 namespace qtutils { namespace core{
 
 
-
-struct SocketWithParent{
-    QObject*                parent_srv_p;
-    QIODevice*              socket_p;
-    QMetaObject::Connection cnction;
-};
-typedef typename ::std::list<SocketWithParent>      TypeSockets;
-
-
 class CPPUTILS_DLL_PRIVATE HttpServer_p final
 {
 public:
@@ -52,55 +43,27 @@ public:
     HttpServer::TypeListAnM     anyMatcherRoutes;
     ByteArrayList               allowedHeaders;
     ByteArrayList               allowedOrigins;
-    TypeSockets                 m_sockets;
-#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
-    QSslServer*                 m_pFirstServer;
-#endif
+    QTcpServer*                 m_pCurrentServer;
+    QThread* const              m_pHttpThread;
 };
 
 
-template <typename BaseCls, typename SockCls>
+template <typename BaseCls>
 class Server : public BaseCls
 {
 public:
     ~Server() override {}
-    Server(QAbstractHttpServer* CPPUTILS_ARG_NN a_parent_p, TypeSockets* CPPUTILS_ARG_NN const  a_sockets_p) :
-        BaseCls(a_parent_p), m_sockets_p(a_sockets_p), m_parent_p(a_parent_p)
+    Server(HttpServer_p* CPPUTILS_ARG_NN a_parent_p) :
+        BaseCls(), m_parent_p(a_parent_p)
     {}
 private:
     void incomingConnection(qintptr a_handle) override {
-        
+        m_parent_p->m_pCurrentServer = this;
         BaseCls::incomingConnection(a_handle);
-        const QList<SockCls*> childs = m_parent_p->findChildren<SockCls*>();
-        const qsizetype childsSize = childs.size();
-        for(qsizetype i(0); i < childsSize; ++i){
-            
-            SockCls* const socket_p_out = dynamic_cast<SockCls*>(childs.at(i));
-            if(socket_p_out){
-                
-                const QMetaObject::Connection cnction = QObject::connect(socket_p_out, &QObject::destroyed, this, [this,socket_p_out]() {
-                    const typename TypeSockets::const_iterator iterEnd = m_sockets_p->cend();
-                    typename TypeSockets::const_iterator iter = m_sockets_p->cbegin();
-                    for(;iter!=iterEnd;++iter){
-                        SockCls* const socket_p_in = static_cast<SockCls*>(iter->socket_p);
-                        if(socket_p_in==socket_p_out){
-                            m_sockets_p->erase(iter);
-                            return;
-                        }  //  if(socket_p_in==socket_p_out){
-                    }  //  for(;iter!=iterEnd;++iter){
-                });  //  QObject::connect(socket_p_out, &QObject::destroyed, this, [this,socket_p_out]() {
-                
-                const SocketWithParent sockWtPrntNew{this,socket_p_out,cnction};
-                m_sockets_p->push_back(sockWtPrntNew);
-                
-            }  //  if(socket_p_out){
-            
-        }  //  for(qsizetype i(0); i < childsSize; ++i){        
     }
 
 private:
-    TypeSockets* const          m_sockets_p;
-    QAbstractHttpServer* const  m_parent_p;
+    HttpServer_p* const     m_parent_p;
 
 private:
     Server(const Server&)=delete;
@@ -295,17 +258,20 @@ HttpServer::HttpServer()
     m_server_data->allowedHeaders = GetByteArrayListFromSettingsInline(QTUTILS_CORE_HTTPSERVER_ALLOWED_HEADERS_KEY,aSettings);
     m_server_data->allowedOrigins = GetByteArrayListFromSettingsInline(QTUTILS_CORE_HTTPSERVER_ALLOWED_ORIGINS_KEY,aSettings);
 
-    this->AddStraightRoute("/qtutils_get_allowed_headers",[this](const QHttpServerRequest& a_request, QHttpServerResponder& a_responder){
+    this->AddStraightRoute("/qtutils_get_allowed_headers",[this](QTcpServer* a_cnctSrv, const QHttpServerRequest& a_request, QHttpServerResponder& a_responder){
+        static_cast<void>(a_cnctSrv);
         handleAllowedHeadersRequest(a_request,a_responder);
         return true;
     });
 
-    this->AddStraightRoute("/qtutils_get_allowed_origins",[this](const QHttpServerRequest& a_request, QHttpServerResponder& a_responder){
+    this->AddStraightRoute("/qtutils_get_allowed_origins",[this](QTcpServer* a_cnctSrv, const QHttpServerRequest& a_request, QHttpServerResponder& a_responder){
+        static_cast<void>(a_cnctSrv);
         handleAllowedOriginsRequest(a_request,a_responder);
         return true;
     });
 
-    this->AddStraightRoute("/qtutils_get_all_urls",[this](const QHttpServerRequest& a_request, QHttpServerResponder& a_responder){
+    this->AddStraightRoute("/qtutils_get_all_urls",[this](QTcpServer* a_cnctSrv, const QHttpServerRequest& a_request, QHttpServerResponder& a_responder){
+        static_cast<void>(a_cnctSrv);
         handleAllUrlsRequest(a_request,a_responder);
         return true;
     });
@@ -320,7 +286,7 @@ bool HttpServer::handleRequest(const QHttpServerRequest& a_request, QHttpServerR
     // 1. try concrete straight correspondance
     const TypeHashS::const_iterator citerHS = m_server_data->straightRoutes.find(aPath);
     if(citerHS!=m_server_data->straightRoutes.cend()){
-        return citerHS->second(a_request,a_responder);
+        return citerHS->second(m_server_data->m_pCurrentServer,a_request,a_responder);
     }
     
     // 2. try directory correspondance
@@ -330,7 +296,7 @@ bool HttpServer::handleRequest(const QHttpServerRequest& a_request, QHttpServerR
         dirPath = dirPath.left(liOfDir);
         TypeHashD::const_iterator citerHD = m_server_data->dirRoutes.find(dirPath);
         if(citerHD!=m_server_data->dirRoutes.cend()){
-            return citerHD->second(a_request,a_responder,aPath.mid(liOfDir+1));
+            return citerHD->second(m_server_data->m_pCurrentServer,a_request,a_responder,aPath.mid(liOfDir+1));
         }
         liOfDir = dirPath.lastIndexOf('/');
     }
@@ -342,7 +308,7 @@ bool HttpServer::handleRequest(const QHttpServerRequest& a_request, QHttpServerR
         const QRegularExpression reg(citerLREG->first);
         const QRegularExpressionMatch matchg = reg.match(aPath);
         if(matchg.hasMatch()){
-            return citerLREG->second(a_request, a_responder,matchg);
+            return citerLREG->second(m_server_data->m_pCurrentServer,a_request, a_responder,matchg);
         }
     }
      
@@ -353,7 +319,7 @@ bool HttpServer::handleRequest(const QHttpServerRequest& a_request, QHttpServerR
         const QRegularExpression rew = QRegularExpression::fromWildcard(citerLREW->first,Qt::CaseSensitive,QRegularExpression::UnanchoredWildcardConversion);
         const QRegularExpressionMatch matchw = rew.match(aPath);
         if(matchw.hasMatch()){
-            return citerLREW->second(a_request, a_responder,matchw);
+            return citerLREW->second(m_server_data->m_pCurrentServer,a_request, a_responder,matchw);
         }
     }
     
@@ -362,7 +328,7 @@ bool HttpServer::handleRequest(const QHttpServerRequest& a_request, QHttpServerR
     const TypeListAA::const_iterator citerLAAEnd = m_server_data->anyAppearanceRoutes.cend();
     for(;citerLAA!=citerLAAEnd;++citerLAA){
         if(aPath.contains(citerLAA->first)){
-            return citerLAA->second(a_request, a_responder);
+            return citerLAA->second(m_server_data->m_pCurrentServer,a_request, a_responder);
         }
     }
     
@@ -372,7 +338,7 @@ bool HttpServer::handleRequest(const QHttpServerRequest& a_request, QHttpServerR
     for(;citerLAM!=citerLAMEnd;++citerLAM){
         const ::std::tuple<TypeHasMatch,void*,TypeClbkAnM>& aItem = *citerLAM;
         if( (::std::get<0>(aItem))(aUrl,::std::get<1>(aItem)) ){
-            return (::std::get<2>(aItem))(a_request, a_responder,::std::get<1>(aItem));
+            return (::std::get<2>(aItem))(m_server_data->m_pCurrentServer,a_request, a_responder,::std::get<1>(aItem));
         }
     }
     
@@ -497,68 +463,77 @@ bool HttpServer::checkAndFixResponceHeaders(const TypeRestHeaders& a_vHeaders, Q
 }
 
 
-void HttpServer::SendResponse(const QHttpServerRequest& a_request, QHttpServerResponse* CPPUTILS_ARG_NN a_responce_p, QHttpServerResponder& a_responder, bool a_isSsl)
+void HttpServer::SendResponseSoft(const QHttpServerResponse& a_responce, QHttpServerResponder& a_responder, QTcpServer* a_cnctSrv)
 {
-    //CheckAndFixThreadAffinityOfSockets();
-
 #ifdef _WIN32
-    
-    (void)a_isSsl;
-    QMetaObject::invokeMethod(this,[this,&a_request,a_responce_p,&a_responder](){
-        QHttpServerResponse aResponce = ::std::move(*a_responce_p);
-        HttpServerCheckAndFixResponceHeadersInline1(a_request,m_server_data->allowedHeaders,m_server_data->allowedOrigins,&aResponce);
-        a_responder.sendResponse( aResponce );
-    }, Qt::BlockingQueuedConnection);  //  QMetaObject::invokeMethod(this,[this,&a_request,a_responce_p,&a_responder](){
+
+    static_cast<void>(a_cnctSrv);
+    QThread* const curThread = QThread::currentThread();
+    if(curThread==(m_server_data->m_pHttpThread)){
+        a_responder.sendResponse( a_responce );
+    }  //  if(curThread==(m_server_data->m_pHttpThread)){
+    else{
+        QMetaObject::invokeMethod(this,[&a_responce,&a_responder]{
+            QHttpServerResponder* const pResponder = new QHttpServerResponder(::std::move(a_responder));
+            pResponder->sendResponse( a_responce );
+            delete pResponder;
+        },Qt::BlockingQueuedConnection);
+    }  //  else of 'if(curThread==(m_server_data->m_pHttpThread)){'
 
 #else
-    
-    if(a_isSsl){
-        QHttpServerResponse aResponce = ::std::move(*a_responce_p);
-        HttpServerCheckAndFixResponceHeadersInline1(a_request,m_server_data->allowedHeaders,m_server_data->allowedOrigins,&aResponce);
-        a_responder.sendResponse( aResponce );
-    }
+
+    QSslServer* const pSslServer = dynamic_cast<QSslServer*>(a_cnctSrv);
+    if(pSslServer){
+        a_responder.sendResponse( a_responce );
+    }  //  if(pSslServer){
     else{
-        QMetaObject::invokeMethod(this,[this,&a_request,a_responce_p,&a_responder](){
-            QHttpServerResponse aResponce = ::std::move(*a_responce_p);
-            HttpServerCheckAndFixResponceHeadersInline1(a_request,m_server_data->allowedHeaders,m_server_data->allowedOrigins,&aResponce);
-            a_responder.sendResponse( aResponce );
-        }, Qt::BlockingQueuedConnection);  //  QMetaObject::invokeMethod(this,[this,&a_request,a_responce_p,&a_responder](){
-    }  //  if(a_isSsl){
-    
+        QThread* const curThread = QThread::currentThread();
+        if(curThread==(m_server_data->m_pHttpThread)){
+            a_responder.sendResponse( a_responce );
+        }  //  if(curThread==(m_server_data->m_pHttpThread)){
+        else{
+            QMetaObject::invokeMethod(this,[&a_responce,&a_responder]{
+                QHttpServerResponder* const pResponder = new QHttpServerResponder(::std::move(a_responder));
+                pResponder->sendResponse( a_responce );
+                delete pResponder;
+            },Qt::BlockingQueuedConnection);
+        }  //  else of 'if(curThread==(m_server_data->m_pHttpThread)){'
+    }  //  else of 'if(pSslServer){'
+
 #endif
 }
 
 
-void HttpServer::SendResponse(const TypeRestHeaders& a_headers, QHttpServerResponse* CPPUTILS_ARG_NN a_responce_p, QHttpServerResponder& a_responder, bool a_isSsl)
+void HttpServer::SendResponseWeb(const QHttpServerRequest& a_request, QHttpServerResponse* CPPUTILS_ARG_NN a_responce_p, QHttpServerResponder& a_responder)
 {
-    //CheckAndFixThreadAffinityOfSockets();
-    
-#ifdef _WIN32
-    
-    (void)a_isSsl;
-    QMetaObject::invokeMethod(this,[this,&a_headers,a_responce_p,&a_responder](){
-        QHttpServerResponse aResponce = ::std::move(*a_responce_p);
-        HttpServerCheckAndFixResponceHeadersInlineRaw(a_headers,m_server_data->allowedHeaders,m_server_data->allowedOrigins,&aResponce);
-        a_responder.sendResponse( aResponce );
-    }, Qt::BlockingQueuedConnection);  //  QMetaObject::invokeMethod(this,[this,&a_headers,a_responce_p,&a_responder](){
-    
-#else
-    
-    if(a_isSsl){
-        QHttpServerResponse aResponce = ::std::move(*a_responce_p);
-        HttpServerCheckAndFixResponceHeadersInlineRaw(a_headers,m_server_data->allowedHeaders,m_server_data->allowedOrigins,&aResponce);
-        a_responder.sendResponse( aResponce );
-    }
+    HttpServerCheckAndFixResponceHeadersInline1(a_request,m_server_data->allowedHeaders,m_server_data->allowedOrigins,a_responce_p);
+    a_responder.sendResponse( *a_responce_p );
+}
+
+
+void HttpServer::SendResponseWeb(const TypeRestHeaders& a_headers, QHttpServerResponse* CPPUTILS_ARG_NN a_responce_p, QHttpServerResponder& a_responder, QTcpServer* a_cnctSrv)
+{
+
+    QSslServer* const pSslServer = dynamic_cast<QSslServer*>(a_cnctSrv);
+    if(pSslServer){
+        HttpServerCheckAndFixResponceHeadersInlineRaw(a_headers,m_server_data->allowedHeaders,m_server_data->allowedOrigins,a_responce_p);
+        a_responder.sendResponse( *a_responce_p );
+    }  //  if(pSslServer){
     else{
-        QMetaObject::invokeMethod(this,[this,&a_headers,a_responce_p,&a_responder](){
-            QHttpServerResponse aResponce = ::std::move(*a_responce_p);
-            HttpServerCheckAndFixResponceHeadersInlineRaw(a_headers,m_server_data->allowedHeaders,m_server_data->allowedOrigins,&aResponce);
-            a_responder.sendResponse( aResponce );
-        }, Qt::BlockingQueuedConnection);  //  QMetaObject::invokeMethod(this,[this,&a_headers,a_responce_p,&a_responder](){
-    }  //  if(a_isSsl){
-    
-#endif
-    
+        QThread* const curThread = QThread::currentThread();
+        if(curThread==(m_server_data->m_pHttpThread)){
+            HttpServerCheckAndFixResponceHeadersInlineRaw(a_headers,m_server_data->allowedHeaders,m_server_data->allowedOrigins,a_responce_p);
+            a_responder.sendResponse( *a_responce_p );
+        }  //  if(curThread==(m_server_data->m_pHttpThread)){
+        else{
+            QMetaObject::invokeMethod(this,[this,a_headers,a_responce_p,&a_responder]{
+                QHttpServerResponder* const pResponder = new QHttpServerResponder(::std::move(a_responder));
+                HttpServerCheckAndFixResponceHeadersInlineRaw(a_headers,m_server_data->allowedHeaders,m_server_data->allowedOrigins,a_responce_p);
+                pResponder->sendResponse( *a_responce_p );
+                delete pResponder;
+            },Qt::BlockingQueuedConnection);
+        }  //  else of 'if(curThread==(m_server_data->m_pHttpThread)){'
+    }  //  else of 'if(pSslServer){'
 }
 
 
@@ -612,97 +587,79 @@ void HttpServer::handleAllUrlsRequest(const QHttpServerRequest& a_request, QHttp
 
 QTcpServer* HttpServer::CreateListenBindToTcpServer(quint16 a_port, const QHostAddress& a_address)
 {
-    QTcpServer* const server_p = new Server<QTcpServer,QTcpSocket>(this,&(m_server_data->m_sockets));
+    QTcpServer* const server_p = new Server<QTcpServer>(m_server_data);
     const bool bListenRet = server_p->listen(a_address, a_port);
     if(!bListenRet){
         delete server_p;
+        QtUtilsCritical()<<"Listen to port "<<a_port<<" failed";
         return nullptr;
     }
     const bool bBindRet = bind(server_p);
     if(!bBindRet){
         delete server_p;
+        QtUtilsCritical()<<"Bind to server with port "<<a_port<<" failed";
         return nullptr;
     }
     return server_p;
 }
 
 
-QSslServer* HttpServer::CreateListenBindToSslServer(quint16 a_port, const QHostAddress& a_address)
+QSslServer* HttpServer::CreateListenBindToSslServer(quint16 a_port, const QSslConfiguration& a_aSslConfig, const QHostAddress& a_address)
 {
-    QSslServer* const server_p = new Server<QSslServer,QSslSocket>(this,&(m_server_data->m_sockets));
+    QSslServer* const server_p = new Server<QSslServer>(m_server_data);
+    server_p->setSslConfiguration(a_aSslConfig);
     const bool bListenRet = server_p->listen(a_address, a_port);
     if(!bListenRet){
         delete server_p;
+        QtUtilsCritical()<<"Listen to port "<<a_port<<" failed";
         return nullptr;
     }
     const bool bBindRet = bind(server_p);
     if(!bBindRet){
         delete server_p;
+        QtUtilsCritical()<<"Bind to server with port "<<a_port<<" failed";
         return nullptr;
     }
     return server_p;
-}
-
-
-void HttpServer::CheckAndFixThreadAffinityOfSockets()
-{
-    const size_t socketsCount = m_server_data->m_sockets.size();
-    if(socketsCount>0){
-        QThread* const curThread = QThread::currentThread();
-        QThread* const ownThread = this->thread();
-        if(curThread==ownThread){
-            m_server_data->m_sockets.clear();
-        }  //  if(curThread==ownThread){
-        else{
-            QMetaObject::invokeMethod(this,[this,curThread](){
-                const TypeSockets::const_iterator iterEnd = m_server_data->m_sockets.cend();
-                TypeSockets::const_iterator iter = m_server_data->m_sockets.cbegin();
-                for(;iter!=iterEnd;++iter){
-                    const SocketWithParent sockAndPr = *iter;
-                    QObject::disconnect(sockAndPr.cnction);
-                    //m_server_data->m_sockets.erase(iter);
-                    QObject* const parent_p = sockAndPr.socket_p->parent();
-                    if((parent_p==nullptr)||(parent_p==(sockAndPr.parent_srv_p))||(parent_p==static_cast<QObject*>(this))){
-                        sockAndPr.socket_p->setParent(nullptr);
-                        sockAndPr.socket_p->moveToThread(curThread);
-                    }  //  if((parent_p==nullptr)||(parent_p==(sockAndPr.parent_srv_p))||(parent_p==static_cast<QObject*>(this))){
-                }  //  while(iter!=iterEnd){
-                m_server_data->m_sockets.clear();
-            },Qt::BlockingQueuedConnection);  //  QMetaObject::invokeMethod(this,[this](){
-        }  //  else of 'if(curThread==ownThread){'
-    }  //  if(socketsCount>0){
 }
 
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
 
 quint16 HttpServer::listen(const QHostAddress& a_address, quint16 a_port)
-{
-    if(m_server_data->m_pFirstServer){
-        const quint16 listPort = m_server_data->m_pFirstServer->serverPort();
-        if(listPort>0){
-            return listPort;
+{    
+    QSslServer* const pSslServer = new QSslServer();
+    if(pSslServer->listen(a_address, a_port)){
+        if(bind(pSslServer)){
+            return pSslServer->serverPort();
         }
-    }  //  if(m_server_data->m_pFirstServer){
+        else{
+            QtUtilsCritical()<<"Bind to server with port "<<a_port<<" failed";
+            delete pSslServer;
+        }
+    }
     else{
-        m_server_data->m_pFirstServer = new QSslServer();
+        QtUtilsCritical()<<"Listen to port "<<a_port<<" failed";
+        delete pSslServer;
     }
     
-    if(m_server_data->m_pFirstServer->listen(a_address, a_port)){
-        bind(m_server_data->m_pFirstServer);
-        return m_server_data->m_pFirstServer->serverPort();
-    }
-    
-    return -1;
+    return 0;
 }
 
 
 void HttpServer::sslSetup(const QSslConfiguration& a_sslConfiguration)
 {
-    if(!(m_server_data->m_pFirstServer)){
-        m_server_data->m_pFirstServer = new QSslServer();
-    }
-    m_server_data->m_pFirstServer->setSslConfiguration(a_sslConfiguration);
+    const QList<QTcpServer*> vctServers = this->servers();
+    const qsizetype serversCount = vctServers.size();
+    for(qsizetype i(0); i<serversCount; ++i){
+        QSslServer* const pSslServer = dynamic_cast<QSslServer*>(vctServers.at(i));
+        if(pSslServer){
+            pSslServer->setSslConfiguration(a_sslConfiguration);
+            return;
+        }
+    }  //  for(qsizetype i(0); i<serversCount; ++i){
+
+    QtUtilsCritical()<<"First call listen then sslSetup";
 }
 
 
@@ -714,17 +671,12 @@ void HttpServer::sslSetup(const QSslConfiguration& a_sslConfiguration)
 
 HttpServer_p::~HttpServer_p()
 {    
-#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
-    delete m_pFirstServer;
-#endif
 }
 
 
 HttpServer_p::HttpServer_p()
-#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
     :
-    m_pFirstServer(nullptr)
-#endif
+    m_pHttpThread(QThread::currentThread())
 {
 }
 
