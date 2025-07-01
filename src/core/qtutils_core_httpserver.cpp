@@ -514,6 +514,25 @@ void HttpServer::SendResponseWeb(const QHttpServerRequest& a_request, QHttpServe
 void HttpServer::SendResponseWeb(const TypeRestHeaders& a_headers, QHttpServerResponse* CPPUTILS_ARG_NN a_responce_p, QHttpServerResponder& a_responder, QTcpServer* a_cnctSrv)
 {
 
+#ifdef _WIN32
+
+    static_cast<void>(a_cnctSrv);
+    QThread* const curThread = QThread::currentThread();
+    if(curThread==(m_server_data->m_pHttpThread)){
+        HttpServerCheckAndFixResponceHeadersInlineRaw(a_headers,m_server_data->allowedHeaders,m_server_data->allowedOrigins,a_responce_p);
+        a_responder.sendResponse( *a_responce_p );
+    }  //  if(curThread==(m_server_data->m_pHttpThread)){
+    else{
+        QMetaObject::invokeMethod(this,[this,a_headers,a_responce_p,&a_responder]{
+            QHttpServerResponder* const pResponder = new QHttpServerResponder(::std::move(a_responder));
+            HttpServerCheckAndFixResponceHeadersInlineRaw(a_headers,m_server_data->allowedHeaders,m_server_data->allowedOrigins,a_responce_p);
+            pResponder->sendResponse( *a_responce_p );
+            delete pResponder;
+        },Qt::BlockingQueuedConnection);
+    }  //  else of 'if(curThread==(m_server_data->m_pHttpThread)){'
+
+#else
+
     QSslServer* const pSslServer = dynamic_cast<QSslServer*>(a_cnctSrv);
     if(pSslServer){
         HttpServerCheckAndFixResponceHeadersInlineRaw(a_headers,m_server_data->allowedHeaders,m_server_data->allowedOrigins,a_responce_p);
@@ -534,6 +553,9 @@ void HttpServer::SendResponseWeb(const TypeRestHeaders& a_headers, QHttpServerRe
             },Qt::BlockingQueuedConnection);
         }  //  else of 'if(curThread==(m_server_data->m_pHttpThread)){'
     }  //  else of 'if(pSslServer){'
+
+#endif
+
 }
 
 
