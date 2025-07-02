@@ -215,16 +215,26 @@ static void MessageHandlerStatic(QtMsgType a_type, const QMessageLogContext& a_c
     const CinternalLogCategory logType = QtCategoryToCinternalInline(a_type);
     const ::std::string logMsg = a_message.toStdString();
     const char* const pcLogMsg = logMsg.c_str();
-    if(nLine==QTUTILS_CORE_LOGGER_NEW_CONTEXT){
+    CinternalLogType cintLogType;
+    switch(nLine){
+    case QTUTILS_CORE_LOGGER_NEW_CONTEXT:{
         const MessageLogContextExtra* const pExtraContext = (const MessageLogContextExtra*)(a_context.file);
         cpcFileName = pExtraContext->m_realFileName;
         nLine = pExtraContext->m_realLineNumber;
         logLevel = pExtraContext->m_logLevel;
-    }  //  if(nLine==QTUTILS_CORE_LOGGER_NEW_CONTEXT){
+        cintLogType = CinternalLogTypeCompleteLoggingWithPlaceAndFunc;
+    }break;
+    case QTUTILS_CORE_LOGGER_SIMPLE:
+        cintLogType = CinternalLogEnumConcat(CinternalLogTypeMainText,CinternalLogTypeFinalize);
+        break;
+    default:
+        cintLogType = CinternalLogTypeCompleteLoggingWithPlaceAndFunc;
+        break;
+    }  //  switch(nLine){
 
     CinternalLoggerMakeLog(logLevel,ContextStringInline(a_type,a_context),
                            cpcFileName,nLine,a_context.function,
-                           CinternalLogTypeCompleteLoggingWithPlaceAndFunc,logType,"%s",pcLogMsg);
+                           cintLogType,logType,"%s",pcLogMsg);
 }
 
 

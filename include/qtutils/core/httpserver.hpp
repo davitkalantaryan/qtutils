@@ -27,6 +27,8 @@
 #include <QSettings>
 #include <QVariantList>
 #include <QRegularExpressionMatch>
+#include <QSslServer>
+#include <QSslConfiguration>
 #if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
 #include <QHttpHeaders>
 #endif
@@ -45,11 +47,11 @@ class QTUTILS_CORE_EXPORT HttpServer : public QAbstractHttpServer
 {
 public:
     typedef ::std::function<bool(const QUrl& a_url, void*)> TypeHasMatch;
-    typedef ::std::function<bool(const QHttpServerRequest& a_request, QHttpServerResponder& a_responder)> TypeClbkS;
-    typedef ::std::function<bool(const QHttpServerRequest& a_request, QHttpServerResponder& a_responder, const QString& a_fileName)> TypeClbkD;
-    typedef ::std::function<bool(const QHttpServerRequest& a_request, QHttpServerResponder& a_responder, const QRegularExpressionMatch& a_reMatch)> TypeClbkRE;
-    typedef ::std::function<bool(const QHttpServerRequest& a_request, QHttpServerResponder& a_responder)> TypeClbkAA;
-    typedef ::std::function<bool(const QHttpServerRequest& a_request, QHttpServerResponder& a_responder, void* a_ud)> TypeClbkAnM;
+    typedef ::std::function<bool(QTcpServer* a_cnctSrv, const QHttpServerRequest& a_request, QHttpServerResponder& a_responder)> TypeClbkS;
+    typedef ::std::function<bool(QTcpServer* a_cnctSrv, const QHttpServerRequest& a_request, QHttpServerResponder& a_responder, const QString& a_fileName)> TypeClbkD;
+    typedef ::std::function<bool(QTcpServer* a_cnctSrv, const QHttpServerRequest& a_request, QHttpServerResponder& a_responder, const QRegularExpressionMatch& a_reMatch)> TypeClbkRE;
+    typedef ::std::function<bool(QTcpServer* a_cnctSrv, const QHttpServerRequest& a_request, QHttpServerResponder& a_responder)> TypeClbkAA;
+    typedef ::std::function<bool(QTcpServer* a_cnctSrv, const QHttpServerRequest& a_request, QHttpServerResponder& a_responder, void* a_ud)> TypeClbkAnM;
     typedef ::std::unordered_map<QString,TypeClbkS>                     TypeHashS;
     typedef ::std::unordered_map<QString,TypeClbkD>                     TypeHashD;  // directory routes
     typedef ::std::list<::std::pair<QString,TypeClbkRE> >               TypeListRE;
@@ -82,8 +84,11 @@ public:
     const ByteArrayList& getAllowedOrigins() const;
     bool checkAndFixResponceHeaders(const TypeRestHeaders& a_vHeaders, QHttpServerResponse* CPPUTILS_ARG_NN a_pResp)const;
     bool checkAndFixResponceHeaders(const QHttpServerRequest& a_request, QHttpServerResponse* CPPUTILS_ARG_NN a_pResp)const;
-    void SendResponse(const QHttpServerRequest& a_request, QHttpServerResponse* CPPUTILS_ARG_NN a_responce_p, QHttpServerResponder& a_responder);
-    void SendResponse(const TypeRestHeaders& a_headers, QHttpServerResponse* CPPUTILS_ARG_NN a_responce_p, QHttpServerResponder& a_responder);
+    void SendResponseSoft(const QHttpServerResponse& a_responce, QHttpServerResponder& a_responder, QTcpServer* a_cnctSrv);
+    void SendResponseWeb(const QHttpServerRequest& a_request, QHttpServerResponse* CPPUTILS_ARG_NN a_responce_p, QHttpServerResponder& a_responder);
+    void SendResponseWeb(const TypeRestHeaders& a_headers, QHttpServerResponse* CPPUTILS_ARG_NN a_responce_p, QHttpServerResponder& a_responder, QTcpServer* a_cnctSrv);
+    QTcpServer* CreateListenBindToTcpServer(quint16 a_port=0, const QHostAddress& a_address = QHostAddress::Any);
+    QSslServer* CreateListenBindToSslServer(quint16 a_port=0, const QSslConfiguration& a_aSslConfig=QSslConfiguration(),const QHostAddress& a_address = QHostAddress::Any);
         
 #if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
     quint16 listen(const QHostAddress& a_address = QHostAddress::Any, quint16 a_port=0);

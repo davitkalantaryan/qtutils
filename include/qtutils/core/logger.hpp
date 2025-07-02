@@ -36,6 +36,7 @@ public:
     MessageLogContextExtra*     m_extraContext;
 };
 
+#define QTUTILS_CORE_LOGGER_SIMPLE              (-2140)
 
 #define QtUtilsDebugNVC(_category)              QMessageLogger(__FILE__, __LINE__, "",_category).debug()
 #define QtUtilsDebugNV                          QMessageLogger(__FILE__, __LINE__, "").debug
@@ -47,8 +48,8 @@ public:
 #define QtUtilsWarning                          QMessageLogger(__FILE__, __LINE__, __FUNCTION__).warning
 #define QtUtilsCritical                         QMessageLogger(__FILE__, __LINE__, __FUNCTION__).critical
 #define QtUtilsFatal                            QMessageLogger(__FILE__, __LINE__, __FUNCTION__).fatal
-#define QtUtilsSimpleLog(_qdebug)               QMessageLogger("", -1, "")._qdebug()
-#define QtUtilsSimpleLogCat(_qdebug,_category)  QMessageLogger("", -1, "",_category)._qdebug()
+#define QtUtilsSimpleLog(_qdebug)               QMessageLogger("", QTUTILS_CORE_LOGGER_SIMPLE, "")._qdebug()
+#define QtUtilsSimpleLogCat(_qdebug,_category)  QMessageLogger("", QTUTILS_CORE_LOGGER_SIMPLE, "",_category)._qdebug()
 #define QtUtilsDebugLogLvlCat(_ll,_cat)         ::qtutils::core::logger::MessageLogger(__FILE__, __LINE__, __FUNCTION__,_cat,_ll).debug()
 #define QtUtilsDebugLogLvl(_ll)                 QtUtilsDebugLogLvlCat(_ll,"")
 
