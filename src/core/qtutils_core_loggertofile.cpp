@@ -41,9 +41,9 @@ ToFile::~ToFile()
 }
 
 
-ToFile::ToFile()
+ToFile::ToFile(const char* a_endStr)
     :
-      Base("\r\n"),
+      Base(a_endStr),
       m_logger_data_p(new LoggerToFile_p())
 {
     const QDir dbDir = QDir(QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation));
