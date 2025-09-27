@@ -13,10 +13,12 @@
 #include <qtutils/export_symbols.h>
 #include <qtutils/core/logger.hpp>
 #include <qtutils/ui/sizeapplywindow.hpp>
+#include <cinternal/disable_compiler_warnings.h>
 #include <qtutils/disable_utils_warnings.h>
 #include <QWidget>
 #include <QColor>
 #include <QMessageLogContext>
+#include <cinternal/undisable_compiler_warnings.h>
 
 
 namespace qtutils{ namespace ui{

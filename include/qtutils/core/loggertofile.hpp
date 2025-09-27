@@ -28,7 +28,7 @@ class QTUTILS_EXPORT ToFile : public Base
 {
 public:
     ~ToFile() override;
-    ToFile();
+    ToFile(const char* a_endStr="\n");
     ToFile(const ToFile&) = delete;
     ToFile(ToFile&&) = delete;
     ToFile& operator=(const ToFile&) = delete;

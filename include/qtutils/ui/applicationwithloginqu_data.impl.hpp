@@ -14,9 +14,11 @@
 #ifndef QTUTILS_INCLUDE_QTUTILS_UI_APPLICATIONWITHLOGIN_DATA_HPP
 #include <qtutils/ui/applicationwithloginqu_data.hpp>
 #endif
+#include <cinternal/disable_compiler_warnings.h>
 #include <qtutils/disable_utils_warnings.h>
 #include <QMetaObject>
 #include <QCoreApplication>
+#include <cinternal/undisable_compiler_warnings.h>
 
 
 namespace qtutils { namespace ui {
@@ -26,14 +28,10 @@ template <typename ObjType>
 void ApplicationWithLogin_data::CreateObject(ObjType** CPPUTILS_ARG_NN a_ppObject)
 {
     if(m_flagsBS.rd.shouldRun_true){
-        QMetaObject::invokeMethod(qApp,[this,a_ppObject](){
-            if(m_flagsBS.rd.shouldRun_true){
-                ObjType*& pObject = *a_ppObject;
-                if(!pObject){
-                    pObject = new ObjType();
-                }
-            }  //  if(m_appbase_data_p->m_flagsBS.rd.shouldRun_true){   II
-        });  //  QMetaObject::invokeMethod(this,[this,a_glbPos](){
+        ObjType*& pObject = *a_ppObject;
+        if(!pObject){
+            pObject = new ObjType();
+        }
     }  //  if(m_appbase_data_p->m_flagsBS.rd.shouldRun_true){
 }
 
