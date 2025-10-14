@@ -141,7 +141,7 @@ inline void LoggerToFile_p::CreateLogFileNoCheckNoLockInline()
     }
 
     if(!m_logsDir.exists()){
-        m_logsDir.mkpath(m_logsDir.path());
+        m_logsDir.mkpath(".");
     }
 
     QFile*const pfFileRet_p = new QFile(logFilePathInline(m_currentDate));
