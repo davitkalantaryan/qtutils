@@ -32,8 +32,8 @@ CPPUTILS_BISTATE_FLAGS_UN_NM(
         isKeybMonitorRunning2, isMouseMonitorRunning2, keyStoringEnabled2,
         shouldLoginWithSystemEvent, appMonitorEnabled, keybMonitorEnabled,mouseMonitorEnabled,
         clockInEnabled,screenshotEnabled,
-        signalInited, visibleEnabled,exitBecauseOfUpdate,isIncognito,
-        shouldGoToIdle, shouldLoginWithActivity,isVisible,hasConnectionToBackend,
+        signalInited, visibleEnabled,exitBecauseOfUpdate,
+        shouldGoToIdle, shouldLoginWithActivity,hasConnectionToBackend,
         coInitInNetworkThreadInited,needDeleteOldFiles,notUpdated,isUpdating);
 CPPUTILS_FOURSTATE_FLAGS_UN_NM(
         FourstateFlags,

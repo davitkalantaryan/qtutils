@@ -14,6 +14,7 @@
 #include <qtutils/export_symbols.h>
 #include <qtutils/ui/applicationwithloginqu_data.hpp>
 #include <qtutils/core/networkaccessmanagerqu.hpp>
+#include <cinternal/disable_compiler_warnings.h>
 #include <qtutils/disable_utils_warnings.h>
 #include <QString>
 #include <QSettings>
@@ -28,6 +29,7 @@
 #else
 #error At least qt gui should be used
 #endif
+#include <cinternal/undisable_compiler_warnings.h>
 
 
 namespace qtutils { namespace ui {
@@ -43,7 +45,7 @@ public:
 
     virtual QString username()const;
     virtual QString loginBaseUrl()const;
-    virtual void ExitApp(const QString& a_reason);
+    virtual void ExitAppFunction(const QString& a_reason, const char* a_file, int a_line, const char* a_fnc);
     virtual void Login(const QString& a_username, const QString& a_password) =0;
     virtual void Logout() = 0;
     virtual bool isLoggedIn()const ;
@@ -148,6 +150,10 @@ signals:
 
 #ifndef QTUTILS_INCLUDE_QTUTILS_UI_APPLICATIONWITHLOGIN_IMPL_HPP
 #include <qtutils/ui/applicationwithloginqu.impl.hpp>
+#endif
+
+#ifndef ExitAppMcr
+#define ExitAppMcr(_reason)     ExitAppFunction(_reason,__FILE__, __LINE__, __FUNCTION__)
 #endif
 
 

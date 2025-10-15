@@ -113,9 +113,12 @@ bool ApplicationWithLoginBase<TypeApp>::hasInvisiblePossibility()const
 
 
 template <typename TypeApp>
-void ApplicationWithLoginBase<TypeApp>::ExitApp(const QString& a_reason)
+void ApplicationWithLoginBase<TypeApp>::ExitAppFunction(const QString& a_reason, const char* a_file, int a_line, const char* a_fnc)
 {
     static_cast<void>(a_reason);
+    static_cast<void>(a_file);
+    static_cast<void>(a_line);
+    static_cast<void>(a_fnc);
     ExitAppCommonPart();
     QMetaObject::invokeMethod(this,[](){
         QCoreApplication::quit();
