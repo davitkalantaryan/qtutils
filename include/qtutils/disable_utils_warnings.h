@@ -37,6 +37,10 @@
 #pragma warning (disable:4365)
 #endif
 
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic ignored "-Warray-bounds"
+#endif
+
 #ifdef CINTERNAL_INCLUDE_CINTERNAL_DISABLE_COMPILER_WARNINGS_H_SHOULD_BE_DEFINED
 #include <cinternal/disable_compiler_warnings.h>
 #endif
