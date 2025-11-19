@@ -171,15 +171,15 @@ void AccessManager::QuitApp(const ::std::function<void(void)>& a_destruct)
         }
 
         if(bAllRepliesDeleted){
-            QMetaObject::invokeMethod(qApp,[a_destruct](){
-                a_destruct();
+            a_destruct();
+            QMetaObject::invokeMethod(qApp,[](){
                 QCoreApplication::quit();
             });
         }
     }  //  if(m_pQtManager){
     else{
-        QMetaObject::invokeMethod(qApp,[a_destruct](){
-            a_destruct();
+        a_destruct();
+        QMetaObject::invokeMethod(qApp,[](){
             QCoreApplication::quit();
         });
     }
@@ -304,8 +304,8 @@ Reply* AccessManager::CreateAndAddReply(const CallType& a_callType, unsigned int
                 pQtManager->deleteLater();
             }
             if(m_bQuitAppInDestuctor){
+                m_destruct();
                 QMetaObject::invokeMethod(qApp,[this](){
-                    m_destruct();
                     QCoreApplication::quit();
                 });
             }
