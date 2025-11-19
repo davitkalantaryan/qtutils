@@ -47,6 +47,16 @@ public:
 };
 Q_DECLARE_METATYPE(qtutils_ui_CategoryNoty)
 
+class qtutils_ui_NewLog final
+{
+public:
+    enum CinternalLogCategory   categoryEnm;
+    QString                     categoryStr;
+    QString                     log;
+    size_t                      logStrLen;
+};
+Q_DECLARE_METATYPE(qtutils_ui_NewLog)
+
 
 namespace qtutils{ namespace ui{
 
@@ -93,6 +103,7 @@ private:
 signals:
     void CategoryTypeEnabledSignal(qtutils_ui_CategoryNoty);
     void CategoryTypeDisabledSignal(qtutils_ui_CategoryNoty);
+    void NewLogAvailableSignal(qtutils_ui_NewLog a_newLogData);
 
 private:
     LogWnd_p*const   m_logwnd_data_p;

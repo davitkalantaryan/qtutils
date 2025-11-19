@@ -119,40 +119,57 @@ private:
 };
 
 
-struct CPPUTILS_DLL_PRIVATE SLogStr{
+struct SLogStr{
     ::std::shared_ptr<CategoryData> ctg;
     size_t                          lgtp;
     QString                         msg;
 };
 
 
-class CPPUTILS_DLL_PRIVATE LogWnd_p final : public core::logger::Base
+class CPPUTILS_DLL_PRIVATE GuiLogWnd_p final : public QObject
 {
 public:
+    HashCategories          categories;
+    QTextEdit               edit;
+    ::std::list<SLogStr>    logs;
+    size_t                  maxNumberOfLogs;
+};
+
+
+class CPPUTILS_DLL_PRIVATE CoreLogWnd_p final : public core::logger::Base
+{
+public:
+    CoreLogWnd_p(LogWnd_p* CPPUTILS_ARG_NN a_parent_p);
+private:
+    void LoggerClbk(enum CinternalLogCategory a_categoryEnm, const char* CPPUTILS_ARG_NN a_categoryStr, const char* CPPUTILS_ARG_NN a_log, size_t a_logStrLen) override;
+private:
+    LogWnd_p* const m_parent_p;
+private:
+    CoreLogWnd_p(const CoreLogWnd_p&) = delete;
+    CoreLogWnd_p(CoreLogWnd_p&&) = delete;
+    CoreLogWnd_p& operator=(const CoreLogWnd_p&) = delete;
+    CoreLogWnd_p& operator=(CoreLogWnd_p&&) = delete;
+};
+
+
+class CPPUTILS_DLL_PRIVATE LogWnd_p final
+{
+public:
+    ~LogWnd_p();
     LogWnd_p(LogWnd* a_pParent);
-    LogWnd_p(const LogWnd_p&) = delete;
-    LogWnd_p(LogWnd_p&&) = delete;
-    LogWnd_p& operator=(const LogWnd_p&) = delete;
-    LogWnd_p& operator=(LogWnd_p&&) = delete;
 
     void ConnectSignals();
     inline void InitAndShowBase();
-    inline void ClearExtraLogs();
-    inline void CategoryVisibilityChanged(::std::list<SLogStr>::const_iterator a_iter);
     inline void ApplyNewSize(const QSize& a_newSize);
     inline void ClearAllCategories();
     inline void EmitCategoryTypeChange(const QString& a_categoryName, const LogTypes& a_type, bool a_isEnabled);
 
-private:
-    void LoggerClbk(enum CinternalLogCategory a_categoryEnm, const char* CPPUTILS_ARG_NN a_categoryStr, const char* CPPUTILS_ARG_NN a_log, size_t a_logStrLen) override;
-
 public:
-    LogWnd*const            m_pParent;
-    HashCategories          m_categories;
-    QTextEdit               m_edit;
-    QString                 m_settingsKey;
-    ::std::list<SLogStr>    m_logs;
-    size_t                  m_unMaxNumberOfLogs;
+    LogWnd*const                m_pParent;
+    QString                     m_settingsKey;
+    QMetaObject::Connection     m_newLogsConnection;
+    GuiLogWnd_p* const          m_gui_p;
+    CoreLogWnd_p* const         m_core_p;
 
     union{
         uint64_t all;
@@ -163,11 +180,65 @@ public:
     }m_flags;
 
 private:
+    LogWnd_p(const LogWnd_p&) = delete;
+    LogWnd_p(LogWnd_p&&) = delete;
+    LogWnd_p& operator=(const LogWnd_p&) = delete;
+    LogWnd_p& operator=(LogWnd_p&&) = delete;
+
+private:
     static uint64_t  ms_nInstances;
 };
 
 
 uint64_t LogWnd_p::ms_nInstances = 0;
+
+
+inline void CategoryVisibilityChangedInline(::std::list<SLogStr>::const_iterator a_iter, GuiLogWnd_p* CPPUTILS_ARG_NN a_logData_p)
+{
+    CategoryData* pCategoryData;
+    uint32_t isEnabled;
+    a_logData_p->edit.clear();
+    ::std::list<SLogStr>::const_iterator iterTmp;
+
+    for(; a_iter!=a_logData_p->logs.cend();){
+
+        const SLogStr& lgDt = *a_iter;
+        pCategoryData = lgDt.ctg.get();
+
+        if(pCategoryData->m_flags.all == 0){
+            iterTmp = a_iter++;
+            a_logData_p->logs.erase(iterTmp);
+            continue;
+        }
+
+        isEnabled = QTUTILS_UI_LOGWND_BIT_VALUE(pCategoryData->m_flags.b.isEnabledVect,lgDt.lgtp);
+        if(isEnabled){
+            const QColor aColor = pCategoryData->m_colors[lgDt.lgtp];
+            a_logData_p->edit.setTextColor(aColor);
+            a_logData_p->edit.append(lgDt.msg);
+        }
+
+        ++a_iter;
+    }
+}
+
+
+inline void ClearExtraLogsInline(GuiLogWnd_p* CPPUTILS_ARG_NN a_logData_p)
+{
+    size_t unCurSize = a_logData_p->logs.size();
+    if(unCurSize<(a_logData_p->maxNumberOfLogs)){return;}
+
+    unCurSize /= 2;
+
+    ::std::list<SLogStr>::const_iterator iterTmp, iter = a_logData_p->logs.cbegin();
+
+    for(size_t i(0);i<unCurSize;++i){
+        iterTmp = iter++;
+        a_logData_p->logs.erase(iterTmp);
+    }
+
+    CategoryVisibilityChangedInline(iter,a_logData_p);
+}
 
 /*/////////////////////////////////////////////////////////////////////////////////*/
 
@@ -175,7 +246,6 @@ uint64_t LogWnd_p::ms_nInstances = 0;
 LogWnd::~LogWnd()
 {
     m_logwnd_data_p->ClearAllCategories();
-
     delete m_logwnd_data_p;
 }
 
@@ -234,8 +304,8 @@ void LogWnd::SetDefaultColor(const LogTypes& a_type, const QColor& a_newColor)
 
 void LogWnd::SetCategoryColors(const QString& a_categoryName, const QColor* a_newColors, size_t a_count, size_t a_offset)
 {
-    const HashCategories::const_iterator citer = m_logwnd_data_p->m_categories.find(a_categoryName);
-    if(citer==m_logwnd_data_p->m_categories.end()){return;}
+    const HashCategories::const_iterator citer = m_logwnd_data_p->m_gui_p->categories.find(a_categoryName);
+    if(citer==m_logwnd_data_p->m_gui_p->categories.end()){return;}
     CategoryData* pCategoryData = citer->second.get();
 
     SetColorsInline(a_newColors,a_count,a_offset,pCategoryData->m_colors);
@@ -247,9 +317,9 @@ void LogWnd::SetCategoryColors(const QString& a_categoryName, const LogTypes& a_
     const size_t cunIndex = QTUTILS_UI_LOGWND_TYPE_TO_INDEX(a_type);
     assert(cunIndex<QTUTILS_UI_LOGWND_TYPE_TO_INDEX(LogTypes::Count));
 
-    const HashCategories::const_iterator citer = m_logwnd_data_p->m_categories.find(a_categoryName);
-    if(citer==m_logwnd_data_p->m_categories.end()){return;}
-    CategoryData* pCategoryData = citer->second.get();
+    const HashCategories::const_iterator citer = m_logwnd_data_p->m_gui_p->categories.find(a_categoryName);
+    if(citer==m_logwnd_data_p->m_gui_p->categories.end()){return;}
+    CategoryData* const pCategoryData = citer->second.get();
 
     pCategoryData->m_colors[cunIndex] = a_newColor;
 }
@@ -257,52 +327,51 @@ void LogWnd::SetCategoryColors(const QString& a_categoryName, const LogTypes& a_
 
 void LogWnd::AddLogCategory(const QString& a_categoryName, bool a_defaultEnable)
 {
-    const HashCategories::const_iterator citer = m_logwnd_data_p->m_categories.find(a_categoryName);
-    if(citer!=m_logwnd_data_p->m_categories.end()){return;} // category is already there
+    const HashCategories::const_iterator citer = m_logwnd_data_p->m_gui_p->categories.find(a_categoryName);
+    if(citer!=m_logwnd_data_p->m_gui_p->categories.end()){return;} // category is already there
 
     ::std::shared_ptr<CategoryData> aCategoryData = ::std::shared_ptr<CategoryData>(new CategoryData(a_categoryName,m_logwnd_data_p,a_defaultEnable));
-    m_logwnd_data_p->m_categories.insert(::std::pair<QString,::std::shared_ptr<CategoryData> >(a_categoryName,aCategoryData));
+    m_logwnd_data_p->m_gui_p->categories.insert(::std::pair<QString,::std::shared_ptr<CategoryData> >(a_categoryName,aCategoryData));
     ApplyNewSize(size());
-
 }
 
 
 void LogWnd::RemoveCategory(const QString& a_categoryName)
 {
-    const HashCategories::const_iterator citer = m_logwnd_data_p->m_categories.find(a_categoryName);
-    if(citer==m_logwnd_data_p->m_categories.end()){return;} // category is not there
-    CategoryData* pCategoryData = citer->second.get();
+    const HashCategories::const_iterator citer = m_logwnd_data_p->m_gui_p->categories.find(a_categoryName);
+    if(citer==m_logwnd_data_p->m_gui_p->categories.end()){return;} // category is not there
+    CategoryData* const pCategoryData = citer->second.get();
 
     pCategoryData->m_flags.b.shouldKeep = 0;
-    m_logwnd_data_p->m_categories.erase(citer);
-    m_logwnd_data_p->CategoryVisibilityChanged(m_logwnd_data_p->m_logs.cbegin());
+    m_logwnd_data_p->m_gui_p->categories.erase(citer);
+    CategoryVisibilityChangedInline(m_logwnd_data_p->m_gui_p->logs.cbegin(),m_logwnd_data_p->m_gui_p);
     ApplyNewSize(size());
 }
 
 
 void LogWnd::EnableCategoryType(const QString& a_categoryName, const LogTypes& a_type)
 {
-    const HashCategories::const_iterator citer = m_logwnd_data_p->m_categories.find(a_categoryName);
-    if(citer==m_logwnd_data_p->m_categories.end()){return;}
-    CategoryData* pCategoryData = citer->second.get();
+    const HashCategories::const_iterator citer = m_logwnd_data_p->m_gui_p->categories.find(a_categoryName);
+    if(citer==m_logwnd_data_p->m_gui_p->categories.end()){return;}
+    CategoryData* const pCategoryData = citer->second.get();
     pCategoryData->SetTypeEnable(a_type,true);
 }
 
 
 void LogWnd::DisableCategoryType(const QString& a_categoryName, const LogTypes& a_type)
 {
-    const HashCategories::const_iterator citer = m_logwnd_data_p->m_categories.find(a_categoryName);
-    if(citer==m_logwnd_data_p->m_categories.end()){return;}
-    CategoryData* pCategoryData = citer->second.get();
+    const HashCategories::const_iterator citer = m_logwnd_data_p->m_gui_p->categories.find(a_categoryName);
+    if(citer==m_logwnd_data_p->m_gui_p->categories.end()){return;}
+    CategoryData* const pCategoryData = citer->second.get();
     pCategoryData->SetTypeEnable(a_type,false);
 }
 
 
 bool LogWnd::isEnabledCategoryType(const QString& a_categoryName, const LogTypes& a_type)
 {
-    const HashCategories::const_iterator citer = m_logwnd_data_p->m_categories.find(a_categoryName);
-    if(citer==m_logwnd_data_p->m_categories.end()){return false;}
-    CategoryData* pCategoryData = citer->second.get();
+    const HashCategories::const_iterator citer = m_logwnd_data_p->m_gui_p->categories.find(a_categoryName);
+    if(citer==m_logwnd_data_p->m_gui_p->categories.end()){return false;}
+    CategoryData* const pCategoryData = citer->second.get();
     return QTUTILS_UI_LOGWND_BIT_VALUE(pCategoryData->m_flags.b.isEnabledVect,a_type);
 }
 
@@ -310,7 +379,7 @@ bool LogWnd::isEnabledCategoryType(const QString& a_categoryName, const LogTypes
 void LogWnd::ClearAllCategories()
 {
     m_logwnd_data_p->ClearAllCategories();
-    m_logwnd_data_p->CategoryVisibilityChanged(m_logwnd_data_p->m_logs.cbegin());
+    CategoryVisibilityChangedInline(m_logwnd_data_p->m_gui_p->logs.cbegin(),m_logwnd_data_p->m_gui_p);
     m_logwnd_data_p->ApplyNewSize(size());
 }
 
@@ -334,22 +403,37 @@ static inline size_t QtMsgTypeToIndex(const CinternalLogCategory& a_msgType){
 
 void LogWnd::SetMaxNumberOfLogs(size_t a_unMaxNumberOfLogs)
 {
-    m_logwnd_data_p->m_unMaxNumberOfLogs = a_unMaxNumberOfLogs;
+    m_logwnd_data_p->m_gui_p->maxNumberOfLogs = a_unMaxNumberOfLogs;
 }
 
 
 /*/////////////////////////////////////////////////////////////////////////////////*/
 
+
+LogWnd_p::~LogWnd_p()
+{
+    QObject::disconnect(m_newLogsConnection);
+    delete m_core_p;
+    m_gui_p->deleteLater();
+}
+
+
 LogWnd_p::LogWnd_p(LogWnd* a_pParent)
     :
       m_pParent(a_pParent),
-      m_edit(a_pParent)
+      m_gui_p(new GuiLogWnd_p()),
+      m_core_p(new CoreLogWnd_p(this))
 {
+    m_gui_p->edit.setParent(a_pParent);
     QtutilsUiLogwndInitializeInline();
     m_flags.all = 0;
     m_flags.b.instanceNumber = ms_nInstances++;
-    m_unMaxNumberOfLogs = QTUTILS_UI_LOGWND_DEFAULT_MAX_NUMBER_OF_LOGS;
-    m_edit.setReadOnly(true);
+    if((m_flags.b.instanceNumber)==0){
+        qRegisterMetaType< qtutils_ui_CategoryNoty >( "qtutils_ui_CategoryNoty" );
+        qRegisterMetaType< qtutils_ui_NewLog >( "qtutils_ui_NewLog" );
+    }
+    m_gui_p->maxNumberOfLogs = QTUTILS_UI_LOGWND_DEFAULT_MAX_NUMBER_OF_LOGS;
+    m_gui_p->edit.setReadOnly(true);
     InitAndShowBase();
     ConnectSignals();
 }
@@ -357,8 +441,27 @@ LogWnd_p::LogWnd_p(LogWnd* a_pParent)
 
 void LogWnd_p::ConnectSignals()
 {
-    // inline void ResizibleWindowRaw<WidgetType>::InitAndShowBase()
-    // m_settingsKey = typeid(*this).name()+QString::number(m_flags.b.instanceNumber);
+    m_newLogsConnection = ::QObject::connect(m_pParent,&LogWnd::NewLogAvailableSignal,m_pParent,[this](qtutils_ui_NewLog a_newLogData){
+        const QString categoryName = "default";
+
+        const HashCategories::const_iterator citer = m_gui_p->categories.find(categoryName);
+        if(citer==(m_gui_p->categories.end())){return;}
+        const CategoryData* const pCategoryData = citer->second.get();
+
+        const size_t cunIndex = QtMsgTypeToIndex(a_newLogData.categoryEnm);
+        const uint32_t isEnabled = QTUTILS_UI_LOGWND_BIT_VALUE(pCategoryData->m_flags.b.isEnabledVect,cunIndex);
+        if(isEnabled){
+            const QColor aColor = pCategoryData->m_colors[cunIndex];
+            m_gui_p->edit.setTextColor(aColor);
+            m_gui_p->edit.append(a_newLogData.log);
+            m_gui_p->logs.push_back({citer->second,cunIndex,a_newLogData.log});
+            ClearExtraLogsInline(m_gui_p);
+        }
+        else if(pCategoryData->m_flags.b.shouldKeep){
+            m_gui_p->logs.push_back({citer->second,cunIndex,a_newLogData.log});
+            ClearExtraLogsInline(m_gui_p);
+        }
+    });
 }
 
 
@@ -368,87 +471,17 @@ inline void LogWnd_p::InitAndShowBase()
 }
 
 
-void LogWnd_p::LoggerClbk(enum CinternalLogCategory a_categoryEnm, const char* CPPUTILS_ARG_NN a_categoryStr, const char* CPPUTILS_ARG_NN a_log, size_t a_logStrLen)
+CoreLogWnd_p::CoreLogWnd_p(LogWnd_p* CPPUTILS_ARG_NN a_parent_p)
+    :
+    m_parent_p(a_parent_p)
 {
-    QGuiApplication* const pThisApp = dynamic_cast<QGuiApplication*>(qApp);
-    if(pThisApp){
-        const QString categoryStr (a_categoryStr);
-        const QString logQStr (a_log);
-        QMetaObject::invokeMethod(pThisApp,[this,a_categoryEnm,categoryStr,logQStr,a_logStrLen](){
-            //const QString categoryName = QString(a_categoryStr);
-            const QString categoryName = "default";
-            static_cast<void>(categoryStr);
-
-            const HashCategories::const_iterator citer = m_categories.find(categoryName);
-            if(citer==m_categories.end()){return;}
-            const CategoryData* pCategoryData = citer->second.get();
-
-            const size_t cunIndex = QtMsgTypeToIndex(a_categoryEnm);
-            const uint32_t isEnabled = QTUTILS_UI_LOGWND_BIT_VALUE(pCategoryData->m_flags.b.isEnabledVect,cunIndex);
-            if(isEnabled){
-                const QColor aColor = pCategoryData->m_colors[cunIndex];
-                m_edit.setTextColor(aColor);
-                m_edit.append(logQStr);
-                m_logs.push_back({citer->second,cunIndex,logQStr});
-                ClearExtraLogs();
-            }
-            else if(pCategoryData->m_flags.b.shouldKeep){
-                m_logs.push_back({citer->second,cunIndex,logQStr});
-                ClearExtraLogs();
-            }
-
-            static_cast<void>(a_logStrLen);
-        });
-    }
-
 }
 
 
-inline void LogWnd_p::ClearExtraLogs()
+void CoreLogWnd_p::LoggerClbk(enum CinternalLogCategory a_categoryEnm, const char* CPPUTILS_ARG_NN a_categoryStr, const char* CPPUTILS_ARG_NN a_log, size_t a_logStrLen)
 {
-    size_t unCurSize = m_logs.size();
-    if(unCurSize<m_unMaxNumberOfLogs){return;}
-
-    unCurSize /= 2;
-
-    ::std::list<SLogStr>::const_iterator iterTmp, iter = m_logs.cbegin();
-
-    for(size_t i(0);i<unCurSize;++i){
-        iterTmp = iter++;
-        m_logs.erase(iterTmp);
-    }
-
-    CategoryVisibilityChanged(iter);
-}
-
-
-inline void LogWnd_p::CategoryVisibilityChanged(::std::list<SLogStr>::const_iterator a_iter)
-{
-    CategoryData* pCategoryData;
-    uint32_t isEnabled;
-    m_edit.clear();
-    ::std::list<SLogStr>::const_iterator iterTmp;
-
-    for(; a_iter!=m_logs.cend();){
-
-        const SLogStr& lgDt = *a_iter;
-        pCategoryData = lgDt.ctg.get();
-
-        if(pCategoryData->m_flags.all == 0){
-            iterTmp = a_iter++;
-            m_logs.erase(iterTmp);
-            continue;
-        }
-
-        isEnabled = QTUTILS_UI_LOGWND_BIT_VALUE(pCategoryData->m_flags.b.isEnabledVect,lgDt.lgtp);
-        if(isEnabled){
-            const QColor aColor = pCategoryData->m_colors[lgDt.lgtp];
-            m_edit.setTextColor(aColor);
-            m_edit.append(lgDt.msg);
-        }
-
-        ++a_iter;
-    }
+    const qtutils_ui_NewLog newLog({a_categoryEnm,QString(a_categoryStr),QString(a_log),a_logStrLen});
+    emit m_parent_p->m_pParent->NewLogAvailableSignal(newLog);
 }
 
 
@@ -456,8 +489,8 @@ inline void LogWnd_p::ApplyNewSize(const QSize& a_newSize)
 {
     int nY = 3;
     CategoryData* pCategoryData;
-    HashCategories::const_iterator citer = m_categories.begin();
-	const HashCategories::const_iterator citerEnd = m_categories.end();
+    HashCategories::const_iterator citer = m_gui_p->categories.begin();
+    const HashCategories::const_iterator citerEnd = m_gui_p->categories.end();
 
     for(;citer!=citerEnd;++citer){
         pCategoryData = citer->second.get();
@@ -466,15 +499,15 @@ inline void LogWnd_p::ApplyNewSize(const QSize& a_newSize)
     }
 
     nY += 3;
-    m_edit.move(0,nY++);
-    m_edit.setFixedSize(a_newSize.width(),a_newSize.height()-nY);
+    m_gui_p->edit.move(0,nY++);
+    m_gui_p->edit.setFixedSize(a_newSize.width(),a_newSize.height()-nY);
     m_pParent->setMinimumHeight(nY);
 }
 
 
 inline void LogWnd_p::ClearAllCategories()
 {
-    m_categories.clear();
+    m_gui_p->categories.clear();
 }
 
 
@@ -582,7 +615,7 @@ inline void CategoryData::SetTypeEnable(const LogTypes& a_type, bool a_isEnable)
     const bool isChecked = QTUTILS_UI_LOGWND_BIT_VALUE(m_flags.b.isEnabledVect,a_type);
     if(isChecked!=a_isEnable){
         QTUTILS_UI_LOGWND_SET_BIT_VALUE(&(m_flags.b.isEnabledVect),a_type,a_isEnable);
-        m_logwnd_data_p->CategoryVisibilityChanged(m_logwnd_data_p->m_logs.begin());
+        CategoryVisibilityChangedInline(m_logwnd_data_p->m_gui_p->logs.begin(),m_logwnd_data_p->m_gui_p);
         ::qtutils::Settings aSettings;
         const QString settingsKey = m_logwnd_data_p->m_settingsKey + "/" + m_categoryName +
                 s_setKeyNameExt[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(a_type)] + "isEnabled";
