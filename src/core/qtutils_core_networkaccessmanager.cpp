@@ -305,7 +305,7 @@ Reply* AccessManager::CreateAndAddReply(const CallType& a_callType, unsigned int
             }
             if(m_bQuitAppInDestuctor){
                 m_destruct();
-                QMetaObject::invokeMethod(qApp,[this](){
+                QMetaObject::invokeMethod(qApp,[](){
                     QCoreApplication::quit();
                 });
             }
