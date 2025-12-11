@@ -58,8 +58,8 @@ class LoggerData
 {
 public:
     CinternalLogCategory    m_categoryEnm;
-    const char*             m_categoryStr;
-    const char*             m_log;
+    QByteArray              m_categoryStr;
+    QByteArray              m_log;
     size_t                  m_logStrLen;
 };
 

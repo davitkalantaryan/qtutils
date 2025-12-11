@@ -204,6 +204,10 @@ QString ToFile::logFilePathCurrentDate()const
 
 void ToFile::LoggerClbk(CinternalLogCategory a_categoryEnm, const char* CPPUTILS_ARG_NN a_categoryStr, const char* CPPUTILS_ARG_NN a_log, size_t a_logStrLen)
 {
+    if(!a_log){
+        return;
+    }
+
     const SCmmndToFileThr aInf({CommandType::NewData,{a_categoryEnm,a_categoryStr,a_log,a_logStrLen}});
 
     {  //  start lock guard
@@ -277,7 +281,7 @@ void LoggerToFile_p::FileThreadFunction()
                 }  //  if(m_flags.rd.fileOpened_true){
             }break;
             case CommandType::NewData:{
-                if(m_flags.rd.fileOpened_true && cpData[ind].data.m_log){
+                if(m_flags.rd.fileOpened_true){
                     m_logFile.write(cpData[ind].data.m_log);
                     m_logFile.flush();
                 }  //  if(m_flags.rd.fileOpened_true){
