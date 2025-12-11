@@ -5,9 +5,18 @@
 // created by:		Davit Kalantaryan (davit.kalantaryan@gmail.com)
 //
 
+#ifndef cinternal_unnamed_sema_wait_ms_needed
+#define cinternal_unnamed_sema_wait_ms_needed
+#endif
 #include <qtutils/core/loggertofile.hpp>
+#include <cinternal/unnamed_semaphore.h>
+#include <cinternal/bistateflags.h>
 #include <cinternal/disable_compiler_warnings.h>
+#include <queue>
+#include <vector>
 #include <mutex>
+#include <shared_mutex>
+#include <thread>
 #include <qtutils/disable_utils_warnings.h>
 #include <QFileInfo>
 #include <QStandardPaths>
@@ -17,26 +26,44 @@
 namespace qtutils { namespace core{ namespace logger{
 
 
+enum class CommandType{
+    ApplyValues,
+    NewData
+};
+
+
+struct SCmmndToFileThr{
+    CommandType     type;
+    LoggerData      data;
+};
+
 
 class CPPUTILS_DLL_PRIVATE LoggerToFile_p final
 {
 public:
-    ::std::shared_ptr<QFile>    m_logFile;
-    QDate                       m_currentDate;
-    QDir                        m_logsDir;
-    ::std::recursive_mutex      m_mutex;
+    QFile                           m_logFile;
+    QDate                           m_currentDate;
+    QDir                            m_logsDir;
+    cinternal_unnamed_sema_t        m_sema;
+    ::std::queue<SCmmndToFileThr>   m_data;
+    mutable ::std::mutex            m_dataMut;
+    mutable ::std::shared_mutex     m_admMut;
+    ::std::thread                   m_fileThread;
 public:
-    inline QString logFilePathInline(const QDate& a_date)const;
-    inline ::std::shared_ptr<QFile> CreateLogFileInline();
-    inline void CreateLogFileNoCheckNoLockInline();
+    inline QString logFilePathInlineNoLock(const QDate& a_date)const;
+    inline void OpenLogFileInline();
+    void FileThreadFunction();
+public:
+    CPPUTILS_BISTATE_FLAGS_UN(
+        threadShouldRun,
+        fileOpened
+    )m_flags;
 };
 
 
-
-// m_logger.SetNewLogger(MessageHandlerSt,this);
-
 ToFile::~ToFile()
 {
+    cinternal_unnamed_sema_destroy(&(m_logger_data_p->m_sema));
     delete m_logger_data_p;
 }
 
@@ -46,130 +73,228 @@ ToFile::ToFile(const char* a_endStr)
       Base(a_endStr),
       m_logger_data_p(new LoggerToFile_p())
 {
-    const QDir dbDir = QDir(QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation));
-    QFileInfo aFileInfo02(dbDir,"logs");
-
-    m_logger_data_p->m_logsDir.setPath(aFileInfo02.filePath());
+    m_logger_data_p->m_flags.wr_all = CPPUTILS_BISTATE_MAKE_ALL_BITS_FALSE;
+    cinternal_unnamed_sema_create(&(m_logger_data_p->m_sema),100);
 }
 
 
-void ToFile::RecreateLogFile()
+void ToFile::Start()
 {
-    //return m_logger_data_p->CreateLogFileInline();
-    ::std::lock_guard< ::std::recursive_mutex> aGuard(m_logger_data_p->m_mutex);
-    m_logger_data_p->m_logFile = ::std::shared_ptr<QFile>();
-    m_logger_data_p->CreateLogFileNoCheckNoLockInline();
+    if(m_logger_data_p->m_flags.rd.threadShouldRun_true){
+        return;
+    }
+
+    m_logger_data_p->m_flags.wr.threadShouldRun = CPPUTILS_BISTATE_MAKE_BITS_TRUE;
+    m_logger_data_p->m_fileThread = ::std::thread(&LoggerToFile_p::FileThreadFunction,m_logger_data_p);
+}
+
+
+void ToFile::Stop()
+{
+    if(m_logger_data_p->m_flags.rd.threadShouldRun_false){
+        return;
+    }
+    m_logger_data_p->m_flags.wr.threadShouldRun = CPPUTILS_BISTATE_MAKE_BITS_FALSE;
+    cinternal_unnamed_sema_post(&(m_logger_data_p->m_sema));
+    m_logger_data_p->m_fileThread.join();
 }
 
 
 void ToFile::SetCurrentDate(const QDate& a_newDate)
 {
-    ::std::lock_guard< ::std::recursive_mutex> aGuard(m_logger_data_p->m_mutex);
-    m_logger_data_p->m_currentDate = a_newDate;
+    bool bDoAction = false;
+
+    {  //  start lock guard
+        ::std::lock_guard< ::std::shared_mutex > aGuard1(m_logger_data_p->m_admMut);
+        if((m_logger_data_p->m_currentDate)!=a_newDate){
+            m_logger_data_p->m_currentDate = a_newDate;
+            bDoAction = true;
+        }
+    }  //  end lock guard
+
+    if((m_logger_data_p->m_flags.rd.threadShouldRun_true)&&bDoAction){
+        const SCmmndToFileThr aInf({CommandType::ApplyValues,LoggerData()});
+
+        {  //  start lock guard
+            ::std::lock_guard< ::std::mutex > aGuard2(m_logger_data_p->m_dataMut);
+            m_logger_data_p->m_data.push(aInf);
+        }  //  end lock guard
+
+        cinternal_unnamed_sema_post(&(m_logger_data_p->m_sema));
+    }  //  if((m_logger_data_p->m_flags.rd.threadShouldRun_true)&&bDoAction){
 }
 
 
 void ToFile::SetLogsDir(const QDir& a_logsDir)
 {
-    ::std::lock_guard< ::std::recursive_mutex> aGuard(m_logger_data_p->m_mutex);
-    m_logger_data_p->m_logsDir = a_logsDir;
+    bool bDoAction = false;
+
+    {  //  start lock guard
+        ::std::lock_guard< ::std::shared_mutex > aGuard1(m_logger_data_p->m_admMut);
+        if((m_logger_data_p->m_logsDir)!=a_logsDir){
+            m_logger_data_p->m_logsDir = a_logsDir;
+            bDoAction = true;
+        }
+    }  //  end lock guard
+
+    if((m_logger_data_p->m_flags.rd.threadShouldRun_true)&&bDoAction){
+        const SCmmndToFileThr aInf({CommandType::ApplyValues,LoggerData()});
+
+        {  //  start lock guard
+            ::std::lock_guard< ::std::mutex > aGuard2(m_logger_data_p->m_dataMut);
+            m_logger_data_p->m_data.push(aInf);
+        }  //  end lock guard
+
+        cinternal_unnamed_sema_post(&(m_logger_data_p->m_sema));
+    }  //  if((m_logger_data_p->m_flags.rd.threadShouldRun_true)&&bDoAction){
 }
 
 
 QDate ToFile::currentDate()const
 {
-    ::std::lock_guard< ::std::recursive_mutex> aGuard(m_logger_data_p->m_mutex);
-    return m_logger_data_p->m_currentDate;
+    QDate aCurrDate;
+
+    {
+        ::std::shared_lock< ::std::shared_mutex > aGuard1(m_logger_data_p->m_admMut);
+        aCurrDate = m_logger_data_p->m_currentDate;
+    }
+
+    return aCurrDate;
 }
 
 
 QDir ToFile::logsDir()const
 {
-    ::std::lock_guard<::std::recursive_mutex> aGuard(m_logger_data_p->m_mutex);
-    return m_logger_data_p->m_logsDir;
+    QDir aLogsDir;
+
+    {
+        ::std::shared_lock< ::std::shared_mutex > aGuard1(m_logger_data_p->m_admMut);
+        aLogsDir = m_logger_data_p->m_logsDir;
+    }
+
+    return aLogsDir;
 }
 
 
 QString ToFile::logFilePath(const QDate& a_date)const
 {
-    return m_logger_data_p->logFilePathInline(a_date);
+    QString aLogFilePath;
+
+    {
+        ::std::shared_lock< ::std::shared_mutex > aGuard1(m_logger_data_p->m_admMut);
+        aLogFilePath = m_logger_data_p->logFilePathInlineNoLock(a_date);
+    }
+
+    return aLogFilePath;
 }
 
 
 QString ToFile::logFilePathCurrentDate()const
 {
-    QFile* const pLogFile = m_logger_data_p->m_logFile.get();
-    if(pLogFile){
-        return pLogFile->fileName();
+    QString aLogFilePath;
+
+    {
+        ::std::shared_lock< ::std::shared_mutex > aGuard1(m_logger_data_p->m_admMut);
+        aLogFilePath = m_logger_data_p->logFilePathInlineNoLock(m_logger_data_p->m_currentDate);
     }
-    return "";
+
+    return aLogFilePath;
 }
 
 
 void ToFile::LoggerClbk(CinternalLogCategory a_categoryEnm, const char* CPPUTILS_ARG_NN a_categoryStr, const char* CPPUTILS_ARG_NN a_log, size_t a_logStrLen)
 {
-    const ::std::shared_ptr<QFile> logFile = m_logger_data_p->CreateLogFileInline();
-    QFile* const logFile_p = logFile.get();
+    const SCmmndToFileThr aInf({CommandType::NewData,{a_categoryEnm,a_categoryStr,a_log,a_logStrLen}});
 
-    static_cast<void>(a_logStrLen);
+    {  //  start lock guard
+        ::std::lock_guard< ::std::mutex > aGuard(m_logger_data_p->m_dataMut);
+        m_logger_data_p->m_data.push(aInf);
+        if(m_logger_data_p->m_flags.rd.threadShouldRun_false){
+            if(m_logger_data_p->m_data.size()>100){
+                m_logger_data_p->m_data.pop();
+            }
+        }  //  if(m_logger_data_p->m_flags.rd.threadShouldRun_false){
+    }  //  end lock guard
 
-    if(logFile_p && logFile_p->isOpen()){
-        logFile_p->write(a_log);
-        logFile_p->flush();
-        return;
+    if(m_logger_data_p->m_flags.rd.threadShouldRun_true){
+        cinternal_unnamed_sema_post(&(m_logger_data_p->m_sema));
     }
-
-    static_cast<void>(a_categoryEnm);
-    static_cast<void>(a_categoryStr);
 }
-
 
 
 /*//////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
 
-inline QString LoggerToFile_p::logFilePathInline(const QDate& a_date)const
+inline QString LoggerToFile_p::logFilePathInlineNoLock(const QDate& a_date)const
 {
     const QFileInfo aFileInfo(m_logsDir,"log_" + a_date.toString("yyyy.MM.dd.txt"));
     return aFileInfo.filePath();
 }
 
 
-inline void LoggerToFile_p::CreateLogFileNoCheckNoLockInline()
+inline void LoggerToFile_p::OpenLogFileInline()
 {
-    if(!m_currentDate.isValid()){
-        m_currentDate = QDate::currentDate();
+    QString logFilePath;
+
+    {  //  start lock guard
+        ::std::shared_lock< ::std::shared_mutex > aGuard1(m_admMut);
+        logFilePath = logFilePathInlineNoLock(m_currentDate);
     }
 
-    if(!m_logsDir.exists()){
-        m_logsDir.mkpath(".");
-    }
-
-    QFile*const pfFileRet_p = new QFile(logFilePathInline(m_currentDate));
-    pfFileRet_p->open(QIODevice::Append|QIODevice::Text);
-    if(!pfFileRet_p->isOpen()){
-        delete pfFileRet_p;
-        m_logFile = ::std::shared_ptr<QFile>();
-        return;
-    }
-
-    m_logFile = ::std::shared_ptr<QFile>(pfFileRet_p);
+    m_logFile.setFileName(logFilePath);
+    if(m_logFile.open(QIODevice::Append|QIODevice::Text)){
+        m_flags.wr.fileOpened = CPPUTILS_BISTATE_MAKE_BITS_TRUE;
+    }  //  end lock guard
 }
 
 
-inline ::std::shared_ptr<QFile> LoggerToFile_p::CreateLogFileInline()
+void LoggerToFile_p::FileThreadFunction()
 {
-    ::std::shared_ptr<QFile> pfFileRet = m_logFile;
-    QFile* const pfFileRet_p = pfFileRet.get();
+    ::std::vector<SCmmndToFileThr> vectNextData;
+    size_t unCount, ind;
+    const SCmmndToFileThr* cpData;
 
-    if(!pfFileRet_p){
-        ::std::lock_guard< ::std::recursive_mutex> aGuard(m_mutex);
-        CreateLogFileNoCheckNoLockInline();
-        pfFileRet = m_logFile;
-    }  // if(!pfFileRet_p){
+    OpenLogFileInline();
 
-    return pfFileRet;
+    while(m_flags.rd.threadShouldRun_true){
+
+        {  //  start lock guard
+            ::std::lock_guard< ::std::mutex > aGuard(m_dataMut);
+            while(m_data.size()>0){
+                vectNextData.push_back(m_data.front());
+                m_data.pop();
+            }  //  while(m_data.size()>0){
+        }  //  end lock guard
+
+        unCount = vectNextData.size();
+        cpData = vectNextData.data();
+        for(ind=0;ind<unCount;++ind){
+            switch(cpData[ind].type){
+            case CommandType::ApplyValues:{
+                if(m_flags.rd.fileOpened_true){
+                    m_logFile.close();
+                    m_flags.wr.fileOpened = CPPUTILS_BISTATE_MAKE_BITS_FALSE;
+                    OpenLogFileInline();
+                }  //  if(m_flags.rd.fileOpened_true){
+            }break;
+            case CommandType::NewData:{
+                if(m_flags.rd.fileOpened_true && cpData[ind].data.m_log){
+                    m_logFile.write(cpData[ind].data.m_log);
+                    m_logFile.flush();
+                }  //  if(m_flags.rd.fileOpened_true){
+            }break;
+            default:
+                break;
+            }  //  switch(cpData[ind].type){
+        }  //  for(ind=0;ind<unCount;++ind){
+
+        cinternal_unnamed_sema_wait(&m_sema);
+
+    }  //  while(m_flags.rd.threadShouldRun_true){
+
+    m_logFile.close();
+    m_flags.wr.fileOpened = CPPUTILS_BISTATE_MAKE_BITS_FALSE;
+
 }
-
 
 
 }}}  //  namespace qtutils { namespace core{ namespace logger{

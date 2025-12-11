@@ -54,6 +54,16 @@ public:
 #define QtUtilsDebugLogLvl(_ll)                 QtUtilsDebugLogLvlCat(_ll,"")
 
 
+class LoggerData
+{
+public:
+    CinternalLogCategory    m_categoryEnm;
+    const char*             m_categoryStr;
+    const char*             m_log;
+    size_t                  m_logStrLen;
+};
+
+
 class QTUTILS_EXPORT Base
 {
 public:
@@ -91,3 +101,9 @@ QTUTILS_EXPORT CinternalLogCategory QtCategoryToCinternal(const QtMsgType& a_cat
 
 
 }}}  //  namespace qtutils { namespace core{ namespace logger{
+
+class qtutils_core_logger_LoggerData : public ::qtutils::core::logger::LoggerData
+{
+public:
+};
+Q_DECLARE_METATYPE(qtutils_core_logger_LoggerData)
