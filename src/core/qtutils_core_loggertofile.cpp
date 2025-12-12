@@ -261,6 +261,8 @@ void LoggerToFile_p::FileThreadFunction()
 
     while(m_flags.rd.threadShouldRun_true){
 
+        vectNextData.clear();
+
         {  //  start lock guard
             ::std::lock_guard< ::std::mutex > aGuard(m_dataMut);
             while(m_data.size()>0){
