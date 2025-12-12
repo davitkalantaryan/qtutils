@@ -10,7 +10,6 @@
 #include <qtutils/export_symbols.h>
 #include <qtutils/core/logger.hpp>
 #include <cinternal/disable_compiler_warnings.h>
-#include <memory>
 #include <qtutils/disable_utils_warnings.h>
 #include <QDate>
 #include <QFile>
@@ -33,7 +32,8 @@ public:
     ToFile(ToFile&&) = delete;
     ToFile& operator=(const ToFile&) = delete;
     ToFile& operator=(ToFile&&) = delete;
-    void    RecreateLogFile();
+    void    Start();
+    void    Stop();
     void    SetCurrentDate(const QDate& a_newDate);
     void    SetLogsDir(const QDir& a_logsDir);
     QDate   currentDate()const;
