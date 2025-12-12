@@ -21,47 +21,13 @@
 #include <cinternal/undisable_compiler_warnings.h>
 
 
-namespace qtutils{ namespace ui{
-
-
-QTUTILS_UI_EXPORT void QtutilsUiLogwndInitialize(void);
-QTUTILS_UI_EXPORT void QtutilsUiLogwndCleanup(void);
-
-enum class LogTypes {
-    Debug = 0,
-    Info = 1,
-    Warning = 2,
-    Error = 3,
-    Count
-};
-
-
-}}  //  namespace qtutils{ namespace ui{
-
-
-class QTUTILS_EXPORT qtutils_ui_CategoryNoty final
-{
-public:
-    QString                     name;
-    ::qtutils::ui::LogTypes     type;
-};
-Q_DECLARE_METATYPE(qtutils_ui_CategoryNoty)
-
-class qtutils_ui_NewLog final
-{
-public:
-    enum CinternalLogCategory   categoryEnm;
-    QString                     categoryStr;
-    QString                     log;
-    size_t                      logStrLen;
-};
-Q_DECLARE_METATYPE(qtutils_ui_NewLog)
-
-
-namespace qtutils{ namespace ui{
+namespace qtutils { namespace ui{ namespace logger{
 
 
 class CPPUTILS_DLL_PRIVATE LogWnd_p;
+
+QTUTILS_UI_EXPORT void QtutilsUiLogwndInitialize(void);
+QTUTILS_UI_EXPORT void QtutilsUiLogwndCleanup(void);
 
 
 class QTUTILS_EXPORT LogWnd : public ::qtutils::ui::SizeApplyWindow<QWidget>
@@ -81,14 +47,14 @@ public:
 
     static const QColor* defaultColors();
     static void SetDefaultColors(const QColor* a_newColors, size_t a_count, size_t a_offset=0);
-    static void SetDefaultColor(const LogTypes& a_type, const QColor& a_newColor);
+    static void SetDefaultColor(const core::logger::LogTypes& a_type, const QColor& a_newColor);
     void SetCategoryColors(const QString& a_categoryName, const QColor* a_newColors, size_t a_count, size_t a_offset=0);
-    void SetCategoryColors(const QString& a_categoryName, const LogTypes& a_type, const QColor& a_newColor);
+    void SetCategoryColors(const QString& a_categoryName, const core::logger::LogTypes& a_type, const QColor& a_newColor);
     void AddLogCategory(const QString& a_categoryName, bool a_defaultEnable);
     void RemoveCategory(const QString& a_categoryName);
-    void EnableCategoryType(const QString& a_categoryName, const LogTypes& a_type);
-    void DisableCategoryType(const QString& a_categoryName, const LogTypes& a_type);
-    bool isEnabledCategoryType(const QString& a_categoryName, const LogTypes& a_type);
+    void EnableCategoryType(const QString& a_categoryName, const core::logger::LogTypes& a_type);
+    void DisableCategoryType(const QString& a_categoryName, const core::logger::LogTypes& a_type);
+    bool isEnabledCategoryType(const QString& a_categoryName, const core::logger::LogTypes& a_type);
     void ClearAllCategories();
     void SetMaxNumberOfLogs(size_t a_logsCount);
 
@@ -101,9 +67,9 @@ private:
 
 private:
 signals:
-    void CategoryTypeEnabledSignal(qtutils_ui_CategoryNoty);
-    void CategoryTypeDisabledSignal(qtutils_ui_CategoryNoty);
-    void NewLogAvailableSignal(qtutils_ui_NewLog a_newLogData);
+    void CategoryTypeEnabledSignal(qtutils_core_logger_CategoryNoty);
+    void CategoryTypeDisabledSignal(qtutils_core_logger_CategoryNoty);
+    void NewLogAvailableSignal(qtutils_core_logger_LoggerData a_newLogData);
 
 private:
     LogWnd_p*const   m_logwnd_data_p;
@@ -117,7 +83,7 @@ private:
 #define QTUTILS_UI_LOGWND_DEFAULT_MAX_NUMBER_OF_LOGS    1000
 
 
-}}  //  namespace qtutils{ namespace ui{
+}}}  //  namespace qtutils { namespace ui{ namespace logger{
 
 
 #ifndef QTUTILS_INCLUDE_QTUTILS_UI_LOGWND_IMPL_HPP

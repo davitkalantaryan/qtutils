@@ -110,6 +110,7 @@ Base::Base(const char* a_cpcEndStr)
     }  //  if(numberOfInstances){
     
     qRegisterMetaType< qtutils_core_logger_LoggerData >( "qtutils_core_logger_LoggerData" );
+    qRegisterMetaType< qtutils_core_logger_CategoryNoty >( "qtutils_core_logger_CategoryNoty" );
     InitializeQtLogger();
 }
 

@@ -11,11 +11,11 @@
 #define QTUTILS_INCLUDE_QTUTILS_UI_LOGWND_IMPL_HPP
 
 #ifndef QTUTILS_INCLUDE_QTUTILS_UI_LOGWND_HPP
-#include "logwnd.hpp"
+#include "logwndqu.hpp"
 #endif
 
 
-namespace qtutils{ namespace ui{
+namespace qtutils { namespace ui{ namespace logger{
 
 
 template<typename... Targs>
@@ -27,6 +27,6 @@ LogWnd::LogWnd(Targs... a_args)
 }
 
 
-}}  //  namespace qtutils{ namespace ui{
+}}}  //  namespace qtutils { namespace ui{ namespace logger{
 
 #endif  //  #ifndef QTUTILS_INCLUDE_QTUTILS_UI_LOGWND_IMPL_HPP
