@@ -14,10 +14,11 @@
 
 #ifdef CPPUTILS_HASH_VHASH_DEFINED
 
-#include <cpputils/hash/vhash.hpp>
+#include <cinternal/disable_compiler_warnings.h>
 #include <qtutils/disable_utils_warnings.h>
 #include <QWidget>
 #include <QLabel>
+#include <cinternal/undisable_compiler_warnings.h>
 
 
 namespace qtutils { namespace ui{
