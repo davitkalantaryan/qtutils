@@ -75,8 +75,11 @@ TabBar::TabBar(TypeRawHash* CPPUTILS_ARG_NN a_rawHash_p, TabScene* a_sceneWidget
 
 TabBar::~TabBar()
 {
-    m_tabs.iterateBegToEnd([](STabData& a_tabkData) -> bool {
-        delete a_tabkData.pTab;
+    m_tabs.iterateBegToEnd([](const TypeHash::Iterator& a_tabDataIter) -> bool {
+        STabData* const pTabData = a_tabDataIter.get();
+        if(pTabData){
+            delete pTabData->pTab;
+        }
         return true;
     });
 }
@@ -140,9 +143,12 @@ void TabBar::OrderAllTabs()
 {
     int moveToX = 0;
 
-    m_tabs.iterateBegToEnd([this,&moveToX](STabData& a_tabkData) -> bool {
-        a_tabkData.pTab->move(moveToX,0);
-        moveToX+=m_tabsWidth;
+    m_tabs.iterateBegToEnd([this,&moveToX](const TypeHash::Iterator& a_tabDataIter) -> bool {
+        STabData* const pTabData = a_tabDataIter.get();
+        if(pTabData){
+            pTabData->pTab->move(moveToX,0);
+            moveToX+=m_tabsWidth;
+        }
         return true;
     });
 }
