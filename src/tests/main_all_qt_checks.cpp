@@ -1,6 +1,7 @@
 //
-// file:			cpputils_bigint.cpp
-// path:			src/core/cpputils_hashtbl.cpp
+// repo:			qtutils
+// file:			main_all_qt_checks.cpp
+// path:			src/tests/main_all_qt_checks.cpp
 // created on:		2021 Mar 22
 // created by:		Davit Kalantaryan (davit.kalantaryan@gmail.com)
 //
