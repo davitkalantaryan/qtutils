@@ -61,10 +61,11 @@ void TabScene::resizeEvent(QResizeEvent* a_event)
 
 /*/////////////////////////////////////////////////////////////////////////////////////////////////////////*/
 
-TabBar::TabBar(TabScene* a_sceneWidget, QWidget* a_parent)
+TabBar::TabBar(TypeRawHash* CPPUTILS_ARG_NN a_rawHash_p, TabScene* a_sceneWidget, QWidget* a_parent)
     :
       QWidget(a_parent),
-      m_sceneWidget(a_sceneWidget)
+      m_sceneWidget(a_sceneWidget),
+      m_tabs(a_rawHash_p)
 {
     m_tabsWidth = DEFAULT_TAB_WIDTH_SIZE;
     m_currentTab = -1;
@@ -74,15 +75,13 @@ TabBar::TabBar(TabScene* a_sceneWidget, QWidget* a_parent)
 
 TabBar::~TabBar()
 {
-    TypeHash::iterator iter;
-    const size_t cunSize(m_tabs.size());
-
-    for(size_t i(0); i<cunSize;++i){
-        iter = m_tabs[i];
-        //delete iter->second.pWidget; // todo: we should check if this is deleted
-        delete iter->first.pTab;
-    }
-
+    m_tabs.iterateBegToEnd([](const TypeHash::Iterator& a_tabDataIter) -> bool {
+        STabData* const pTabData = a_tabDataIter.get();
+        if(pTabData){
+            delete pTabData->pTab;
+        }
+        return true;
+    });
 }
 
 
@@ -92,7 +91,7 @@ Tab* TabBar::addTabRaw(QWidget* a_page, Tab* a_pTab)
     assert(a_page&&a_pTab);
 
     STabData tabData;
-    const int cnRet(static_cast<int>(m_tabs.size()));
+    const int cnRet(static_cast<int>(m_tabs.count()));
 
     a_pTab->m_index = cnRet;
     a_pTab->setParent(this);
@@ -116,7 +115,7 @@ Tab* TabBar::addTabRaw(QWidget* a_page, Tab* a_pTab)
     const int cnHeigth(height());
     tabData.pTab->setFixedSize(m_tabsWidth,cnHeigth);
     tabData.pTab->setStyleSheet(a_pTab->m_styleSheetNonSelected);
-    m_tabs.AddEntryEvenIfExistsC(tabData);
+    m_tabs.AddEvenIfExist(tabData,tabData);
 
     if(m_currentTab<0){
         setCurrentIndexRaw(cnRet);
@@ -133,7 +132,7 @@ Tab* TabBar::addTabRaw(QWidget* a_page, Tab* a_pTab)
 
 void TabBar::setCurrentIndex(int a_index)
 {
-    const int cnSize(int(m_tabs.size()));
+    const int cnSize(int(m_tabs.count()));
     if(a_index<cnSize){
         setCurrentIndexRaw(a_index);
     }
@@ -142,14 +141,16 @@ void TabBar::setCurrentIndex(int a_index)
 
 void TabBar::OrderAllTabs()
 {
-    TypeHash::iterator iter;
-    const size_t tabsCount = m_tabs.size();
     int moveToX = 0;
 
-    for(size_t i(0); i<tabsCount;++i,moveToX+=m_tabsWidth){
-        iter = m_tabs[i];
-        iter->first.pTab->move(moveToX,0);
-    }
+    m_tabs.iterateBegToEnd([this,&moveToX](const TypeHash::Iterator& a_tabDataIter) -> bool {
+        STabData* const pTabData = a_tabDataIter.get();
+        if(pTabData){
+            pTabData->pTab->move(moveToX,0);
+            moveToX+=m_tabsWidth;
+        }
+        return true;
+    });
 }
 
 
@@ -157,26 +158,34 @@ void TabBar::setCurrentIndexRaw(int a_index)
 {
     if(a_index!=m_currentTab){
         if(m_currentTab>=0){
-            TypeHash::iterator iterOld = m_tabs[size_t(m_currentTab)];
-            iterOld->first.pWidget->setParent(nullptr);
-            iterOld->first.pWidget->hide();
-            iterOld->first.pTab->m_isSelected = 0;
-            iterOld->first.pTab->setStyleSheet(iterOld->first.pTab->m_styleSheetNonSelected);
-            iterOld->first.pTab->update();
-        }
+            const TypeHash::Iterator iterOld = m_tabs.at(static_cast<size_t>(m_currentTab));
+            if(iterOld){
+                STabData& oldTab = *(iterOld.get());
+                oldTab.pWidget->setParent(nullptr);
+                oldTab.pWidget->hide();
+                oldTab.pTab->m_isSelected = 0;
+                oldTab.pTab->setStyleSheet(oldTab.pTab->m_styleSheetNonSelected);
+                oldTab.pTab->update();
+            }  //  if(iterOld){
+        }  //  if(m_currentTab>=0){
         m_currentTab = a_index;
+        bool newTabNotSelected = true;
         if(a_index>=0){
-            TypeHash::iterator iter = m_tabs[size_t(m_currentTab)];
-            m_sceneWidget->m_pTabActiveWidget = iter->first.pWidget;
-            iter->first.pWidget->setParent(m_sceneWidget);
-            iter->first.pWidget->show();
-            iter->first.pWidget->resize(m_sceneWidget->size());
-            iter->first.pWidget->move(0,0);
-            iter->first.pTab->m_isSelected = 1;
-            iter->first.pTab->setStyleSheet(iter->first.pTab->m_styleSheetForSelected);
-            iter->first.pTab->update();
-        }
-        else{
+            const TypeHash::Iterator iterNew = m_tabs.at(static_cast<size_t>(m_currentTab));
+            if(iterNew){
+                STabData& newTab = *(iterNew.get());
+                m_sceneWidget->m_pTabActiveWidget = newTab.pWidget;
+                newTab.pWidget->setParent(m_sceneWidget);
+                newTab.pWidget->show();
+                newTab.pWidget->resize(m_sceneWidget->size());
+                newTab.pWidget->move(0,0);
+                newTab.pTab->m_isSelected = 1;
+                newTab.pTab->setStyleSheet(newTab.pTab->m_styleSheetForSelected);
+                newTab.pTab->update();
+                newTabNotSelected = false;
+            }  //  if(iterOld){
+        }  //  if(a_index>=0){
+        if(newTabNotSelected){
             m_sceneWidget->m_pTabActiveWidget = nullptr;
         }
     }

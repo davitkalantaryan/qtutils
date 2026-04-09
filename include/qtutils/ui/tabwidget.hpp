@@ -14,10 +14,12 @@
 
 #ifdef CPPUTILS_HASH_VHASH_DEFINED
 
-#include <cpputils/hash/vhash.hpp>
+#include <cpputils/hash/templ/vecthash.hpp>
+#include <cinternal/disable_compiler_warnings.h>
 #include <qtutils/disable_utils_warnings.h>
 #include <QWidget>
 #include <QLabel>
+#include <cinternal/undisable_compiler_warnings.h>
 
 
 namespace qtutils { namespace ui{
@@ -29,18 +31,17 @@ struct STabData{
     Tab*     pTab;
     QWidget* pWidget;
     // maybe QIcon* , etc.
+    bool operator==(const STabData& a_rhs) const{
+        return this->pTab == a_rhs.pTab;
+    }
 };
 struct STabHash{
     size_t operator()(const STabData& a_dt) const{
         return reinterpret_cast<size_t>(a_dt.pTab);
     }
 };
-struct STabEq{
-    bool operator()(const STabData& a_lhs, const STabData& a_rhs) const{
-        return a_lhs.pTab == a_rhs.pTab;
-    }
-};
-typedef ::cpputils::hash::VSet<STabData,STabHash,STabEq> TypeHash;
+typedef ::cpputils::hash::templ::MtVectHash<STabData,STabData,STabHash> TypeHash;
+typedef TypeHash::TypeRawHash                                           TypeRawHash;
 
 
 class QTUTILS_EXPORT TabScene : public QWidget
@@ -63,7 +64,7 @@ protected:
 class QTUTILS_EXPORT TabBar : public QWidget
 {
 public:
-    TabBar(TabScene* a_sceneWidget, QWidget* a_parent=nullptr);
+    TabBar(TypeRawHash* CPPUTILS_ARG_NN a_rawHash_p, TabScene* a_sceneWidget, QWidget* a_parent=nullptr);
     virtual ~TabBar() override;
 
     template<typename... Targs>
@@ -81,6 +82,12 @@ public:
 private:
     void setCurrentIndexRaw(int index);
     void OrderAllTabs();
+
+private:
+    TabBar(const TabBar&)=delete;
+    TabBar(TabBar&&)=delete;
+    TabBar& operator=(const TabBar&)=delete;
+    TabBar& operator=(TabBar&&)=delete;
 
 protected:
     TabScene*const      m_sceneWidget;
