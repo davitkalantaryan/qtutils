@@ -10,12 +10,14 @@
 #ifdef CPPUTILS_HASH_VHASH_DEFINED
 
 #include <qtutils/ui/tabwidget.hpp>
+#include <cinternal/disable_compiler_warnings.h>
 #include <assert.h>
 #include <qtutils/disable_utils_warnings.h>
 #include <QResizeEvent>
 #include <QMouseEvent>
 #include <QPaintEvent>
 #include <QPainter>
+#include <cinternal/undisable_compiler_warnings.h>
 
 
 namespace qtutils { namespace ui{
@@ -23,24 +25,6 @@ namespace qtutils { namespace ui{
 #define DEFAULT_TAB_WIDTH_SIZE      128
 #define DEFAULT_TAB_HEIGHT_SIZE     30
 #define TABWIDGET_HEIGH_AFTER_TAB   5
-
-
-//struct STabData{
-//    Tab*     pTab;
-//    QWidget* pWidget;
-//    // maybe QIcon* , etc.
-//};
-//
-//struct STabHash{
-//    size_t operator()(const STabData& a_dt) const{
-//        return reinterpret_cast<size_t>(a_dt.pTab);
-//    }
-//};
-//struct STabEq{
-//    bool operator()(const STabData& a_lhs, const STabData& a_rhs) const{
-//        return a_lhs.pTab == a_rhs.pTab;
-//    }
-//};
 
 
 /*/////////////////////////////////////////////////////////////////////////////////////////////////////////*/
@@ -235,7 +219,7 @@ void TabBar::SetTabsWidth(int a_tabsWidth)
 }
 
 
-//
+/*/////////////////////////////////////////////////////////////////////////////////////////////////////////*/
 
 Tab::~Tab()
 {
@@ -294,14 +278,18 @@ void Tab::SetStyleSheetNonSelected(const QString& a_newVal)
 }
 
 
-//
+/*/////////////////////////////////////////////////////////////////////////////////////////////////////////*/
+
+uint64_t SKeyTab::hash()const
+{
+    return reinterpret_cast<uint64_t>(this->rawKey.pTab);
+}
 
 
-
-//
-
-
-
+bool SKeyTab::areTheKeysSame(const CKeyBase& a_key2) const
+{
+    return this->rawKey.pTab == ((const SKeyTab&)a_key2).rawKey.pTab;
+}
 
 
 }} // namespace qtutils { namespace ui{namespace qtutils { namespace ui{
