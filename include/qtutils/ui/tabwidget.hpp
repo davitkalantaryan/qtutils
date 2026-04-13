@@ -31,16 +31,15 @@ struct STabData{
     Tab*     pTab;
     QWidget* pWidget;
     // maybe QIcon* , etc.
-    bool operator==(const STabData& a_rhs) const{
-        return this->pTab == a_rhs.pTab;
-    }
 };
-struct STabHash{
-    size_t operator()(const STabData& a_dt) const{
-        return reinterpret_cast<size_t>(a_dt.pTab);
-    }
+struct SKeyTab : public ::cpputils::hash::bh::SKeyExtBase<SKeyTab, STabData>
+{
+public:
+    using ::cpputils::hash::bh::SKeyExtBase<SKeyTab, STabData>::SKeyExtBase;
+    uint64_t hash()const override;
+    bool areTheKeysSame(const CKeyBase& a_key2) const override;
 };
-typedef ::cpputils::hash::templ::MtVectHash<STabData,STabData,STabHash> TypeHash;
+typedef ::cpputils::hash::templ::MtVectHash<STabData,STabData,SKeyTab>  TypeHash;
 typedef TypeHash::TypeRawHash                                           TypeRawHash;
 
 
