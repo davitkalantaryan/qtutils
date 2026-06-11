@@ -14,7 +14,7 @@
 
 #ifdef CPPUTILS_HASH_VHASH_DEFINED
 
-#include <cpputils/hash/templ/vecthash.hpp>
+#include <cpputils/hash/templ/mt/vecthash.hpp>
 #include <cinternal/disable_compiler_warnings.h>
 #include <qtutils/disable_utils_warnings.h>
 #include <QWidget>
@@ -39,8 +39,8 @@ public:
     uint64_t hash()const override;
     bool areTheKeysSame(const CKeyBase& a_key2) const override;
 };
-typedef ::cpputils::hash::templ::MtVectHash<STabData,STabData,SKeyTab>  TypeHash;
-typedef TypeHash::TypeRawHash                                           TypeRawHash;
+typedef ::cpputils::hash::templ::mt::VectHash<STabData,STabData,SKeyTab>    TypeHash;
+typedef TypeHash::TypeRawHash                                               TypeRawHash;
 
 
 class QTUTILS_EXPORT TabScene : public QWidget
