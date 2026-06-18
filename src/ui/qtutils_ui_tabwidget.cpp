@@ -59,11 +59,8 @@ TabBar::TabBar(TypeRawHash* CPPUTILS_ARG_NN a_rawHash_p, TabScene* a_sceneWidget
 
 TabBar::~TabBar()
 {
-    m_tabs.iterateBegToEnd([](const TypeHash::Iterator& a_tabDataIter) -> bool {
-        STabData* const pTabData = a_tabDataIter.get();
-        if(pTabData){
-            delete pTabData->pTab;
-        }
+    m_tabs.iterateBegToEnd([](STabData& a_tabData, const STabData&) -> bool {
+        delete a_tabData.pTab;
         return true;
     });
 }
@@ -127,12 +124,9 @@ void TabBar::OrderAllTabs()
 {
     int moveToX = 0;
 
-    m_tabs.iterateBegToEnd([this,&moveToX](const TypeHash::Iterator& a_tabDataIter) -> bool {
-        STabData* const pTabData = a_tabDataIter.get();
-        if(pTabData){
-            pTabData->pTab->move(moveToX,0);
-            moveToX+=m_tabsWidth;
-        }
+    m_tabs.iterateBegToEnd([this,&moveToX](STabData& a_tabData, const STabData&) -> bool {
+        a_tabData.pTab->move(moveToX,0);
+        moveToX+=m_tabsWidth;
         return true;
     });
 }
@@ -144,7 +138,7 @@ void TabBar::setCurrentIndexRaw(int a_index)
         if(m_currentTab>=0){
             const TypeHash::Iterator iterOld = m_tabs.at(static_cast<size_t>(m_currentTab));
             if(iterOld){
-                STabData& oldTab = *(iterOld.get());
+                STabData& oldTab = iterOld.get()->data;
                 oldTab.pWidget->setParent(nullptr);
                 oldTab.pWidget->hide();
                 oldTab.pTab->m_isSelected = 0;
@@ -157,7 +151,7 @@ void TabBar::setCurrentIndexRaw(int a_index)
         if(a_index>=0){
             const TypeHash::Iterator iterNew = m_tabs.at(static_cast<size_t>(m_currentTab));
             if(iterNew){
-                STabData& newTab = *(iterNew.get());
+                STabData& newTab = iterNew.get()->data;
                 m_sceneWidget->m_pTabActiveWidget = newTab.pWidget;
                 newTab.pWidget->setParent(m_sceneWidget);
                 newTab.pWidget->show();

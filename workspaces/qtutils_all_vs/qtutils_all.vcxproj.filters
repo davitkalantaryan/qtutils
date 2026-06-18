@@ -137,5 +137,11 @@
     <None Include="..\..\prj\common\common_mkfl\raw\flagsandsys_common_raw.windows.Makefile">
       <Filter>repo_files\prj\common\common_mkfl\raw</Filter>
     </None>
+    <None Include="..\..\scripts\unix_source_per_session.sh">
+      <Filter>repo_files\scripts</Filter>
+    </None>
+    <None Include="..\..\scripts\windows_source_per_session.bat">
+      <Filter>repo_files\scripts</Filter>
+    </None>
   </ItemGroup>
 </Project>
