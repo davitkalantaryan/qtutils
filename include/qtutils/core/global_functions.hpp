@@ -5,10 +5,12 @@
 // created by:		Davit Kalantaryan (davit.kalantaryan@gmail.com)
 //
 
+
 #pragma once
 
 
 #include <qtutils/export_symbols.h>
+#include <cinternal/disable_compiler_warnings.h>
 #include <functional>
 #include <qtutils/disable_utils_warnings.h>
 #include <QList>
@@ -16,6 +18,7 @@
 #include <QJsonValue>
 #include <QByteArray>
 #include <QString>
+#include <cinternal/undisable_compiler_warnings.h>
 
 
 namespace qtutils { namespace core{
