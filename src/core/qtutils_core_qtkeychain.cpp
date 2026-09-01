@@ -18,7 +18,7 @@
 #include <cinternal/undisable_compiler_warnings.h>
 
 
-namespace qtutils{ namespace core{
+namespace qtutils{ namespace core{ namespace qtkeychain{
 
 
 #define QTUTILS_CORE_KEYCHAINKEYSLIST_PRIVATE_KEY   "qtutils/core/keychain_list_private_key"
@@ -133,4 +133,4 @@ QTUTILS_EXPORT void DeleteAllKeys(const QString& a_service)
 }
 
 
-}}  //  namespace qtutils{ namespace core{
+}}}  //  namespace qtutils{ namespace core{ namespace qtkeychain{

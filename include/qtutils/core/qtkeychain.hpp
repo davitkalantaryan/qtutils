@@ -17,7 +17,7 @@
 #include <cinternal/undisable_compiler_warnings.h>
 
 
-namespace qtutils { namespace core{
+namespace qtutils{ namespace core{ namespace qtkeychain{
 
 
 QTUTILS_EXPORT bool SaveData(const QString& a_service,const QString& a_key,const QByteArray& a_data);
@@ -26,4 +26,4 @@ QTUTILS_EXPORT void DeleteData(const QString& a_service, const QString& a_key);
 QTUTILS_EXPORT void DeleteAllKeys(const QString& a_service);
 
 
-}}  // namespace qtutils { namespace core{
+}}}  //  namespace qtutils{ namespace core{ namespace qtkeychain{
