@@ -13,6 +13,18 @@ message("!!! $${PWD}/flagsandsys_common.pri")
 isEmpty(qtutilsFlagsAndSysCommonIncluded){
     qtutilsFlagsAndSysCommonIncluded = 1
 
+    win32{
+        nameExtensionQtUtils = $${nameExtension}
+        libNameEndingQtUtils = lib
+    } else {
+        nameExtensionQtUtils =
+        mac{
+            libNameEndingQtUtils = dylib
+        } else {
+            libNameEndingQtUtils = so
+        }
+    }
+
     qtutilsRepoRoot = $${PWD}/../../..
 
     isEmpty(artifactRoot) {

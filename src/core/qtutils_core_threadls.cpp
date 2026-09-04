@@ -15,10 +15,17 @@
 #include <cinternal/bistateflags.h>
 #include <cinternal/disable_compiler_warnings.h>
 #include <memory>
+#ifdef _WIN32
+#include <WinSock2.h>
+#include <WS2tcpip.h>
+#include <Windows.h>
+#else
+#include <pthread.h>
+#endif
 #include <cinternal/undisable_compiler_warnings.h>
 
 
-namespace qtutils{
+namespace qtutils{ namespace core{
 
 static void StaticConstruct(void*){}
 static void StaticDestruct(void*){}
@@ -30,7 +37,8 @@ public:
     ThreadLS_p(const ThreadLS::TypeConstruct& a_construct, const ThreadLS::TypeDestruct& a_destruct, void* a_pData);
     ThreadLS_p(const ThreadLS::TypeConstruct& a_construct, const ThreadLS::TypeDestruct& a_destruct, void* a_pData, const ThreadLS::TypeMain& a_main);
 public:
-    cinternal_unnamed_sema_t	m_sema;
+    cinternal_unnamed_sema_t            m_sema;
+    ::std::thread::native_handle_type   m_nativeHandle;
     CPPUTILS_BISTATE_FLAGS_UN(
         shouldRun,
         hasExceptionHandling
@@ -43,6 +51,11 @@ private:
 private:
     void run() override;
     void DefaultMain(void*);
+private:
+    ThreadLS_p(const ThreadLS_p&);
+    ThreadLS_p(ThreadLS_p&&);
+    ThreadLS_p& operator=(const ThreadLS_p&);
+    ThreadLS_p& operator=(ThreadLS_p&&);
 };
 
 
@@ -55,7 +68,7 @@ ThreadLS::ThreadLS()
 }
 
 
-ThreadLS::ThreadLS(ThreadLS&& a_mM)
+ThreadLS::ThreadLS(ThreadLS&& a_mM) noexcept
 	:
 	  m_thr_data_p(a_mM.m_thr_data_p)
 {
@@ -94,7 +107,7 @@ ThreadLS::~ThreadLS()
 }
 
 
-ThreadLS& ThreadLS::operator=(ThreadLS&& a_mM)
+ThreadLS& ThreadLS::operator=(ThreadLS&& a_mM) noexcept
 {
 	ThreadLS_p* this_thr_data_p = m_thr_data_p;
 	m_thr_data_p = a_mM.m_thr_data_p;
@@ -103,31 +116,51 @@ ThreadLS& ThreadLS::operator=(ThreadLS&& a_mM)
 }
 
 
-QThread* ThreadLS::qThread()const
+QThread* ThreadLS::qThread() noexcept
 {
     return m_thr_data_p;
 }
 
-void ThreadLS::EnableExceptionsHandling()
+
+const QThread* ThreadLS::qThread()const noexcept
+{
+    return m_thr_data_p;
+}
+
+
+void ThreadLS::EnableExceptionsHandling() noexcept
 {
     m_thr_data_p->flags.wr.hasExceptionHandling = CPPUTILS_BISTATE_MAKE_BITS_TRUE;
 }
 
 
-void ThreadLS::DisableExceptionsHandling()
+void ThreadLS::DisableExceptionsHandling() noexcept
 {
     m_thr_data_p->flags.wr.hasExceptionHandling = CPPUTILS_BISTATE_MAKE_BITS_FALSE;
 }
 
 
-bool ThreadLS::hasExceptionHandling()const
+bool ThreadLS::hasExceptionHandling()const noexcept
 {
     return static_cast<bool>(m_thr_data_p->flags.rd.hasExceptionHandling_true);
 }
 
 
-/*////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
+::std::thread::native_handle_type ThreadLS::getNativeHandle()const noexcept
+{
+    return m_thr_data_p->m_nativeHandle;
+}
 
+
+::std::thread::native_handle_type ThreadLS::GetAndResetNativeHandle() noexcept
+{
+    const ::std::thread::native_handle_type nativeHandle = m_thr_data_p->m_nativeHandle;
+    m_thr_data_p->m_nativeHandle = (::std::thread::native_handle_type)0;
+    return nativeHandle;
+}
+
+
+/*////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
 
 ThreadLS_p::ThreadLS_p(const ThreadLS::TypeConstruct& a_construct, const ThreadLS::TypeDestruct& a_destruct, void* a_pData)
     :
@@ -139,6 +172,7 @@ ThreadLS_p::ThreadLS_p(const ThreadLS::TypeConstruct& a_construct, const ThreadL
     this->flags.wr_all = CPPUTILS_BISTATE_MAKE_ALL_BITS_FALSE;
     this->flags.wr.shouldRun = CPPUTILS_BISTATE_MAKE_BITS_TRUE;
     this->flags.wr.hasExceptionHandling = CPPUTILS_BISTATE_MAKE_BITS_TRUE;
+    m_nativeHandle = (::std::thread::native_handle_type)0;
 	cinternal_unnamed_sema_create(&(this->m_sema),0);
 }
 
@@ -159,10 +193,17 @@ void ThreadLS_p::run()
     //cpputils::InScopeCleaner aCleaner([this](void*){
     //    m_destruct(m_userData);
     //});
-	
-	std::unique_ptr<ThreadLS_p, void(*)(ThreadLS_p*)> aCleaner(this, [](ThreadLS_p* a_this){
+
+    ::std::unique_ptr<ThreadLS_p, void(*)(ThreadLS_p*)> aCleaner(this, [](ThreadLS_p* a_this){
 		a_this->m_destruct(a_this->m_userData);
+        a_this->m_nativeHandle = (::std::thread::native_handle_type)0;
 	});
+
+#ifdef _WIN32
+    m_nativeHandle = (::std::thread::native_handle_type)GetCurrentThread();
+#else
+    m_nativeHandle = (::std::thread::native_handle_type)pthread_self();
+#endif
 	
     m_construct(m_userData);
     cinternal_unnamed_sema_post(&(this->m_sema));
@@ -187,7 +228,7 @@ void ThreadLS_p::DefaultMain(void*)
 }
 
 
-}  // namespace qtutils{
+}}  //  namespace qtutils{ namespace core{
 
 
 #endif  // #ifndef QTUTILS_NOT_USE_THREADLS

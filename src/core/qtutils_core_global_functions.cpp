@@ -7,11 +7,13 @@
 
 #include <qtutils/core/global_functions.hpp>
 #include <qtutils/version_resolving.h>
+#include <cinternal/disable_compiler_warnings.h>
 #include <stdio.h>
 #include <qtutils/disable_utils_warnings.h>
 #include <QJsonDocument>
 #include <QStringList>
 #include <QJsonArray>
+#include <cinternal/undisable_compiler_warnings.h>
 
 #ifdef snprintf_t
 #undef snprintf_t
