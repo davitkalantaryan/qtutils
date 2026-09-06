@@ -62,8 +62,7 @@ public:
     Reply_p(Reply* CPPUTILS_ARG_NN a_pParent, int a_timeoutMs);
 
     inline void DisconnectAllConnectionsAndRetIfDisconnectedInline();
-    inline void AbortInlineRaw();
-    inline void AbortInline2();
+    inline void AbortInline();
     void ConnectSignalsAndStartTimer();
 
 private:
@@ -111,18 +110,11 @@ inline void Reply_p::DisconnectAllConnectionsAndRetIfDisconnectedInline(){
 }
 
 
-inline void Reply_p::AbortInlineRaw(){
+inline void Reply_p::AbortInline(){
     DisconnectAllConnectionsAndRetIfDisconnectedInline();
-    if(m_flagsBS.rd.abortCalled_false){
+    if(m_pQtNetReply && (m_flagsBS.rd.abortCalled_false)){
         m_flagsBS.wr.abortCalled = CPPUTILS_BISTATE_MAKE_BITS_TRUE;
         m_pQtNetReply->abort();
-    }
-}
-
-
-inline void Reply_p::AbortInline2(){
-    if(m_pQtNetReply){
-        AbortInlineRaw();
     }
 }
 
@@ -131,7 +123,7 @@ inline void AccessManager_p::DestroyQtNetAccessManagerInline(){
     Reply_p *pNextReply, *pReply = m_pFirst;
     while(pReply){
         pNextReply = pReply->m_next;
-        pReply->AbortInline2();
+        pReply->AbortInline();
         delete pReply;
         pReply = pNextReply;
     }  //  while(pReply){
@@ -210,7 +202,7 @@ Reply::Reply(int a_timeoutMs)
 
 void Reply::Abort()
 {
-    m_data_p->AbortInline2();
+    m_data_p->AbortInline();
 }
 
 
@@ -266,7 +258,7 @@ Reply_p::~Reply_p()
         }
     }  //  if(m_pParentAccessMngr){
     if(m_pQtNetReply){
-        AbortInlineRaw();
+        AbortInline();
         delete m_pQtNetReply;
     }
 }
@@ -318,7 +310,7 @@ void Reply_p::ConnectSignalsAndStartTimer()
             });
             m_flagsBS.wr.hasTimeout = CPPUTILS_BISTATE_MAKE_BITS_TRUE;
             DisconnectAllConnectionsAndRetIfDisconnectedInline();
-            AbortInline2();
+            AbortInline();
             if(m_flagsBS.rd.finishEmitted_false){
                 m_flagsBS.wr.finishEmitted = CPPUTILS_BISTATE_MAKE_BITS_TRUE;
                 emit m_pParent->finished(m_finishArg);
