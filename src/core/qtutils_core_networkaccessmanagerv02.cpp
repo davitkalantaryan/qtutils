@@ -15,6 +15,9 @@
 #include <qtutils/disable_utils_warnings.h>
 #include <QMetaObject>
 #include <QTimer>
+#include <QEvent>
+#include <QEventLoop>
+#include <QCoreApplication>
 #include <cinternal/undisable_compiler_warnings.h>
 
 
@@ -38,6 +41,31 @@ private:
 };
 
 
+class CPPUTILS_DLL_PRIVATE NetStopEvent final : public QEvent
+{
+public:
+    NetStopEvent();
+private:
+    NetStopEvent(const NetStopEvent&)=delete;
+    NetStopEvent(NetStopEvent&&)=delete;
+    NetStopEvent& operator=(const NetStopEvent&)=delete;
+    NetStopEvent& operator=(NetStopEvent&&)=delete;
+};
+
+
+class CPPUTILS_DLL_PRIVATE NetWaitEventLoop final : public QEventLoop
+{
+public:
+    NetWaitEventLoop(AccessManager_p* CPPUTILS_ARG_NN a_netAccMngr_p);
+
+private:
+    bool event(QEvent* a_event) override;
+
+private:
+    AccessManager_p* const      m_netAccMngr_p;
+};
+
+
 class CPPUTILS_DLL_PRIVATE Reply_p
 {
 public:
@@ -54,7 +82,8 @@ public:
     CPPUTILS_BISTATE_FLAGS_UN(
         hasTimeout,
         finishEmitted,
-        abortCalled
+        abortCalled,
+        blockExit
     )m_flagsBS;
 
 public:
@@ -77,12 +106,16 @@ class CPPUTILS_DLL_PRIVATE AccessManager_p final
 {
 public:
     QNetworkAccessManager*  m_pQtNetAccessManager;
+    NetWaitEventLoop        m_finalLoop;
     Reply_p*                m_pFirst;
+    int                     m_exitTimeoutMs;
 
 public:
     ~AccessManager_p();
     AccessManager_p();
 
+    inline bool canCleanResourceInline() const noexcept;
+    inline void DestroyQtNetAccessManagerInlineRaw();
     inline void DestroyQtNetAccessManagerInline();
 
 private:
@@ -119,7 +152,20 @@ inline void Reply_p::AbortInline(){
 }
 
 
-inline void AccessManager_p::DestroyQtNetAccessManagerInline(){
+inline bool AccessManager_p::canCleanResourceInline() const noexcept{
+    Reply_p *pNextReply, *pReply = m_pFirst;
+    while(pReply){
+        pNextReply = pReply->m_next;
+        if(pReply->m_flagsBS.rd.blockExit_true){
+            return false;
+        }  //  if(pReply->m_flagsBS.rd.blockExit_false){
+        pReply = pNextReply;
+    }  //  while(pReply){
+    return true;
+}
+
+
+inline void AccessManager_p::DestroyQtNetAccessManagerInlineRaw(){
     Reply_p *pNextReply, *pReply = m_pFirst;
     while(pReply){
         pNextReply = pReply->m_next;
@@ -130,6 +176,26 @@ inline void AccessManager_p::DestroyQtNetAccessManagerInline(){
     m_pFirst = nullptr;
     delete m_pQtNetAccessManager;
     m_pQtNetAccessManager = nullptr;
+}
+
+
+inline void AccessManager_p::DestroyQtNetAccessManagerInline()
+{
+    if(canCleanResourceInline()){
+        DestroyQtNetAccessManagerInlineRaw();
+        return;
+    }  //  if(canCleanResourceInline()){
+
+    if(m_exitTimeoutMs>=0){
+        QTimer tmrEL;
+        QObject::connect(&tmrEL, &QTimer::timeout, &m_finalLoop,[this](){
+            m_finalLoop.quit();
+        });  //  QObject::connect(&tmrEL, &QTimer::timeout, &loop,[this,&loop](){
+        tmrEL.start(m_exitTimeoutMs);
+    }  //  if(a_timeoutMs>=0){
+    m_finalLoop.exec();
+
+    DestroyQtNetAccessManagerInlineRaw();
 }
 
 
@@ -185,6 +251,18 @@ QNetworkAccessManager* AccessManager::pQtNetAccessMngr()const noexcept
 }
 
 
+int AccessManager::exitTimeoutMs()const noexcept
+{
+    return m_data_p->m_exitTimeoutMs;
+}
+
+
+void AccessManager::SetExitTimeoutMs(int a_exitTimeoutMs)noexcept
+{
+    m_data_p->m_exitTimeoutMs = a_exitTimeoutMs;
+}
+
+
 /*///////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
 
 Reply::~Reply()
@@ -224,6 +302,12 @@ bool Reply::isTimedOut()const noexcept
 }
 
 
+void Reply::MakeThisCallBlockExit()noexcept
+{
+    m_data_p->m_flagsBS.wr.blockExit = CPPUTILS_BISTATE_MAKE_BITS_TRUE;
+}
+
+
 /*///////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
 
 AccessManager_p::~AccessManager_p()
@@ -235,7 +319,9 @@ AccessManager_p::~AccessManager_p()
 AccessManager_p::AccessManager_p()
 :
     m_pQtNetAccessManager(nullptr),
-    m_pFirst(nullptr)
+    m_finalLoop(this),
+    m_pFirst(nullptr),
+    m_exitTimeoutMs(-1)
 {
     qRegisterMetaType< QuCoreNetReplyArgV02 >( "QuCoreNetReplyArgV02" );
     m_pQtNetAccessManager = new QNetworkAccessManager();
@@ -284,6 +370,11 @@ void Reply_p::ConnectSignalsAndStartTimer()
         const RaiiDeleter aDltr([this](){
             m_finishArg.reset();
         });
+        if(m_flagsBS.rd.blockExit_true){
+            m_flagsBS.wr.blockExit = CPPUTILS_BISTATE_MAKE_BITS_FALSE;
+            NetStopEvent* const pStpEvnt = new NetStopEvent();
+            QCoreApplication::postEvent(&(m_pParentAccessMngr->m_finalLoop),pStpEvnt);
+        }
         m_pQtNetReply = nullptr;
         DisconnectAllConnectionsAndRetIfDisconnectedInline();
     });
@@ -292,6 +383,11 @@ void Reply_p::ConnectSignalsAndStartTimer()
         const RaiiDeleter aDltr([this](){
             m_finishArg.reset();
         });
+        if(m_flagsBS.rd.blockExit_true){
+            m_flagsBS.wr.blockExit = CPPUTILS_BISTATE_MAKE_BITS_FALSE;
+            NetStopEvent* const pStpEvnt = new NetStopEvent();
+            QCoreApplication::postEvent(&(m_pParentAccessMngr->m_finalLoop),pStpEvnt);
+        }
         if(m_timeoutTimer.isActive()){
             DisconnectMetaConnectionInline(&m_connTimeout);
             m_timeoutTimer.stop();
@@ -308,6 +404,11 @@ void Reply_p::ConnectSignalsAndStartTimer()
             const RaiiDeleter aDltr([this](){
                 m_finishArg.reset();
             });
+            if(m_flagsBS.rd.blockExit_true){
+                m_flagsBS.wr.blockExit = CPPUTILS_BISTATE_MAKE_BITS_FALSE;
+                NetStopEvent* const pStpEvnt = new NetStopEvent();
+                QCoreApplication::postEvent(&(m_pParentAccessMngr->m_finalLoop),pStpEvnt);
+            }
             m_flagsBS.wr.hasTimeout = CPPUTILS_BISTATE_MAKE_BITS_TRUE;
             DisconnectAllConnectionsAndRetIfDisconnectedInline();
             AbortInline();
@@ -333,6 +434,42 @@ RaiiDeleter::RaiiDeleter(const TypeDeleter& a_dltr)
 :
     m_dltr(a_dltr)
 {
+}
+
+
+/*////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
+
+static inline QEvent::Type GenerateAndGetEventType02Inline(){
+    static const QEvent::Type evType = static_cast<QEvent::Type>(QEvent::registerEventType());
+    return evType;
+}
+
+
+NetStopEvent::NetStopEvent()
+    :
+    QEvent(GenerateAndGetEventType02Inline())
+{
+}
+
+
+/*////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
+
+NetWaitEventLoop::NetWaitEventLoop(AccessManager_p* CPPUTILS_ARG_NN a_netAccMngr_p)
+    :
+    m_netAccMngr_p(a_netAccMngr_p)
+{
+}
+
+
+bool NetWaitEventLoop::event(QEvent* a_event)
+{
+    if(a_event->type()==GenerateAndGetEventType02Inline()){
+        if(m_netAccMngr_p->canCleanResourceInline()){
+            this->quit();
+        }
+        return true;
+    }  //  f(a_event->type()==GenerateAndGetEventTypeInline()){
+    return false;
 }
 
 

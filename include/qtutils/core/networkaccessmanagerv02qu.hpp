@@ -45,6 +45,8 @@ public:
     Reply* AnyRestCall(int a_timeoutMs, const TypeRestCall& a_restCallFnc);
     void RestartNetAccessManaget();
     QNetworkAccessManager* pQtNetAccessMngr()const noexcept;
+    int exitTimeoutMs()const noexcept;
+    void SetExitTimeoutMs(int a_exitTimeoutMs)noexcept;
 
 private:
     AccessManager_p* const  m_data_p;
@@ -65,6 +67,7 @@ public:
     QNetworkReply* qtNetworkReply()const noexcept;
     int timeoutMs()const noexcept;
     bool isTimedOut()const noexcept;
+    void MakeThisCallBlockExit()noexcept;
 
 private:
 signals:
