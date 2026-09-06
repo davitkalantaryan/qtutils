@@ -44,4 +44,11 @@
 #endif
 
 
+#ifndef QTUTILS_EXTRA_REST_CALLS
+#if !defined(CPPUTILS_EMSCRIPTEN_IS_USED) && !defined(QTUTILS_EXTRA_REST_CALLS_not_needed)
+#define QTUTILS_EXTRA_REST_CALLS
+#endif
+#endif
+
+
 #endif  // #ifndef INCLUDE_QTUTILS_INTERNAL_HEADER_H
