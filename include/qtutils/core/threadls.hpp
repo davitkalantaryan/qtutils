@@ -44,8 +44,11 @@ public:
     void EnableExceptionsHandling() noexcept;
     void DisableExceptionsHandling() noexcept;
     bool hasExceptionHandling()const noexcept;
+    bool loopFinished() const noexcept;
+    bool loopNotFinished() const noexcept;
     ::std::thread::native_handle_type getNativeHandle()const noexcept;
     ::std::thread::native_handle_type GetAndResetNativeHandle() noexcept;
+    bool StopThreadWithSignalAndProperWait(void* a_sigNo, int a_timeoutMs=-1);
 
 private:
     ThreadLS_p*        m_thr_data_p;
