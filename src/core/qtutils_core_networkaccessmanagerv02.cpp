@@ -70,7 +70,7 @@ class CPPUTILS_DLL_PRIVATE Reply_p
 {
 public:
     Reply* const                    m_pParent;
-    QuCoreNetReplyArgV02               m_finishArg;
+    QuCoreNetReplyArgV02            m_finishArg;
     AccessManager_p*                m_pParentAccessMngr = nullptr;
     QNetworkReply*                  m_pQtNetReply = nullptr;
     const int                       m_timeoutMs;
@@ -146,8 +146,10 @@ inline void Reply_p::DisconnectAllConnectionsAndRetIfDisconnectedInline(){
 inline void Reply_p::AbortInline(){
     DisconnectAllConnectionsAndRetIfDisconnectedInline();
     if(m_pQtNetReply && (m_flagsBS.rd.abortCalled_false)){
+        QNetworkReply* const pQtNetReply = m_pQtNetReply;
+        m_pQtNetReply = nullptr;
         m_flagsBS.wr.abortCalled = CPPUTILS_BISTATE_MAKE_BITS_TRUE;
-        m_pQtNetReply->abort();
+        pQtNetReply->abort();
     }
 }
 
@@ -224,6 +226,7 @@ Reply* AccessManager::AnyRestCall(int a_timeoutMs, const TypeRestCall& a_restCal
     if(m_data_p->m_pFirst){
         m_data_p->m_pFirst->m_prev = pRetReply->m_data_p;
     }
+    pRetReply->m_data_p->m_next = m_data_p->m_pFirst;
     m_data_p->m_pFirst = pRetReply->m_data_p;
     pRetReply->m_data_p->m_pParentAccessMngr = m_data_p;
     pRetReply->m_data_p->m_pQtNetReply = pQtNetReply;
@@ -333,8 +336,10 @@ AccessManager_p::AccessManager_p()
 Reply_p::~Reply_p()
 {
     if(m_pParentAccessMngr){
-        if(this==(m_pParentAccessMngr->m_pFirst)){
-            m_pParentAccessMngr->m_pFirst = this->m_next;
+        AccessManager_p* const pParentAccessMngr = m_pParentAccessMngr;
+        m_pParentAccessMngr = nullptr;
+        if(this==(pParentAccessMngr->m_pFirst)){
+            pParentAccessMngr->m_pFirst = this->m_next;
         }
         else{
             this->m_prev->m_next = m_next;
@@ -344,8 +349,10 @@ Reply_p::~Reply_p()
         }
     }  //  if(m_pParentAccessMngr){
     if(m_pQtNetReply){
+        QNetworkReply* const pQtNetReply = m_pQtNetReply;
         AbortInline();
-        delete m_pQtNetReply;
+        m_pQtNetReply = nullptr;
+        delete pQtNetReply;
     }
 }
 
