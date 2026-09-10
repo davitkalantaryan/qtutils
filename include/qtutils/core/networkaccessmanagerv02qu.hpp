@@ -76,7 +76,7 @@ signals:
 public:
     ~Reply() override;  // don't panic it is deleted automatically :)
 private:
-    Reply(int a_timeoutMs);
+    Reply(AccessManager_p* CPPUTILS_ARG_NN a_pAccsMngr, QNetworkReply* CPPUTILS_ARG_NN a_pQtNetReply, int a_timeoutMs);
 
 private:
     Reply_p* const      m_data_p;
