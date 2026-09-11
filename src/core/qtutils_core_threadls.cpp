@@ -346,7 +346,7 @@ bool WaitEventLoop::event(QEvent* a_event)
         }
         return true;
     }  //  f(a_event->type()==GenerateAndGetEventTypeInline()){
-    return false;
+    return QEventLoop::event(a_event);
 }
 
 
