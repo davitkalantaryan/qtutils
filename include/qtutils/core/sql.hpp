@@ -20,7 +20,9 @@
 namespace qtutils { namespace core{ namespace sql{
 
 
-#define PrintErrorStatM(_db,_extraText)  PrintErrorStatF((_db),(_extraText),__FILE__,__LINE__,__FUNCTION__)
+#define qtutilsCoreSqlPrintErrorStatM(_db,_extraText)  \
+    qtutils::core::sql::PrintErrorStatF((_db),(_extraText),__FILE__,__LINE__,__FUNCTION__)
+#define qtutilsCoreSqlPrintErrorStatSmplM(_db)  qtutilsCoreSqlPrintErrorStatM((_db),"")
 
 
 QTUTILS_EXPORT void PrintErrorStatF(const QSqlDatabase& a_db, const QString& a_extraText, const char* a_file, int a_line, const char* a_func);
