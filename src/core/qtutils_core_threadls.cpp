@@ -68,9 +68,9 @@ public:
     ThreadLS_p(const ThreadLS::TypeConstruct& a_construct, const ThreadLS::TypeDestruct& a_destruct, void* a_pData, const ThreadLS::TypeMain& a_main);
     ThreadLS_p(const ThreadLS::TypeConstruct& a_construct, const ThreadLS::TypeDestruct& a_destruct, void* a_pData);
 public:
-    cinternal_unnamed_sema_t            m_sema;
-    ::std::thread::native_handle_type   m_nativeHandle;
-    WaitEventLoop                       m_finalLoop;
+    cinternal_unnamed_sema_t    m_sema;
+    cinternal_thread_t          m_nativeHandle;
+    WaitEventLoop               m_finalLoop;
     CPPUTILS_BISTATE_FLAGS_UN(
         shouldRun,
         hasExceptionHandling,
@@ -196,16 +196,16 @@ bool ThreadLS::loopNotFinished() const noexcept
 }
 
 
-::std::thread::native_handle_type ThreadLS::getNativeHandle()const noexcept
+cinternal_thread_t ThreadLS::getNativeHandle()const noexcept
 {
     return m_thr_data_p->m_nativeHandle;
 }
 
 
-::std::thread::native_handle_type ThreadLS::GetAndResetNativeHandle() noexcept
+cinternal_thread_t ThreadLS::GetAndReleaseNativeHandle() noexcept
 {
-    const ::std::thread::native_handle_type nativeHandle = m_thr_data_p->m_nativeHandle;
-    m_thr_data_p->m_nativeHandle = (::std::thread::native_handle_type)0;
+    const cinternal_thread_t nativeHandle = m_thr_data_p->m_nativeHandle;
+    m_thr_data_p->m_nativeHandle = (cinternal_thread_t)0;
     return nativeHandle;
 }
 
@@ -213,7 +213,7 @@ bool ThreadLS::loopNotFinished() const noexcept
 bool ThreadLS::StopThreadWithSignalAndProperWait(void* a_sigNo, int a_timeoutMs)
 {
     if(m_thr_data_p){
-        const ::std::thread::native_handle_type threadNativeHandle = m_thr_data_p->m_nativeHandle;
+        const cinternal_thread_t threadNativeHandle = m_thr_data_p->m_nativeHandle;
         if(m_thr_data_p->flags.rd.shouldRun_true){
             m_thr_data_p->flags.wr.shouldRun = CPPUTILS_BISTATE_MAKE_BITS_FALSE;
             m_thr_data_p->quit();
@@ -259,7 +259,7 @@ ThreadLS_p::ThreadLS_p(const ThreadLS::TypeConstruct& a_construct, const ThreadL
     this->flags.wr_all = CPPUTILS_BISTATE_MAKE_ALL_BITS_FALSE;
     this->flags.wr.shouldRun = CPPUTILS_BISTATE_MAKE_BITS_TRUE;
     this->flags.wr.hasExceptionHandling = CPPUTILS_BISTATE_MAKE_BITS_TRUE;
-    m_nativeHandle = (::std::thread::native_handle_type)0;
+    m_nativeHandle = (cinternal_thread_t)0;
     cinternal_unnamed_sema_create(&(this->m_sema),0);
 }
 
@@ -277,17 +277,17 @@ void ThreadLS_p::run()
     //    m_destruct(m_userData);
     //});
 
+    m_nativeHandle = cinternal_thread_get_current();
+
     ::std::unique_ptr<ThreadLS_p, void(*)(ThreadLS_p*)> aCleaner(this, [](ThreadLS_p* a_this){
 		a_this->m_destruct(a_this->m_userData);
-        a_this->m_nativeHandle = (::std::thread::native_handle_type)0;
+        if(a_this->m_nativeHandle){
+            const cinternal_thread_t nativeHandle = a_this->m_nativeHandle;
+            a_this->m_nativeHandle = (cinternal_thread_t)0;
+            cinternal_thread_close_cur_thread_handle(nativeHandle);
+        }
 	});
 
-#ifdef _WIN32
-    m_nativeHandle = (::std::thread::native_handle_type)GetCurrentThread();
-#else
-    m_nativeHandle = (::std::thread::native_handle_type)pthread_self();
-#endif
-	
     m_construct(m_userData);
     cinternal_unnamed_sema_post(&(this->m_sema));
 
