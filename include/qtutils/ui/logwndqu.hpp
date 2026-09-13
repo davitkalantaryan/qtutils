@@ -87,7 +87,7 @@ private:
 
 
 #ifndef QTUTILS_INCLUDE_QTUTILS_UI_LOGWND_IMPL_HPP
-#include "logwnd.impl.hpp"
+#include <qtutils/ui/impl/qtutils_ui_logwnd.impl.hpp>
 #endif
 
 

@@ -47,7 +47,7 @@ protected:
 
 
 #ifndef QTUTILS_INCLUDE_QTUTILS_UI_SPINNERPARENT_IMPL_HPP
-#include "spinnerparent.impl.hpp"
+#include <qtutils/ui/impl/qtutils_ui_spinnerparent.impl.hpp>
 #endif
 
 

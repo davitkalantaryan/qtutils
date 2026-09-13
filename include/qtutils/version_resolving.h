@@ -10,8 +10,10 @@
 
 
 #include <qtutils/export_symbols.h>
+#include <cinternal/disable_compiler_warnings.h>
 #include <qtutils/disable_utils_warnings.h>
 #include <qglobal.h>
+#include <cinternal/undisable_compiler_warnings.h>
 
 
 namespace qtutils{

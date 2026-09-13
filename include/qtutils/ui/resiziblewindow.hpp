@@ -13,6 +13,7 @@
 
 #include <qtutils/export_symbols.h>
 #include <cinternal/bistateflags.h>
+#include <cinternal/disable_compiler_warnings.h>
 #include <stdint.h>
 #include <qtutils/disable_utils_warnings.h>
 #include <QCloseEvent>
@@ -20,6 +21,8 @@
 #include <QMoveEvent>
 #include <QResizeEvent>
 #include <QShowEvent>
+#include <cinternal/undisable_compiler_warnings.h>
+
 
 namespace qtutils { namespace ui{
 
@@ -90,7 +93,7 @@ protected:
 
 
 #ifndef QTUTILS_INCLUDE_RESIZIBLEWINDOW_IMPL_HPP
-#include "resiziblewindow.impl.hpp"
+#include <qtutils/ui/impl/qtutils_ui_resiziblewindow.impl.hpp>
 #endif
 
 

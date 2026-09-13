@@ -6,8 +6,10 @@
 //
 
 #include <qtutils/core/parse_jwt.hpp>
+#include <cinternal/disable_compiler_warnings.h>
 #include <qtutils/disable_utils_warnings.h>
 #include <QJsonDocument>
+#include <cinternal/undisable_compiler_warnings.h>
 
 
 namespace qtutils { namespace core{

@@ -50,7 +50,7 @@ protected:
 }}  // namespace qtutils { namespace ui{
 
 #ifndef QTUTILS_INCLUDE_LOGINTYPEWINDOW_IMPL_HPP
-#include "logintypewindow.impl.hpp"
+#include <qtutils/ui/impl/qtutils_ui_logintypewindow.impl.hpp>
 #endif
 
 

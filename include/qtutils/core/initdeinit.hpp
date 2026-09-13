@@ -12,17 +12,19 @@
 
 #ifndef QTUTILS_NOT_USE_INITDEINIT
 
+#include <qtutils/export_symbols.h>
+#include <cinternal/disable_compiler_warnings.h>
 #include <functional>
+#include <cinternal/undisable_compiler_warnings.h>
 
-namespace qtutils{
+
+namespace qtutils{ namespace core{
 
 class CPPUTILS_DLL_PRIVATE InitDeinit_p;
 
 class QTUTILS_EXPORT InitDeinit final
 {
 public:
-    //typedef void (*TypeConstruct)(void*);
-    //typedef void (*TypeDestruct)(void*);
 	typedef ::std::function<void(void*)>	TypeConstruct;
 	typedef ::std::function<void(void*)>	TypeDestruct;
 	
@@ -40,6 +42,6 @@ private:
 };
 
 
-}  // namespace qtutils{
+}}  //  namespace qtutils{ namespace core{
 
 #endif  // #ifndef QTUTILS_NOT_USE_INITDEINIT

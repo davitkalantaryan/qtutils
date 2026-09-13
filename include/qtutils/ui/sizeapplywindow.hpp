@@ -12,9 +12,11 @@
 
 
 #include <qtutils/export_symbols.h>
+#include <cinternal/disable_compiler_warnings.h>
 #include <qtutils/disable_utils_warnings.h>
 #include <QResizeEvent>
 #include <QShowEvent>
+#include <cinternal/undisable_compiler_warnings.h>
 
 
 namespace qtutils { namespace ui{
@@ -39,7 +41,7 @@ private:
 
 
 #ifndef QTUTILS_INCLUDE_QTUTILS_UI_SIZEAPPLYWINDOW_IMPL_HPP
-#include "sizeapplywindow.impl.hpp"
+#include <qtutils/ui/impl/qtutils_ui_sizeapplywindow.impl.hpp>
 #endif
 
 

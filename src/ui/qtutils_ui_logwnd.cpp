@@ -7,7 +7,6 @@
 
 
 #include <qtutils/ui/logwndqu.hpp>
-#include <qtutils/core/settings.hpp>
 #include <cinternal/disable_compiler_warnings.h>
 #include <unordered_map>
 #include <list>
@@ -15,6 +14,7 @@
 #include <stdint.h>
 #include <assert.h>
 #include <qtutils/disable_utils_warnings.h>
+#include <QSettings>
 #include <QTextEdit>
 #include <QLabel>
 #include <QCheckBox>
@@ -40,7 +40,7 @@ static const char* s_setKeyNameExt[s_cunNumberOfLogTypes] = {
 
 static inline void QtutilsUiLogwndInitializeInline(void){
     if(s_defaultColors){return;}
-    ::qtutils::Settings aSettings;
+    QSettings aSettings;
     s_defaultColors = new QColor[s_cunNumberOfLogTypes];
     s_defaultColors[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(core::logger::LogTypes::Debug)]    = aSettings.value("QtutilsUiLogwndGlobalColors/debug",   QColor(0,0,190))  .value<QColor>();
     s_defaultColors[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(core::logger::LogTypes::Info)]     = aSettings.value("QtutilsUiLogwndGlobalColors/info",    QColor(0,190,0))  .value<QColor>();
@@ -519,7 +519,7 @@ CategoryData::CategoryData(const QString& a_categoryName, LogWnd_p* a_logwnd_dat
 {
     m_flags.all = 0;
     m_flags.b.shouldKeep = 1;
-    ::qtutils::Settings aSettings;
+    QSettings aSettings;
     QString settingsKey;
     bool isEnabled;
 
@@ -601,7 +601,7 @@ inline void CategoryData::SetTypeEnable(const core::logger::LogTypes& a_type, bo
     if(isChecked!=a_isEnable){
         QTUTILS_UI_LOGWND_SET_BIT_VALUE(&(m_flags.b.isEnabledVect),a_type,a_isEnable);
         CategoryVisibilityChangedInline(m_logwnd_data_p->m_gui_p->logs.begin(),m_logwnd_data_p->m_gui_p);
-        ::qtutils::Settings aSettings;
+        QSettings aSettings;
         const QString settingsKey = m_logwnd_data_p->m_settingsKey + "/" + m_categoryName +
                 s_setKeyNameExt[QTUTILS_UI_LOGWND_TYPE_TO_INDEX(a_type)] + "isEnabled";
         aSettings.setValue(settingsKey,a_isEnable);

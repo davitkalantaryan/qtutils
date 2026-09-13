@@ -1,21 +1,14 @@
 
 
-#ifdef _MSC_VER
-#define QTUTILS_DLL_EXPORT	__declspec(dllexport)
-#else
-#define QTUTILS_DLL_EXPORT
-#endif
+#include <qtutils/internal_header.h>
 
 
+CPPUTILS_BEGIN_C
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 
-QTUTILS_DLL_EXPORT void entry_qtutils_overall(void)
+CPPUTILS_DLL_PUBLIC void entry_qtutils_overall(void) CPPUTILS_NOEXCEPT
 {
 }
 
-#ifdef __cplusplus
-}
-#endif
+
+CPPUTILS_END_C

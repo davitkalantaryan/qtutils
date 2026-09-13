@@ -9,11 +9,13 @@
 
 #include <qtutils/ui/resiziblewindow.hpp>
 #include <qtutils/ui/logintypewindow.hpp>
+#include <cinternal/disable_compiler_warnings.h>
 #include <qtutils/disable_utils_warnings.h>
 #include <QWidget>
 #include <QGridLayout>
 #include <QLineEdit>
 #include <QPushButton>
+#include <cinternal/undisable_compiler_warnings.h>
 
 
 #define SOME_QT_TEST_VERSION    "1.0.3"

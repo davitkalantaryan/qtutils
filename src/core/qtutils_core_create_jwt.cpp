@@ -7,6 +7,7 @@
 
 #include <qtutils/core/global_functions.hpp>
 #include <qtutils/version_resolving.h>
+#include <cinternal/disable_compiler_warnings.h>
 #include <stdlib.h>
 #include <time.h>
 #include <qtutils/disable_utils_warnings.h>
@@ -14,11 +15,13 @@
 #include <QJsonObject>
 #include <QCryptographicHash>
 #include <QMessageAuthenticationCode>
-
-#define QTUTILS_JWT_SECR01_LEN      512
+#include <cinternal/undisable_compiler_warnings.h>
 
 
 namespace qtutils { namespace core{
+
+
+#define QTUTILS_JWT_SECR01_LEN      512
 
 
 static inline QByteArray CalculateJwtSignatureCrtInline(const QByteArray& a_headerAndPayloadBase64,const QByteArray& a_secret, const QCryptographicHash::Algorithm& a_algEnm){

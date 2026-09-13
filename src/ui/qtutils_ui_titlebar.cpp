@@ -7,11 +7,13 @@
 
 #include <qtutils/ui/titlebar.hpp>
 #include <qtutils/version_resolving.h>
+#include <cinternal/disable_compiler_warnings.h>
 #include <qtutils/disable_utils_warnings.h>
 #include <functional>
 #include <QResizeEvent>
 #include <QMouseEvent>
 #include <QFont>
+#include <cinternal/undisable_compiler_warnings.h>
 
 
 namespace qtutils { namespace ui{

@@ -10,19 +10,19 @@
 #pragma once
 
 #include <qtutils/export_symbols.h>
+#include <cinternal/disable_compiler_warnings.h>
 #include <qtutils/disable_utils_warnings.h>
 #include <QVersionNumber>
-#include <QList>
-#include <QVarLengthArray>
+#include <cinternal/disable_compiler_warnings.h>
 
 
 namespace qtutils { namespace core{
 
 
-class QTUTILS_EXPORT VersionNumber
+class QTUTILS_EXPORT VersionNumber final
 {
 public:
-    virtual ~VersionNumber();
+    ~VersionNumber();
     VersionNumber();
     VersionNumber(const QVersionNumber& a_qvn);
     VersionNumber(const VersionNumber& a_cM);

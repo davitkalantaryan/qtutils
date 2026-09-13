@@ -13,8 +13,9 @@
 
 #include <qtutils/export_symbols.h>
 #include <qtutils/ui/sizeapplywindow.hpp>
+#include <cinternal/disable_compiler_warnings.h>
 #include <functional>
-#include <qtutils/disable_utils_warnings.h>
+#include <cinternal/undisable_compiler_warnings.h>
 
 
 namespace qtutils { namespace ui{
@@ -43,7 +44,7 @@ protected:
 
 
 #ifndef QTUTILS_INCLUDE_QTUTILS_UI_WGTWITHWGTINRIGHT_IMPL_HPP
-#include "wgtwithwgtinright.impl.hpp"
+#include <qtutils/ui/impl/qtutils_ui_wgtwithwgtinright.impl.hpp>
 #endif
 
 

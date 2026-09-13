@@ -10,12 +10,14 @@
 #include <qtutils/export_symbols.h>
 #include <qtutils/sizes.h>
 #include <qtutils/ui/sizeapplywindow.hpp>
+#include <cinternal/disable_compiler_warnings.h>
 #include <list>
 #include <qtutils/disable_utils_warnings.h>
 #include <QWidget>
 #include <QLabel>
 #include <QSize>
 #include <QPoint>
+#include <cinternal/undisable_compiler_warnings.h>
 
 
 namespace qtutils { namespace ui{

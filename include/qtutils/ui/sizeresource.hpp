@@ -56,7 +56,7 @@ using SizeResourceUserD = SizeResourceUser<WidgetType,double>;
 
 
 #ifndef QTUTILS_INCLUDE_QTUTILS_UI_SIZERESOURCE_IMPL_HPP
-#include "sizeresource.impl.hpp"
+#include <qtutils/ui/impl/qtutils_ui_sizeresource.impl.hpp>
 #endif
 
 

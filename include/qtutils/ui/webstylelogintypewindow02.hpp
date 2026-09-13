@@ -13,10 +13,12 @@
 
 #include <qtutils/export_symbols.h>
 #include <qtutils/ui/resiziblewindow.hpp>
+#include <cinternal/disable_compiler_warnings.h>
 #include <type_traits>
 #include <qtutils/disable_utils_warnings.h>
 #include <QWidget>
 #include <QSize>
+#include <cinternal/undisable_compiler_warnings.h>
 
 
 namespace qtutils { namespace ui{
@@ -52,7 +54,7 @@ protected:
 
 
 #ifndef QTUTILS_INCLUDE_WEBSTYLELOGINTYPEWINDOW02_IMPL_HPP
-#include "webstylelogintypewindow02.impl.hpp"
+#include <qtutils/ui/impl/qtutils_ui_webstylelogintypewindow02.impl.hpp>
 #endif
 
 

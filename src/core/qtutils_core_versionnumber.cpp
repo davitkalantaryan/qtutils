@@ -50,7 +50,10 @@ VersionNumber::VersionNumber(VersionNumber&& a_mM)
 
 VersionNumber& VersionNumber::operator=(const VersionNumber& a_cM)
 {
-    delete m_vn_data_p;
+    if((&a_cM)!=this){
+        delete m_vn_data_p;
+        m_vn_data_p = nullptr;
+    }
     m_vn_data_p = new QVersionNumber(a_cM.m_vn_data_p->segments());
     return *this;
 }

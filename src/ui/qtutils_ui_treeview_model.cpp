@@ -5,13 +5,16 @@
 // created by:		Davit Kalantaryan (davit.kalantaryan@gmail.com)
 //
 
-#include <qtutils/export_symbols.h>
+#include <qtutils/internal_header.h>
+
 #ifdef CPPUTILS_HASHTBL_DEFINED
 
+#include <qtutils/export_symbols.h>
 #include <qtutils/ui/treeview_model.hpp>
 #include <cpputils/hashtbl.hpp>
+#include <cinternal/disable_compiler_warnings.h>
 #include <assert.h>
-#include <qtutils/disable_utils_warnings.h>
+#include <cinternal/undisable_compiler_warnings.h>
 
 
 namespace qtutils { namespace ui{ namespace treeview{

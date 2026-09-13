@@ -7,9 +7,11 @@
 
 #include <qtutils/ui/passwordbox.hpp>
 #include <qtutils/ui/global_functions.hpp>
+#include <cinternal/disable_compiler_warnings.h>
 #include <qtutils/disable_utils_warnings.h>
 #include <QLabel>
 #include <QMouseEvent>
+#include <cinternal/undisable_compiler_warnings.h>
 
 
 namespace qtutils { namespace ui{
