@@ -12,6 +12,8 @@ include ( "$${PWD}/../../common/common_qt/flagsandsys_common.pri" )
 include ( "$${qtutilsRepoRoot}/prj/common/common_qt/use_qtkeychain_cmn_no_source.pri" )
 DESTDIR = "$${ArifactFinal}/test"
 
+DEFINES += QTUTILS_HTTP_SERVER_TOOLS
+
 QT += sql
 QT += widgets
 QT += network

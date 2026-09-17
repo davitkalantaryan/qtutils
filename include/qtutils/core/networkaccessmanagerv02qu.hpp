@@ -16,6 +16,9 @@
 #include <QNetworkRequest>
 #include <QNetworkReply>
 #include <QNetworkAccessManager>
+#ifdef QTUTILS_HTTP_SERVER_TOOLS
+#include <QHttpServerRequest>
+#endif
 #include <cinternal/undisable_compiler_warnings.h>
 
 
