@@ -352,6 +352,7 @@ AccessManager_p::AccessManager_p()
 
 Reply_p::~Reply_p()
 {
+    DisconnectAllConnectionsInline();
     QuCoreNetReplyArgV02_p* const pShrdMem = m_finishArg.m_data_p;
     m_finishArg.m_data_p = nullptr;
     delete pShrdMem;
@@ -621,9 +622,15 @@ QTUTILS_EXPORT QByteArray HttpRequestMethodToByteArray(const QHttpServerRequest:
 bool QuCoreNetReplyArgV02_p::Reset() noexcept
 {
     if((--(m_count))<1){
-        delete m_pReply;
-        m_pReply = nullptr;
-        return true;
+        if(m_pReply){
+            ::qtutils::core::network::Reply* const pReply = m_pReply;
+            m_pReply = nullptr;
+            pReply->deleteLater();
+            return true;
+        }
+
+        //delete m_pReply;
+        //return true;
     }
     return false;
 }
