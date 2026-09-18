@@ -627,11 +627,8 @@ bool QuCoreNetReplyArgV02_p::Reset() noexcept
             m_pReply = nullptr;
             pReply->deleteLater();
             return true;
-        }
-
-        //delete m_pReply;
-        //return true;
-    }
+        }  //  if(m_pReply){
+    }  //  if((--(m_count))<1){
     return false;
 }
 
