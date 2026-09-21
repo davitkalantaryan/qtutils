@@ -88,6 +88,7 @@ private:
     Reply& operator=(const Reply&) = delete;
     Reply& operator=(Reply&&) = delete;
     friend class AccessManager;
+    friend class QuCoreNetReplyArgV02_p;
 };
 
 

@@ -87,7 +87,6 @@ public:
     const int                       m_timeoutMs;
     QMetaObject::Connection         m_connFinished;
     QMetaObject::Connection         m_connTimeout;
-    QMetaObject::Connection         m_connDestroy;
     QTimer                          m_timeoutTimer;
     Reply_p                         *m_prev, *m_next;
     CPPUTILS_BISTATE_FLAGS_UN(
@@ -95,7 +94,8 @@ public:
         abortOrFinishCalled,
         finishEmitted,
         blockExit,
-        hasRealFinish
+        hasRealFinish,
+        cleanDone
     )m_flagsBS;
 
 public:
@@ -106,6 +106,7 @@ public:
     inline void EmitFinishedInline();
     inline void AbortInline();
     inline void ResetInline() noexcept;
+    inline void CleanDataInline() noexcept;
 
 private:
     Reply_p(const Reply_p&)=delete;
@@ -152,7 +153,6 @@ static inline void DisconnectMetaConnectionInline(QMetaObject::Connection* CPPUT
 
 
 inline void Reply_p::DisconnectAllConnectionsInline(){
-    DisconnectMetaConnectionInline(&m_connDestroy);
     DisconnectMetaConnectionInline(&m_connTimeout);
     DisconnectMetaConnectionInline(&m_connFinished);
 }
@@ -179,6 +179,39 @@ inline void Reply_p::ResetInline() noexcept
     QuCoreNetReplyArgV02_p* const pShrdPtr = m_finishArg.m_data_p;
     if(pShrdPtr){
         pShrdPtr->Reset();
+    }
+}
+
+
+inline void Reply_p::CleanDataInline() noexcept
+{
+    if(m_flagsBS.rd.cleanDone_true){
+        return;
+    }
+    m_flagsBS.wr.cleanDone = CPPUTILS_BISTATE_MAKE_BITS_TRUE;
+
+    DisconnectAllConnectionsInline();
+    QuCoreNetReplyArgV02_p* const pShrdMem = m_finishArg.m_data_p;
+    m_finishArg.m_data_p = nullptr;
+    delete pShrdMem;
+    if(m_prev){
+        m_prev->m_next = this->m_next;
+    }
+    else{
+        // if tehre is no previous, then this one is teh first
+        m_pParentAccessMngr->m_pFirst = m_next;
+    }
+    if(m_next){
+        m_next->m_prev = this->m_prev;
+    }
+    else{
+        // this is last one
+        m_pParentAccessMngr->m_pLast = this->m_prev;
+    }
+    delete m_pQtNetReply;
+    if(m_pParentAccessMngr->m_flagsBS.rd.quitOngoing_true){
+        NetStopEvent* const pStpEvnt = new NetStopEvent();
+        QCoreApplication::postEvent(&(m_pParentAccessMngr->m_finalLoop),pStpEvnt);
     }
 }
 
@@ -352,29 +385,7 @@ AccessManager_p::AccessManager_p()
 
 Reply_p::~Reply_p()
 {
-    DisconnectAllConnectionsInline();
-    QuCoreNetReplyArgV02_p* const pShrdMem = m_finishArg.m_data_p;
-    m_finishArg.m_data_p = nullptr;
-    delete pShrdMem;
-    if(m_prev){
-        m_prev->m_next = this->m_next;
-    }
-    else{
-        // if tehre is no previous, then this one is teh first
-        m_pParentAccessMngr->m_pFirst = m_next;
-    }
-    if(m_next){
-        m_next->m_prev = this->m_prev;
-    }
-    else{
-        // this is last one
-        m_pParentAccessMngr->m_pLast = this->m_prev;
-    }
-    delete m_pQtNetReply;
-    if(m_pParentAccessMngr->m_flagsBS.rd.quitOngoing_true){
-        NetStopEvent* const pStpEvnt = new NetStopEvent();
-        QCoreApplication::postEvent(&(m_pParentAccessMngr->m_finalLoop),pStpEvnt);
-    }
+    CleanDataInline();
 }
 
 
@@ -396,19 +407,6 @@ Reply_p::Reply_p(Reply* CPPUTILS_ARG_NN a_pParent,AccessManager_p* CPPUTILS_ARG_
     }
     m_prev = m_pParentAccessMngr->m_pLast;
     m_pParentAccessMngr->m_pLast = this;
-
-    m_connDestroy = QObject::connect(m_pQtNetReply,&QObject::destroyed,m_pParent,[this](){
-        const RaiiDeleter aDltr([this](){
-            ResetInline();
-        });
-        m_pQtNetReply = nullptr;
-        m_flagsBS.wr.blockExit = CPPUTILS_BISTATE_MAKE_BITS_FALSE;
-        DisconnectAllConnectionsInline();
-        if(m_timeoutTimer.isActive()){
-            m_timeoutTimer.stop();
-        }
-        EmitFinishedInline();
-    });
 
     m_connFinished = ::QObject::connect(m_pQtNetReply,&QNetworkReply::finished,m_pParent,[this](){
         const RaiiDeleter aDltr([this](){
@@ -625,6 +623,7 @@ bool QuCoreNetReplyArgV02_p::Reset() noexcept
         if(m_pReply){
             ::qtutils::core::network::Reply* const pReply = m_pReply;
             m_pReply = nullptr;
+            pReply->m_data_p->CleanDataInline();
             pReply->deleteLater();
             return true;
         }  //  if(m_pReply){
