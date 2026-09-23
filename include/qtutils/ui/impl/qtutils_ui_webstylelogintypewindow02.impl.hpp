@@ -29,7 +29,7 @@ WebStyleLoginTypeWindow02<WidgetType,ParentWidgetType>::WebStyleLoginTypeWindow0
     QWidget* pParent = m_ltWnd.parentWidget();
     m_bHasSizeHint = false;
     m_ltWnd.setParent(this);
-    ::qtutils::ui::ResizibleWindowRaw<ParentWidgetType>::setParent(pParent);
+    ::qtutils::ui::ResizibleWindow<ParentWidgetType>::setParent(pParent);
 }
 
 
@@ -37,12 +37,12 @@ template <typename WidgetType, typename ParentWidgetType>
 template<typename... Targs>
 WebStyleLoginTypeWindow02<WidgetType,ParentWidgetType>::WebStyleLoginTypeWindow02(double,Targs... a_args)
     :
-      ::qtutils::ui::ResizibleWindowRaw<ParentWidgetType>(a_args...)
+      ::qtutils::ui::ResizibleWindow<ParentWidgetType>(a_args...)
 {
     QWidget* pParent = m_ltWnd.parentWidget();
     m_bHasSizeHint = false;
     m_ltWnd.setParent(this);
-    ::qtutils::ui::ResizibleWindowRaw<ParentWidgetType>::setParent(pParent);
+    ::qtutils::ui::ResizibleWindow<ParentWidgetType>::setParent(pParent);
 }
 
 
@@ -76,7 +76,7 @@ void WebStyleLoginTypeWindow02<WidgetType,ParentWidgetType>::MakeSizeHint()
     const QSize childSizeHint = m_bHasSizeHint?m_ltwSizeHint:m_ltWnd.sizeHint();
     //::qtutils::ui::ResizibleWindowRaw<ParentWidgetType>::setMinimumHeight(childSizeHint.height()+2*QTUTILS_WS_LT_UPPER_MARGIN02);
     //::qtutils::ui::ResizibleWindowRaw<ParentWidgetType>::setMinimumWidth(childSizeHint.width()+2);
-    ::qtutils::ui::ResizibleWindowRaw<ParentWidgetType>::setMinimumSize(childSizeHint);
+    ::qtutils::ui::ResizibleWindow<ParentWidgetType>::setMinimumSize(childSizeHint);
     m_ltWnd.setFixedSize(childSizeHint);
 }
 
@@ -101,7 +101,7 @@ void WebStyleLoginTypeWindow02<WidgetType,ParentWidgetType>::UnuseSizeHint()
 template <typename WidgetType, typename ParentWidgetType>
 void WebStyleLoginTypeWindow02<WidgetType,ParentWidgetType>::resizeEvent(QResizeEvent* a_event)
 {
-    ::qtutils::ui::ResizibleWindowRaw<ParentWidgetType>::resizeEvent(a_event);
+    ::qtutils::ui::ResizibleWindow<ParentWidgetType>::resizeEvent(a_event);
 	
 	int nMoveX=0,nMoveY=0;
     const QSize ltwSizeHint = m_bHasSizeHint?m_ltwSizeHint:m_ltWnd.sizeHint();

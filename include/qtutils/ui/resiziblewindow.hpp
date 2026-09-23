@@ -37,10 +37,10 @@ class ResizibleWindow : public WidgetType
 public:
 	template<typename... Targs>
     ResizibleWindow(Targs... a_args);
-    virtual ~ResizibleWindow() override;
+    virtual ~ResizibleWindow() override = default;
     
-    const QString& settingsKey()const;
-    void Init();
+    const QString& settingsKey()const noexcept;
+    void show();
 	    
 protected:
     virtual void showEvent(QShowEvent *event) override;
@@ -48,30 +48,19 @@ protected:
 	virtual void hideEvent(QHideEvent *event) override;
 	
 private:
-	inline void HideCloseEvent();
-    inline bool InitAndShowBase();
-    inline void InitInline();
+    inline void saveSizesInline() const;
+    inline bool LoadSizesBecauseOfFirstShowCallInline(bool a_bFromShow);
 	
 protected:
-	static uint64_t	sn_numberOfInstances;
+    static uint64_t	sm_numberOfInstances;
+public:
+    const uint64_t  m_instanceNumber;
+private:
 	QString		m_settingsKey;
-    union{
-        uint64_t all;
-        struct{
-			uint64_t  instanceNumber : 16;
-            uint64_t  hideCalled : 1;
-            uint64_t  hideNotCalled : 1;
-			uint64_t  initCalled : 1;
-            uint64_t  initNotCalled : 1;
-            uint64_t  reserved01 : 44;
-        }b;
-        struct{
-			uint64_t  instanceNumber : 16;
-            uint64_t  hideCalledOrNot : 2;
-			uint64_t  initCalledOrNot : 2;
-            uint64_t  reserved01 : 44;
-        }b2;
-    }m_flags;
+    CPPUTILS_BISTATE_FLAGS_UN(
+        loadSizesCalled,
+        hasCloseAfterShow
+    )m_flags;
 };
 
 

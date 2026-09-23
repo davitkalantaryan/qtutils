@@ -33,7 +33,7 @@ void LoginTypeWindow<WidgetType>::InitRaw()
 template <typename WidgetType>
 void LoginTypeWindow<WidgetType>::MakeSizeHint()
 {
-    ResizibleWindowRaw<WidgetType>::setFixedSize(ResizibleWindowRaw<WidgetType>::sizeHint());
+    ResizibleWindow<WidgetType>::setFixedSize(ResizibleWindow<WidgetType>::sizeHint());
 }
 
 #endif

@@ -34,14 +34,14 @@ using LoginTypeWindow = WebStyleLoginTypeWindow<WidgetType>;
 #define QTUTILS_LOGIN_WND_PARENT(_lw)     (_lw)
 #define QTUTILS_LOGIN_WND_WIDGETC(_lw)    (_lw)
 template <typename WidgetType >
-class LoginTypeWindow : public ResizibleWindowRaw<WidgetType>
+class LoginTypeWindow : public ResizibleWindow<WidgetType>
 {
 public:
-    using ResizibleWindowRaw<WidgetType>::ResizibleWindowRaw;
+    using ResizibleWindow<WidgetType>::ResizibleWindowRaw;
     virtual ~LoginTypeWindow() override;
     void MakeSizeHint();
 protected:
-	virtual void InitRaw() override;
+    virtual void InitRaw();
 };
 
 #endif

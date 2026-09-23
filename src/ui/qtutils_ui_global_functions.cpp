@@ -9,6 +9,11 @@
 #if defined(CPPUTILS_EMSCRIPTEN_IS_USED) || defined(QTUTILS_UI_FORCE_WEB_STYLE)
 #include <qtutils/ui/webdialog.hpp>
 #endif
+#include <cinternal/disable_compiler_warnings.h>
+#include <qtutils/disable_utils_warnings.h>
+#include <QGuiApplication>
+#include <QList>
+#include <cinternal/undisable_compiler_warnings.h>
 
 
 namespace qtutils { namespace ui{
@@ -58,6 +63,14 @@ QTUTILS_EXPORT void ShowMessageBox(const QMessageBox::Icon& a_icon, const QStrin
     QMessageBox aMessageBox(a_icon,a_title,a_text,a_buttons,a_pParent);
     aMessageBox.exec();
 #endif
+}
+
+
+QTUTILS_EXPORT QScreen* ScreenOfWidgetPoint(const QWidget& a_widget, const QPoint& a_point)
+{
+    const QWidget* const parent_p = a_widget.parentWidget();
+    const QPoint globalPoint = parent_p ? parent_p->mapToGlobal(a_point) : a_point;
+    return QGuiApplication::screenAt(globalPoint);
 }
 
 
