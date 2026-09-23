@@ -57,10 +57,12 @@ public:
     const uint64_t  m_instanceNumber;
 private:
 	QString		m_settingsKey;
-    CPPUTILS_BISTATE_FLAGS_UN(
+    CPPUTILS_BISTATE_FLAGS_UN_NM(
+        Flags,
         loadSizesCalled,
         hasCloseAfterShow
-    )m_flags;
+    );
+    mutable Flags m_flags;
 };
 
 

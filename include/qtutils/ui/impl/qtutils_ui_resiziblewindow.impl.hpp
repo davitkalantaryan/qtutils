@@ -19,6 +19,7 @@
 #include <qtutils/core/logger.hpp>
 #endif
 
+#include <qtutils/ui/global_functions.hpp>
 #include <cinternal/disable_compiler_warnings.h>
 #include <typeinfo>
 #include <qtutils/disable_utils_warnings.h>
