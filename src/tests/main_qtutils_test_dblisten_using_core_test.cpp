@@ -138,8 +138,23 @@ void DbListenThread::run()
         return;
     }
 
-    SDbChangeSbscription* const pSubscrbRes = SubscribeForPsqlDbChange01(*db_p,[](const QString& a_name, QSqlDriver::NotificationSource a_source, const QVariant& a_payload){
-        QtUtilsDebug().noquote().nospace()<<"a_name:"<<a_name<<",a_source:"<<a_source<<",a_payload:"<<a_payload;
+    SDbChangeSbscription* const pSubscrbRes = SubscribeForPsqlDbChange01(*db_p,[](const QString& a_tableName, const DbChngOp& a_chngType, int a_id){
+        const char* cpcOpType;
+        switch(a_chngType){
+        case DbChngOp::Insert:
+            cpcOpType = "Insert";
+            break;
+        case DbChngOp::Update:
+            cpcOpType = "Update";
+            break;
+        case DbChngOp::Delete:
+            cpcOpType = "Delete";
+            break;
+        default:
+            cpcOpType = "Unknown";
+            break;
+        }  //  switch(a_chngType){
+        QtUtilsDebug().noquote().nospace()<<"a_tableName:"<<a_tableName<<",op:"<<cpcOpType<<",a_id:"<<a_id;
     });
 
     if(!pSubscrbRes){

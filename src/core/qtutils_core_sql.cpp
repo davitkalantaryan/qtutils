@@ -14,6 +14,9 @@
 #include <QMessageLogger>
 #include <QVariantList>
 #include <QVariant>
+#include <QSqlDriver>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <cinternal/undisable_compiler_warnings.h>
 
 
@@ -177,7 +180,6 @@ QTUTILS_EXPORT void DropTriggerForPsqlDbChange01(QSqlQuery* CPPUTILS_ARG_NN a_qr
 
 QTUTILS_EXPORT SDbChangeSbscription* SubscribeForPsqlDbChange01(const QSqlDatabase& a_db, const TypeDbChnglbk& a_clbk)
 {
-    // /
     QSqlDriver* const driver = a_db.driver();
     if(driver){
         if(driver->subscribeToNotification(QTUTILS_SQL_NOTY01_NAME)){
@@ -186,8 +188,28 @@ QTUTILS_EXPORT SDbChangeSbscription* SubscribeForPsqlDbChange01(const QSqlDataba
             pRetData->driver = driver;
             pRetData->clbk = a_clbk;
             QObject::connect(driver,&QSqlDriver::notification,driver,[pRetData](const QString& a_name, QSqlDriver::NotificationSource a_source, const QVariant& a_payload){
-                (pRetData->clbk)(a_name,a_source,a_payload);
-            });
+                if(a_name.compare(QTUTILS_SQL_NOTY01_NAME,Qt::CaseInsensitive)==0){
+                    const QJsonDocument payloadJsonDoc = QJsonDocument::fromJson(a_payload.toString().toUtf8());
+                    const QJsonObject payloadJsonObj = payloadJsonDoc.object();
+                    const int id = payloadJsonObj.value("id").toInt();
+                    const QString tableName = payloadJsonObj.value("table").toString();
+                    const QString dbOp = payloadJsonObj.value("operation").toString();
+                    if(dbOp.compare("INSERT",Qt::CaseInsensitive)==0){
+                        (pRetData->clbk)(tableName,DbChngOp::Insert,id);
+                    }
+                    else if(dbOp.compare("UPDATE",Qt::CaseInsensitive)==0){
+                        (pRetData->clbk)(tableName,DbChngOp::Update,id);
+                    }
+                    else if(dbOp.compare("DELETE",Qt::CaseInsensitive)==0){
+                        (pRetData->clbk)(tableName,DbChngOp::Delete,id);
+                    }
+                    else{
+                        // maybe logging?
+                        (void)a_source;
+                        (pRetData->clbk)(tableName,DbChngOp::Unknown,id);
+                    }
+                }  //  if(a_name.compare(QTUTILS_SQL_NOTY01_NAME,Qt::CaseInsensitive)==0){
+            });  //  QObject::connect(...)
             return pRetData;
         }  //  if(driver->subscribeToNotification(QTUTILS_SQL_NOTY01_NAME)){
     }  //  if(driver){

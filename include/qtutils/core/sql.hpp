@@ -15,7 +15,6 @@
 #include <QString>
 #include <QSqlQuery>
 #include <QSqlDatabase>
-#include <QSqlDriver>
 #include <cinternal/undisable_compiler_warnings.h>
 
 
@@ -27,7 +26,15 @@ namespace qtutils { namespace core{ namespace sql{
 #define qtutilsCoreSqlPrintErrorStatSmplM(_db)  qtutilsCoreSqlPrintErrorStatM((_db),"")
 
 
-typedef ::std::function<void(const QString& a_name, QSqlDriver::NotificationSource a_source, const QVariant& a_payload)>    TypeDbChnglbk;
+enum class DbChngOp{
+    None,
+    Unknown,
+    Insert,
+    Update,
+    Delete
+};
+
+typedef ::std::function<void(const QString& a_tableName, const DbChngOp& a_chngType, int a_id)>    TypeDbChnglbk;
 struct SDbChangeSbscription;
 
 
