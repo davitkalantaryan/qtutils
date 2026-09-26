@@ -14,11 +14,19 @@
 #include <QMessageLogger>
 #include <QVariantList>
 #include <QVariant>
-#include <QSqlDriver>
 #include <cinternal/undisable_compiler_warnings.h>
 
 
 namespace qtutils { namespace core{ namespace sql{
+
+
+#define QTUTILS_SQL_NOTY01_NAME     "qtutils_core_sql_psql_notification01"
+
+struct SDbChangeSbscription{
+    QString         subscriptionName;
+    QSqlDriver*     driver;
+    TypeDbChnglbk   clbk;
+};
 
 
 static inline QString QVariantToQStringForSqlInline(const QVariant& a_var){
@@ -29,12 +37,6 @@ static inline QString QVariantToQStringForSqlInline(const QVariant& a_var){
 static inline QString TriggerPsql01NameInline(const QString& a_functionName,const QString& a_tableName){
     const QString triggerName = "qu_trgr_ch01_fn_" +  a_functionName + "_tb_" + a_tableName;
     return triggerName;
-}
-
-
-static inline QString NotificationPsql01NameInline(const QString& a_functionName,const QString& a_tableName){
-    const QString notifName = "qu_noty_ch01_fn_" +  a_functionName + "_tb_" + a_tableName;
-    return notifName;
 }
 
 
@@ -142,50 +144,64 @@ QTUTILS_EXPORT void DropTriggerFunctionForDbChangePsql01(QSqlQuery* CPPUTILS_ARG
 }
 
 
-QTUTILS_EXPORT bool CreateTriggerForPsqlDbChangeAndSubscribe01(const QSqlDatabase& a_db, const QString& a_functionName,const QString& a_tableName)
+QTUTILS_EXPORT bool CreateTriggerForPsqlDbChange01(QSqlQuery* CPPUTILS_ARG_NN a_qry_p, const QString& a_functionName,const QString& a_tableName)
 {
-    QSqlDriver* const driver = a_db.driver();
-    if(driver){
-        QSqlQuery qry(a_db);
-        const QString notifName = NotificationPsql01NameInline(a_functionName,a_tableName);
-        const QString triggerName = TriggerPsql01NameInline(a_functionName,a_tableName);
-        const QString dropTriggerQuery = "DROP TRIGGER IF EXISTS " +triggerName+ " \n" "ON " +a_tableName+ ";";
+    const QString triggerName = TriggerPsql01NameInline(a_functionName,a_tableName);
+    const QString dropTriggerQuery = "DROP TRIGGER IF EXISTS " +triggerName+ " \n" "ON " +a_tableName+ ";";
 
-        if(!qry.exec(dropTriggerQuery)){
-            return false;
-        }
+    if(!a_qry_p->exec(dropTriggerQuery)){
+        return false;
+    }
 
-        const QString queryStr =
-            "CREATE TRIGGER " +triggerName+ " \n"
-            "AFTER INSERT OR UPDATE OR DELETE \n"
-            "ON " +a_tableName+ " \n"
-            "FOR EACH ROW \n"
-            "EXECUTE FUNCTION " +a_functionName+ "('" +notifName+ "');";
-        if(!qry.exec(queryStr)){
-            return false;
-        }
+    const QString queryStr =
+        "CREATE TRIGGER " +triggerName+ " \n"
+         "AFTER INSERT OR UPDATE OR DELETE \n"
+         "ON " +a_tableName+ " \n"
+         "FOR EACH ROW \n"
+         "EXECUTE FUNCTION " +a_functionName+ "('" QTUTILS_SQL_NOTY01_NAME "');";
+    if(!a_qry_p->exec(queryStr)){
+        return false;
+    }
 
-        if(!(driver->subscribeToNotification(notifName))){
-            qry.exec(dropTriggerQuery);
-            return false;
-        }
-        return true;
-    }  //  if(driver){
-    return false;
+    return true;
 }
 
 
-QTUTILS_EXPORT void UnsuscribeAndDropTriggerForPsqlDbChange01(const QSqlDatabase& a_db, const QString& a_functionName,const QString& a_tableName)
+QTUTILS_EXPORT void DropTriggerForPsqlDbChange01(QSqlQuery* CPPUTILS_ARG_NN a_qry_p, const QString& a_functionName,const QString& a_tableName)
 {
+    const QString triggerName = TriggerPsql01NameInline(a_functionName,a_tableName);
+    const QString dropTriggerQuery = "DROP TRIGGER IF EXISTS " +triggerName+ " \n" "ON " +a_tableName+ ";";
+    a_qry_p->exec(dropTriggerQuery);
+}
+
+
+QTUTILS_EXPORT SDbChangeSbscription* SubscribeForPsqlDbChange01(const QSqlDatabase& a_db, const TypeDbChnglbk& a_clbk)
+{
+    // /
     QSqlDriver* const driver = a_db.driver();
     if(driver){
-        QSqlQuery qry(a_db);
-        const QString notifName = NotificationPsql01NameInline(a_functionName,a_tableName);
-        const QString triggerName = TriggerPsql01NameInline(a_functionName,a_tableName);
-        const QString dropTriggerQuery = "DROP TRIGGER IF EXISTS " +triggerName+ " \n" "ON " +a_tableName+ ";";
-        driver->unsubscribeFromNotification(notifName);
-        qry.exec(dropTriggerQuery);
+        if(driver->subscribeToNotification(QTUTILS_SQL_NOTY01_NAME)){
+            SDbChangeSbscription* const pRetData = new SDbChangeSbscription();
+            pRetData->subscriptionName = QTUTILS_SQL_NOTY01_NAME;
+            pRetData->driver = driver;
+            pRetData->clbk = a_clbk;
+            QObject::connect(driver,&QSqlDriver::notification,driver,[pRetData](const QString& a_name, QSqlDriver::NotificationSource a_source, const QVariant& a_payload){
+                (pRetData->clbk)(a_name,a_source,a_payload);
+            });
+            return pRetData;
+        }  //  if(driver->subscribeToNotification(QTUTILS_SQL_NOTY01_NAME)){
     }  //  if(driver){
+
+    return nullptr;
+}
+
+
+QTUTILS_EXPORT void UnsubscribeFromPsqlDbChange(SDbChangeSbscription* a_subscrpStr_p)
+{
+    if(a_subscrpStr_p){
+        a_subscrpStr_p->driver->unsubscribeFromNotification(a_subscrpStr_p->subscriptionName);
+        delete a_subscrpStr_p;
+    }
 }
 
 

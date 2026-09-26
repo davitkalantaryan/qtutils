@@ -16,9 +16,6 @@
 #include <qtutils/disable_utils_warnings.h>
 #include <QCoreApplication>
 #include <QThread>
-#include <QSqlDatabase>
-#include <QSqlQuery>
-#include <QSqlDriver>
 #include <cinternal/undisable_compiler_warnings.h>
 
 
@@ -118,7 +115,7 @@ void DbListenThread::run()
         return;
     }
 
-    if(!CreateTriggerForPsqlDbChangeAndSubscribe01(*db_p,QTUTILS_SQL_NOTY_TEST_FUNCTION01_ON_PSQL_CHANGE,"bu_settings")){
+    if(!CreateTriggerForPsqlDbChange01(qry_p,QTUTILS_SQL_NOTY_TEST_FUNCTION01_ON_PSQL_CHANGE,"bu_settings")){
         DropTriggerFunctionForDbChangePsql01(qry_p,QTUTILS_SQL_NOTY_TEST_FUNCTION01_ON_PSQL_CHANGE);
         delete qry_p;
         db_p->close();
@@ -129,8 +126,8 @@ void DbListenThread::run()
         return;
     }
 
-    if(!CreateTriggerForPsqlDbChangeAndSubscribe01(*db_p,QTUTILS_SQL_NOTY_TEST_FUNCTION01_ON_PSQL_CHANGE,"access_code")){
-        UnsuscribeAndDropTriggerForPsqlDbChange01(*db_p,QTUTILS_SQL_NOTY_TEST_FUNCTION01_ON_PSQL_CHANGE,"bu_settings");
+    if(!CreateTriggerForPsqlDbChange01(qry_p,QTUTILS_SQL_NOTY_TEST_FUNCTION01_ON_PSQL_CHANGE,"access_code")){
+        DropTriggerForPsqlDbChange01(qry_p,QTUTILS_SQL_NOTY_TEST_FUNCTION01_ON_PSQL_CHANGE,"bu_settings");
         DropTriggerFunctionForDbChangePsql01(qry_p,QTUTILS_SQL_NOTY_TEST_FUNCTION01_ON_PSQL_CHANGE);
         delete qry_p;
         db_p->close();
@@ -141,10 +138,13 @@ void DbListenThread::run()
         return;
     }
 
-    QSqlDriver* const driver = db_p->driver();
-    if(!driver){
-        UnsuscribeAndDropTriggerForPsqlDbChange01(*db_p,QTUTILS_SQL_NOTY_TEST_FUNCTION01_ON_PSQL_CHANGE,"access_code");
-        UnsuscribeAndDropTriggerForPsqlDbChange01(*db_p,QTUTILS_SQL_NOTY_TEST_FUNCTION01_ON_PSQL_CHANGE,"bu_settings");
+    SDbChangeSbscription* const pSubscrbRes = SubscribeForPsqlDbChange01(*db_p,[](const QString& a_name, QSqlDriver::NotificationSource a_source, const QVariant& a_payload){
+        QtUtilsDebug().noquote().nospace()<<"a_name:"<<a_name<<",a_source:"<<a_source<<",a_payload:"<<a_payload;
+    });
+
+    if(!pSubscrbRes){
+        DropTriggerForPsqlDbChange01(qry_p,QTUTILS_SQL_NOTY_TEST_FUNCTION01_ON_PSQL_CHANGE,"access_code");
+        DropTriggerForPsqlDbChange01(qry_p,QTUTILS_SQL_NOTY_TEST_FUNCTION01_ON_PSQL_CHANGE,"bu_settings");
         DropTriggerFunctionForDbChangePsql01(qry_p,QTUTILS_SQL_NOTY_TEST_FUNCTION01_ON_PSQL_CHANGE);
         delete qry_p;
         db_p->close();
@@ -157,18 +157,14 @@ void DbListenThread::run()
 
     delete qry_p;
 
-    QObject dmObj;
-    QObject::connect(driver,&QSqlDriver::notification,&dmObj,[](const QString& a_name, QSqlDriver::NotificationSource a_source, const QVariant& a_payload){
-        QtUtilsDebug().noquote().nospace()<<"a_name:"<<a_name<<",a_source:"<<a_source<<",a_payload:"<<a_payload;
-    });
-
     QtUtilsInfoV()<<"Listener started. Press Ctrl+C to stop";
 
     QThread::run();
 
+    UnsubscribeFromPsqlDbChange(pSubscrbRes);
     QSqlQuery* const qryFnl_p = new QSqlQuery(*db_p);
-    UnsuscribeAndDropTriggerForPsqlDbChange01(*db_p,QTUTILS_SQL_NOTY_TEST_FUNCTION01_ON_PSQL_CHANGE,"access_code");
-    UnsuscribeAndDropTriggerForPsqlDbChange01(*db_p,QTUTILS_SQL_NOTY_TEST_FUNCTION01_ON_PSQL_CHANGE,"bu_settings");
+    DropTriggerForPsqlDbChange01(qryFnl_p,QTUTILS_SQL_NOTY_TEST_FUNCTION01_ON_PSQL_CHANGE,"access_code");
+    DropTriggerForPsqlDbChange01(qryFnl_p,QTUTILS_SQL_NOTY_TEST_FUNCTION01_ON_PSQL_CHANGE,"bu_settings");
     DropTriggerFunctionForDbChangePsql01(qryFnl_p,QTUTILS_SQL_NOTY_TEST_FUNCTION01_ON_PSQL_CHANGE);
     delete qryFnl_p;
     db_p->close();
