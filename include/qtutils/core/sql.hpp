@@ -27,6 +27,10 @@ namespace qtutils { namespace core{ namespace sql{
 
 QTUTILS_EXPORT void PrintErrorStatF(const QSqlDatabase& a_db, const QString& a_extraText, const char* a_file, int a_line, const char* a_func);
 QTUTILS_EXPORT QString GetLastSqlQuery(const QSqlQuery& a_qry);
+QTUTILS_EXPORT bool CreateTriggerFunctionForDbChangePsql01(QSqlQuery* CPPUTILS_ARG_NN a_qry_p, const QString& a_functionName);
+QTUTILS_EXPORT void DropTriggerFunctionForDbChangePsql01(QSqlQuery* CPPUTILS_ARG_NN a_qry_p, const QString& a_functionName);
+QTUTILS_EXPORT bool CreateTriggerForPsqlDbChangeAndSubscribe01(const QSqlDatabase& a_db, const QString& a_functionName,const QString& a_tableName);
+QTUTILS_EXPORT void UnsuscribeAndDropTriggerForPsqlDbChange01(const QSqlDatabase& a_db, const QString& a_functionName,const QString& a_tableName);
 
 
 
