@@ -13,15 +13,17 @@
 
 #include <qtutils/export_symbols.h>
 #include <qtutils/ui/resiziblewindow.hpp>
+#include <cinternal/disable_compiler_warnings.h>
 #include <type_traits>
 #include <qtutils/disable_utils_warnings.h>
 #include <QWidget>
+#include <cinternal/undisable_compiler_warnings.h>
 
 
 namespace qtutils { namespace ui{
 
 template <typename WidgetType>
-class WebStyleLoginTypeWindow : public ::qtutils::ui::ResizibleWindowRaw<QWidget>
+class WebStyleLoginTypeWindow : public ::qtutils::ui::ResizibleWindow<QWidget>
 {
     static_assert( ::std::is_base_of<QWidget,WidgetType>(), "WidgetType should be child of QWidget" );
 public:
@@ -30,7 +32,7 @@ public:
     virtual ~WebStyleLoginTypeWindow() override;
     WidgetType* childWdg();
     
-    virtual void InitRaw() override;
+    virtual void InitRaw();
     void MakeSizeHint();
 	
 protected:
@@ -44,7 +46,7 @@ protected:
 
 
 #ifndef QTUTILS_INCLUDE_WEBSTYLELOGINTYPEWINDOW_IMPL_HPP
-#include "webstylelogintypewindow.impl.hpp"
+#include <qtutils/ui/impl/qtutils_ui_webstylelogintypewindow.impl.hpp>
 #endif
 
 

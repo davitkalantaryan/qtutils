@@ -6,6 +6,7 @@
 //
 
 #include <qtutils/export_symbols.h>
+#include <cinternal/disable_compiler_warnings.h>
 #include <qtutils/disable_utils_warnings.h>
 #include <qglobal.h>
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
@@ -13,6 +14,7 @@
 #else
 #include <QEnterEvent>
 #endif
+#include <cinternal/undisable_compiler_warnings.h>
 
 
 namespace qtutils { namespace ui{

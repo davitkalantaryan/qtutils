@@ -12,9 +12,11 @@
 
 
 #include <qtutils/export_symbols.h>
+#include <cinternal/disable_compiler_warnings.h>
 #include <type_traits>
 #include <qtutils/disable_utils_warnings.h>
 #include <QDialog>
+#include <cinternal/undisable_compiler_warnings.h>
 
 
 namespace qtutils { namespace ui{
@@ -37,7 +39,7 @@ protected:
 
 
 #ifndef QTUTILS_INCLUDE_QTUTILS_UI_WEBDIALOG_IMPL_HPP
-#include "webdialog.impl.hpp"
+#include <qtutils/ui/impl/qtutils_ui_webdialog.impl.hpp>
 #endif
 
 

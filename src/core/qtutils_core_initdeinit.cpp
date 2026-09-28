@@ -11,7 +11,7 @@
 #ifndef QTUTILS_NOT_USE_INITDEINIT
 
 
-namespace qtutils{
+namespace qtutils{ namespace core{
 
 static void StaticDestruct(void*){}
 
@@ -81,7 +81,7 @@ InitDeinit_p::InitDeinit_p(const InitDeinit::TypeDestruct& a_destruct, void* a_p
 {
 }
 
-}  // namespace qtutils{
+}}  //  namespace qtutils{ namespace core{
 
 
 #endif  // #ifndef QTUTILS_NOT_USE_INITDEINIT

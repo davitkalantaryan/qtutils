@@ -14,7 +14,7 @@
 #include <qtutils/disable_utils_warnings.h>
 #include <QObject>
 
-namespace qtutils {
+namespace qtutils { namespace core{
 
 
 template<typename... Targs>
@@ -22,11 +22,11 @@ bool invokeMethodBlocked(QObject* a_pObj, const ::std::function<void(Targs...)>&
 QTUTILS_EXPORT bool invokeMethodBlocked(QObject* a_pObj, const ::std::function<void(void)>& a_fnc);
 
 
-}  // namespace qtutils {
+}}  //  namespace qtutils { namespace core{
 
 
 #ifndef QTUTILS_INCLUDE_QTUTILS_CORE_INVOKEBLOCKED_IMPL_HPP
-#include "invokeblocked.impl.hpp"
+#include <qtutils/core/impl/qtutils_core_invokeblocked.impl.hpp>
 #endif
 
 

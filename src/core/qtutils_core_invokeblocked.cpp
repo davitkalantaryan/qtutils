@@ -12,7 +12,9 @@
 #include <QThread>
 #include <cinternal/undisable_compiler_warnings.h>
 
-namespace qtutils {
+
+namespace qtutils { namespace core{
+
 
 QTUTILS_EXPORT bool invokeMethodBlocked(QObject* a_pObj, const ::std::function<void(void)>& a_fnc)
 {
@@ -29,4 +31,4 @@ QTUTILS_EXPORT bool invokeMethodBlocked(QObject* a_pObj, const ::std::function<v
 }
 
 
-}  // namespace qtutils {
+}}  //  namespace qtutils { namespace core{

@@ -13,6 +13,7 @@
 
 #include <qtutils/export_symbols.h>
 #include <cinternal/bistateflags.h>
+#include <cinternal/disable_compiler_warnings.h>
 #include <stdint.h>
 #include <qtutils/disable_utils_warnings.h>
 #include <QCloseEvent>
@@ -20,6 +21,8 @@
 #include <QMoveEvent>
 #include <QResizeEvent>
 #include <QShowEvent>
+#include <cinternal/undisable_compiler_warnings.h>
+
 
 namespace qtutils { namespace ui{
 
@@ -29,16 +32,15 @@ namespace qtutils { namespace ui{
 
 
 template <typename WidgetType>
-class ResizibleWindowRaw : public WidgetType
+class ResizibleWindow : public WidgetType
 {    
 public:
 	template<typename... Targs>
-    ResizibleWindowRaw(Targs... a_args);
-    virtual ~ResizibleWindowRaw() override;
+    ResizibleWindow(Targs... a_args);
+    virtual ~ResizibleWindow() override = default;
     
-    const QString& settingsKey()const;
-    virtual void InitAndShow() QTUTILS_RSZ_WND_INIT_AND_SHOW_OVERRIDE;
-	void Init2(); 
+    const QString& settingsKey()const noexcept;
+    void show();
 	    
 protected:
     virtual void showEvent(QShowEvent *event) override;
@@ -46,43 +48,21 @@ protected:
 	virtual void hideEvent(QHideEvent *event) override;
 	
 private:
-	inline void HideCloseEvent();
-    inline bool InitAndShowBase();
-	virtual void InitRaw();
+    inline void saveSizesInline() const;
+    inline bool LoadSizesBecauseOfFirstShowCallInline(bool a_bFromShow);
 	
 protected:
-	static uint64_t	sn_numberOfInstances;
-	QString		m_settingsKey;
-    union{
-        uint64_t all;
-        struct{
-			uint64_t  instanceNumber : 16;
-            uint64_t  hideCalled : 1;
-            uint64_t  hideNotCalled : 1;
-			uint64_t  initCalled : 1;
-            uint64_t  initNotCalled : 1;
-            uint64_t  reserved01 : 44;
-        }b;
-        struct{
-			uint64_t  instanceNumber : 16;
-            uint64_t  hideCalledOrNot : 2;
-			uint64_t  initCalledOrNot : 2;
-            uint64_t  reserved01 : 44;
-        }b2;
-    }m_flags;
-};
-
-
-template <typename WidgetType>
-class ResizibleWindow : public ResizibleWindowRaw<WidgetType>
-{
+    static uint64_t	sm_numberOfInstances;
 public:
-    template<typename... Targs>
-    ResizibleWindow(Targs... a_args);
-    virtual ~ResizibleWindow() override;
-    
-protected:
-    virtual void showEvent(QShowEvent *event) override;
+    const uint64_t  m_instanceNumber;
+private:
+	QString		m_settingsKey;
+    CPPUTILS_BISTATE_FLAGS_UN_NM(
+        Flags,
+        loadSizesCalled,
+        hasCloseAfterShow
+    );
+    mutable Flags m_flags;
 };
 
 
@@ -90,7 +70,7 @@ protected:
 
 
 #ifndef QTUTILS_INCLUDE_RESIZIBLEWINDOW_IMPL_HPP
-#include "resiziblewindow.impl.hpp"
+#include <qtutils/ui/impl/qtutils_ui_resiziblewindow.impl.hpp>
 #endif
 
 

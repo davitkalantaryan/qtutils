@@ -11,14 +11,18 @@
 #define QTUTILS_INCLUDE_QTUTILS_UI_TREEVIEW_MODEL_HPP
 
 
-#include <qtutils/export_symbols.h>
+#include <qtutils/internal_header.h>
+
 #ifdef CPPUTILS_HASHTBL_DEFINED
 
+#include <qtutils/export_symbols.h>
+#include <cinternal/disable_compiler_warnings.h>
 #include <type_traits>
 #include <stdint.h>
 #include <qtutils/disable_utils_warnings.h>
 #include <QAbstractItemModel>
 #include <QIcon>
+#include <cinternal/undisable_compiler_warnings.h>
 
 
 namespace qtutils { namespace ui{ namespace treeview{
@@ -168,7 +172,7 @@ public:
 
 
 #ifndef QTUTILS_INCLUDE_QTUTILS_UI_TREEVIEW_MODEL_IMPL_HPP
-#include "treeview_model.impl.hpp"
+#include <qtutils/ui/impl/qtutils_ui_treeview_model.impl.hpp>
 #endif
 
 

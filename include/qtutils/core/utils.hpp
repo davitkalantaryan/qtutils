@@ -11,19 +11,24 @@
 #define QTUTILS_INCLUDE_QTUTILS_CORE_UTILS_HPP
 
 #include <qtutils/export_symbols.h>
+#include <cinternal/disable_compiler_warnings.h>
 #include <qtutils/disable_utils_warnings.h>
 #include <QString>
+#include <cinternal/undisable_compiler_warnings.h>
 
-namespace qtutils { namespace utils {
+
+namespace qtutils { namespace core{ namespace utils {
+
 
 template <typename EnumType>
 QString QtEnumToString(const EnumType& a_value);
 
-}}  // namespace qtutils { namespace utils {
+
+}}}  //  namespace qtutils { namespace core{ namespace utils {
 
 
 #ifndef QTUTILS_INCLUDE_QTUTILS_CORE_UTILS_IMPL_HPP
-#include "utils.impl.hpp"
+#include <qtutils/core/impl/qtutils_core_utils.impl.hpp>
 #endif
 
 

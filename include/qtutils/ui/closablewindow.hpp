@@ -13,12 +13,14 @@
 
 #include <qtutils/export_symbols.h>
 #include <qtutils/ui/resiziblewindow.hpp>
+#include <cinternal/disable_compiler_warnings.h>
 #include <qtutils/disable_utils_warnings.h>
 #include <QWidget>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QToolBar>
 #include <QAction>
+#include <cinternal/undisable_compiler_warnings.h>
 
 
 namespace qtutils { namespace ui{
@@ -50,7 +52,7 @@ private:
 
 
 #ifndef QTUTILS_INCLUDE_CLOSABLEWINDOW_IMPL_HPP
-#include "closablewindow.impl.hpp"
+#include <qtutils/ui/impl/qtutils_ui_closablewindow.impl.hpp>
 #endif
 
 

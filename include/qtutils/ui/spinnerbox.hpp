@@ -11,8 +11,10 @@
 #define QTUTILS_INCLUDE_QTUTILS_UI_SPINNERBOX_HPP
 
 #include <qtutils/export_symbols.h>
+#include <cinternal/disable_compiler_warnings.h>
 #include <qtutils/disable_utils_warnings.h>
 #include <QLabel>
+#include <cinternal/undisable_compiler_warnings.h>
 
 
 namespace qtutils { namespace ui{
@@ -42,7 +44,7 @@ private:
 
 
 #ifndef QTUTILS_INCLUDE_QTUTILS_UI_SPINNERBOX_IMPL_HPP
-#include "spinnerbox.impl.hpp"
+#include <qtutils/ui/impl/qtutils_ui_spinnerbox.impl.hpp>
 #endif
 
 

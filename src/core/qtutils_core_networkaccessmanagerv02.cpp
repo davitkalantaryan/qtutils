@@ -24,6 +24,17 @@
 namespace qtutils { namespace core{ namespace network{
 
 
+class CPPUTILS_DLL_PRIVATE QuCoreNetReplyArgV02_p
+{
+public:
+    bool Reset() noexcept;
+private:
+    ::qtutils::core::network::Reply*    m_pReply;
+    int                                 m_count;
+    friend class ::QuCoreNetReplyArgV02;
+};
+
+
 class CPPUTILS_DLL_PRIVATE RaiiDeleter
 {
 public:
@@ -70,29 +81,32 @@ class CPPUTILS_DLL_PRIVATE Reply_p
 {
 public:
     Reply* const                    m_pParent;
-    QuCoreNetReplyArgV02               m_finishArg;
-    AccessManager_p*                m_pParentAccessMngr = nullptr;
-    QNetworkReply*                  m_pQtNetReply = nullptr;
+    QuCoreNetReplyArgV02            m_finishArg;
+    AccessManager_p* const          m_pParentAccessMngr;
+    QNetworkReply*                  m_pQtNetReply;
     const int                       m_timeoutMs;
     QMetaObject::Connection         m_connFinished;
     QMetaObject::Connection         m_connTimeout;
-    QMetaObject::Connection         m_connDestroy;
     QTimer                          m_timeoutTimer;
     Reply_p                         *m_prev, *m_next;
     CPPUTILS_BISTATE_FLAGS_UN(
         hasTimeout,
+        abortOrFinishCalled,
         finishEmitted,
-        abortCalled,
-        blockExit
+        blockExit,
+        hasRealFinish,
+        cleanDone
     )m_flagsBS;
 
 public:
     ~Reply_p();
-    Reply_p(Reply* CPPUTILS_ARG_NN a_pParent, int a_timeoutMs);
+    Reply_p(Reply* CPPUTILS_ARG_NN a_pParent,AccessManager_p* CPPUTILS_ARG_NN a_pAccsMngr, QNetworkReply* CPPUTILS_ARG_NN a_pQtNetReply, int a_timeoutMs);
 
-    inline void DisconnectAllConnectionsAndRetIfDisconnectedInline();
+    inline void DisconnectAllConnectionsInline();
+    inline void EmitFinishedInline();
     inline void AbortInline();
-    void ConnectSignalsAndStartTimer();
+    inline void ResetInline() noexcept;
+    inline void CleanDataInline() noexcept;
 
 private:
     Reply_p(const Reply_p&)=delete;
@@ -107,15 +121,17 @@ class CPPUTILS_DLL_PRIVATE AccessManager_p final
 public:
     QNetworkAccessManager*  m_pQtNetAccessManager;
     NetWaitEventLoop        m_finalLoop;
+    QTimer                  m_tmrEL;
     Reply_p*                m_pFirst;
+    Reply_p*                m_pLast;
     int                     m_exitTimeoutMs;
+    CPPUTILS_BISTATE_FLAGS_UN(
+        quitOngoing
+    )m_flagsBS;
 
 public:
-    ~AccessManager_p();
     AccessManager_p();
 
-    inline bool canCleanResourceInline() const noexcept;
-    inline void DestroyQtNetAccessManagerInlineRaw();
     inline void DestroyQtNetAccessManagerInline();
 
 private:
@@ -136,66 +152,108 @@ static inline void DisconnectMetaConnectionInline(QMetaObject::Connection* CPPUT
 }
 
 
-inline void Reply_p::DisconnectAllConnectionsAndRetIfDisconnectedInline(){
-    DisconnectMetaConnectionInline(&m_connDestroy);
+inline void Reply_p::DisconnectAllConnectionsInline(){
     DisconnectMetaConnectionInline(&m_connTimeout);
     DisconnectMetaConnectionInline(&m_connFinished);
 }
 
 
+inline void Reply_p::EmitFinishedInline(){
+    if(m_flagsBS.rd.finishEmitted_false){
+        m_flagsBS.wr.finishEmitted = CPPUTILS_BISTATE_MAKE_BITS_TRUE;
+        emit m_pParent->finished(m_finishArg);
+    }
+}
+
+
 inline void Reply_p::AbortInline(){
-    DisconnectAllConnectionsAndRetIfDisconnectedInline();
-    if(m_pQtNetReply && (m_flagsBS.rd.abortCalled_false)){
-        m_flagsBS.wr.abortCalled = CPPUTILS_BISTATE_MAKE_BITS_TRUE;
+    if((m_flagsBS.rd.abortOrFinishCalled_false)&&m_pQtNetReply){
+        m_flagsBS.wr.abortOrFinishCalled = CPPUTILS_BISTATE_MAKE_BITS_TRUE;
         m_pQtNetReply->abort();
     }
 }
 
 
-inline bool AccessManager_p::canCleanResourceInline() const noexcept{
-    Reply_p *pNextReply, *pReply = m_pFirst;
-    while(pReply){
-        pNextReply = pReply->m_next;
-        if(pReply->m_flagsBS.rd.blockExit_true){
-            return false;
-        }  //  if(pReply->m_flagsBS.rd.blockExit_false){
-        pReply = pNextReply;
-    }  //  while(pReply){
-    return true;
+inline void Reply_p::ResetInline() noexcept
+{
+    QuCoreNetReplyArgV02_p* const pShrdPtr = m_finishArg.m_data_p;
+    if(pShrdPtr){
+        pShrdPtr->Reset();
+    }
 }
 
 
-inline void AccessManager_p::DestroyQtNetAccessManagerInlineRaw(){
-    Reply_p *pNextReply, *pReply = m_pFirst;
-    while(pReply){
-        pNextReply = pReply->m_next;
-        pReply->AbortInline();
-        delete pReply;
-        pReply = pNextReply;
-    }  //  while(pReply){
-    m_pFirst = nullptr;
-    delete m_pQtNetAccessManager;
-    m_pQtNetAccessManager = nullptr;
+inline void Reply_p::CleanDataInline() noexcept
+{
+    if(m_flagsBS.rd.cleanDone_true){
+        return;
+    }
+    m_flagsBS.wr.cleanDone = CPPUTILS_BISTATE_MAKE_BITS_TRUE;
+
+    DisconnectAllConnectionsInline();
+    QuCoreNetReplyArgV02_p* const pShrdMem = m_finishArg.m_data_p;
+    m_finishArg.m_data_p = nullptr;
+    delete pShrdMem;
+    if(m_prev){
+        m_prev->m_next = this->m_next;
+    }
+    else{
+        // if tehre is no previous, then this one is teh first
+        m_pParentAccessMngr->m_pFirst = m_next;
+    }
+    if(m_next){
+        m_next->m_prev = this->m_prev;
+    }
+    else{
+        // this is last one
+        m_pParentAccessMngr->m_pLast = this->m_prev;
+    }
+    delete m_pQtNetReply;
+    if(m_pParentAccessMngr->m_flagsBS.rd.quitOngoing_true){
+        NetStopEvent* const pStpEvnt = new NetStopEvent();
+        QCoreApplication::postEvent(&(m_pParentAccessMngr->m_finalLoop),pStpEvnt);
+    }
 }
 
 
 inline void AccessManager_p::DestroyQtNetAccessManagerInline()
 {
-    if(canCleanResourceInline()){
-        DestroyQtNetAccessManagerInlineRaw();
-        return;
-    }  //  if(canCleanResourceInline()){
+    if(m_pFirst){
+        m_flagsBS.wr.quitOngoing = CPPUTILS_BISTATE_MAKE_BITS_TRUE;
+        Reply_p *pNextReply, *pReply = m_pFirst;
+        while(pReply){
+            pNextReply = pReply->m_next;
+            if(pReply->m_flagsBS.rd.blockExit_false){
+                pReply->DisconnectAllConnectionsInline();
+                pReply->AbortInline();
+                pReply->EmitFinishedInline();
+                pReply->ResetInline();
+            }  //  if(pReply->m_flagsBS.rd.blockExit_false){
+            pReply = pNextReply;
+        }  //  while(pReply){
+        if(m_exitTimeoutMs>=0){
+            QObject::connect(&m_tmrEL, &QTimer::timeout, &m_finalLoop,[this](){
+                m_tmrEL.stop();
+                Reply_p *pNextReply, *pReply = m_pFirst;
+                while(pReply){
+                    pNextReply = pReply->m_next;
+                    pReply->DisconnectAllConnectionsInline();
+                    pReply->AbortInline();
+                    pReply->EmitFinishedInline();
+                    pReply->ResetInline();
+                    pReply = pNextReply;
+                }  //  while(pReply){
+            });  //  QObject::connect(&tmrEL, &QTimer::timeout, &loop,[this,&loop](){
+            m_tmrEL.setSingleShot(true);
+            m_tmrEL.start(m_exitTimeoutMs);
+        }  //  if(a_timeoutMs>=0){
+        m_finalLoop.exec();
+        m_flagsBS.wr.quitOngoing = CPPUTILS_BISTATE_MAKE_BITS_FALSE;
+    }  //  if(m_pFirst){
 
-    if(m_exitTimeoutMs>=0){
-        QTimer tmrEL;
-        QObject::connect(&tmrEL, &QTimer::timeout, &m_finalLoop,[this](){
-            m_finalLoop.quit();
-        });  //  QObject::connect(&tmrEL, &QTimer::timeout, &loop,[this,&loop](){
-        tmrEL.start(m_exitTimeoutMs);
-    }  //  if(a_timeoutMs>=0){
-    m_finalLoop.exec();
-
-    DestroyQtNetAccessManagerInlineRaw();
+    m_pLast = m_pFirst = nullptr;
+    delete m_pQtNetAccessManager;
+    m_pQtNetAccessManager = nullptr;
 }
 
 
@@ -220,14 +278,7 @@ Reply* AccessManager::AnyRestCall(int a_timeoutMs, const TypeRestCall& a_restCal
     if(!pQtNetReply){
         throw ::std::runtime_error("Unable to create Qt QNetworkReply");
     }
-    Reply* const pRetReply = new Reply(a_timeoutMs);
-    if(m_data_p->m_pFirst){
-        m_data_p->m_pFirst->m_prev = pRetReply->m_data_p;
-    }
-    m_data_p->m_pFirst = pRetReply->m_data_p;
-    pRetReply->m_data_p->m_pParentAccessMngr = m_data_p;
-    pRetReply->m_data_p->m_pQtNetReply = pQtNetReply;
-    pRetReply->m_data_p->ConnectSignalsAndStartTimer();
+    Reply* const pRetReply = new Reply(m_data_p,pQtNetReply,a_timeoutMs);
     return pRetReply;
 }
 
@@ -238,10 +289,16 @@ Reply* AccessManager::AnyRestCall(const TypeRestCall& a_restCallFnc)
 }
 
 
-void AccessManager::RestartNetAccessManaget()
+void AccessManager::RestartNetAccessManager()
 {
     m_data_p->DestroyQtNetAccessManagerInline();
     m_data_p->m_pQtNetAccessManager = new QNetworkAccessManager();
+}
+
+
+void AccessManager::StopAndCleanNetAccessManager()
+{
+    m_data_p->DestroyQtNetAccessManagerInline();
 }
 
 
@@ -271,9 +328,9 @@ Reply::~Reply()
 }
 
 
-Reply::Reply(int a_timeoutMs)
+Reply::Reply(AccessManager_p* CPPUTILS_ARG_NN a_pAccsMngr, QNetworkReply* CPPUTILS_ARG_NN a_pQtNetReply, int a_timeoutMs)
 :
-    m_data_p(new Reply_p(this,a_timeoutMs))
+    m_data_p(new Reply_p(this,a_pAccsMngr,a_pQtNetReply,a_timeoutMs))
 {
 }
 
@@ -310,19 +367,15 @@ void Reply::MakeThisCallBlockExit()noexcept
 
 /*///////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
 
-AccessManager_p::~AccessManager_p()
-{
-    DestroyQtNetAccessManagerInline();
-}
-
-
 AccessManager_p::AccessManager_p()
 :
     m_pQtNetAccessManager(nullptr),
     m_finalLoop(this),
     m_pFirst(nullptr),
+    m_pLast(nullptr),
     m_exitTimeoutMs(-1)
 {
+    m_flagsBS.wr_all = CPPUTILS_BISTATE_MAKE_ALL_BITS_FALSE;
     qRegisterMetaType< QuCoreNetReplyArgV02 >( "QuCoreNetReplyArgV02" );
     m_pQtNetAccessManager = new QNetworkAccessManager();
 }
@@ -332,90 +385,53 @@ AccessManager_p::AccessManager_p()
 
 Reply_p::~Reply_p()
 {
-    if(m_pParentAccessMngr){
-        if(this==(m_pParentAccessMngr->m_pFirst)){
-            m_pParentAccessMngr->m_pFirst = this->m_next;
-        }
-        else{
-            this->m_prev->m_next = m_next;
-        }
-        if(m_next){
-            m_next->m_prev = m_prev;
-        }
-    }  //  if(m_pParentAccessMngr){
-    if(m_pQtNetReply){
-        AbortInline();
-        delete m_pQtNetReply;
-    }
+    CleanDataInline();
 }
 
 
-Reply_p::Reply_p(Reply* CPPUTILS_ARG_NN a_pParent, int a_timeoutMs)
+Reply_p::Reply_p(Reply* CPPUTILS_ARG_NN a_pParent,AccessManager_p* CPPUTILS_ARG_NN a_pAccsMngr, QNetworkReply* CPPUTILS_ARG_NN a_pQtNetReply, int a_timeoutMs)
     :
     m_pParent(a_pParent),
     m_finishArg(a_pParent),
-    m_pParentAccessMngr(nullptr),
-    m_pQtNetReply(nullptr),
+    m_pParentAccessMngr(a_pAccsMngr),
+    m_pQtNetReply(a_pQtNetReply),
     m_timeoutMs(a_timeoutMs)
 {
-    m_prev = m_next = nullptr;
     m_flagsBS.wr_all = CPPUTILS_BISTATE_MAKE_ALL_BITS_FALSE;
-
-}
-
-
-void Reply_p::ConnectSignalsAndStartTimer()
-{
-    m_connDestroy = QObject::connect(m_pQtNetReply,&QObject::destroyed,m_pParent,[this](){
-        const RaiiDeleter aDltr([this](){
-            m_finishArg.reset();
-        });
-        if(m_flagsBS.rd.blockExit_true){
-            m_flagsBS.wr.blockExit = CPPUTILS_BISTATE_MAKE_BITS_FALSE;
-            NetStopEvent* const pStpEvnt = new NetStopEvent();
-            QCoreApplication::postEvent(&(m_pParentAccessMngr->m_finalLoop),pStpEvnt);
-        }
-        m_pQtNetReply = nullptr;
-        DisconnectAllConnectionsAndRetIfDisconnectedInline();
-    });
+    m_next = nullptr;
+    if(m_pParentAccessMngr->m_pLast){
+        m_pParentAccessMngr->m_pLast->m_next = this;
+    }
+    else {
+        m_pParentAccessMngr->m_pFirst = this;
+    }
+    m_prev = m_pParentAccessMngr->m_pLast;
+    m_pParentAccessMngr->m_pLast = this;
 
     m_connFinished = ::QObject::connect(m_pQtNetReply,&QNetworkReply::finished,m_pParent,[this](){
         const RaiiDeleter aDltr([this](){
-            m_finishArg.reset();
+            ResetInline();
         });
-        if(m_flagsBS.rd.blockExit_true){
-            m_flagsBS.wr.blockExit = CPPUTILS_BISTATE_MAKE_BITS_FALSE;
-            NetStopEvent* const pStpEvnt = new NetStopEvent();
-            QCoreApplication::postEvent(&(m_pParentAccessMngr->m_finalLoop),pStpEvnt);
-        }
+        m_flagsBS.wr.abortOrFinishCalled = CPPUTILS_BISTATE_MAKE_BITS_TRUE;
+        m_flagsBS.wr.blockExit = CPPUTILS_BISTATE_MAKE_BITS_FALSE;
+        m_flagsBS.wr.hasRealFinish = CPPUTILS_BISTATE_MAKE_BITS_TRUE;
+        DisconnectAllConnectionsInline();
         if(m_timeoutTimer.isActive()){
-            DisconnectMetaConnectionInline(&m_connTimeout);
             m_timeoutTimer.stop();
         }
-        DisconnectAllConnectionsAndRetIfDisconnectedInline();
-        if(m_flagsBS.rd.finishEmitted_false){
-            m_flagsBS.wr.finishEmitted = CPPUTILS_BISTATE_MAKE_BITS_TRUE;
-            emit m_pParent->finished(m_finishArg);
-        }
+        EmitFinishedInline();
     });
 
     if(m_timeoutMs>=0){
         m_connTimeout = QObject::connect(&(m_timeoutTimer),&QTimer::timeout,m_pParent,[this](){
             const RaiiDeleter aDltr([this](){
-                m_finishArg.reset();
+                ResetInline();
             });
-            if(m_flagsBS.rd.blockExit_true){
-                m_flagsBS.wr.blockExit = CPPUTILS_BISTATE_MAKE_BITS_FALSE;
-                NetStopEvent* const pStpEvnt = new NetStopEvent();
-                QCoreApplication::postEvent(&(m_pParentAccessMngr->m_finalLoop),pStpEvnt);
-            }
+            m_flagsBS.wr.blockExit = CPPUTILS_BISTATE_MAKE_BITS_FALSE;
             m_flagsBS.wr.hasTimeout = CPPUTILS_BISTATE_MAKE_BITS_TRUE;
-            DisconnectAllConnectionsAndRetIfDisconnectedInline();
+            DisconnectAllConnectionsInline();
             AbortInline();
-            if(m_flagsBS.rd.finishEmitted_false){
-                m_flagsBS.wr.finishEmitted = CPPUTILS_BISTATE_MAKE_BITS_TRUE;
-                emit m_pParent->finished(m_finishArg);
-            }
+            EmitFinishedInline();
         });
         m_timeoutTimer.start(m_timeoutMs);
     }  //  if(m_timeout>=0){
@@ -464,12 +480,17 @@ NetWaitEventLoop::NetWaitEventLoop(AccessManager_p* CPPUTILS_ARG_NN a_netAccMngr
 bool NetWaitEventLoop::event(QEvent* a_event)
 {
     if(a_event->type()==GenerateAndGetEventType02Inline()){
-        if(m_netAccMngr_p->canCleanResourceInline()){
-            this->quit();
-        }
+        if(!(m_netAccMngr_p->m_pFirst)){
+            if(m_netAccMngr_p->m_tmrEL.isActive()){
+                m_netAccMngr_p->m_tmrEL.stop();
+            }
+            if(this->isRunning()){
+                this->quit();
+            }
+        }  //  if(!(m_netAccMngr_p->m_pFirst)){
         return true;
     }  //  f(a_event->type()==GenerateAndGetEventTypeInline()){
-    return false;
+    return QEventLoop::event(a_event);
 }
 
 
@@ -596,5 +617,94 @@ QTUTILS_EXPORT QByteArray HttpRequestMethodToByteArray(const QHttpServerRequest:
 #endif
 
 
+bool QuCoreNetReplyArgV02_p::Reset() noexcept
+{
+    if((--(m_count))<1){
+        if(m_pReply){
+            ::qtutils::core::network::Reply* const pReply = m_pReply;
+            m_pReply = nullptr;
+            pReply->m_data_p->CleanDataInline();
+            pReply->deleteLater();
+            return true;
+        }  //  if(m_pReply){
+    }  //  if((--(m_count))<1){
+    return false;
+}
+
 
 }}}  //  namespace qtutils { namespace core{ namespace network{
+
+
+QuCoreNetReplyArgV02::~QuCoreNetReplyArgV02() noexcept
+{
+    if(m_data_p){
+        if(m_data_p->Reset()){
+            delete m_data_p;
+        }
+    }  //  if(m_data_p){
+}
+
+
+QuCoreNetReplyArgV02::QuCoreNetReplyArgV02(::qtutils::core::network::Reply* CPPUTILS_ARG_NN a_pReply)
+    :
+    m_data_p(nullptr)
+{
+    m_data_p = new ::qtutils::core::network::QuCoreNetReplyArgV02_p();
+    m_data_p->m_count = 1;
+    m_data_p->m_pReply = a_pReply;
+}
+
+
+QuCoreNetReplyArgV02::QuCoreNetReplyArgV02(const QuCoreNetReplyArgV02& a_cM) noexcept
+    :
+    m_data_p(a_cM.m_data_p)
+{
+    if(m_data_p){
+        ++(m_data_p->m_count);
+    }
+}
+
+
+QuCoreNetReplyArgV02::QuCoreNetReplyArgV02(QuCoreNetReplyArgV02&& a_mM) noexcept
+    :
+    m_data_p(a_mM.m_data_p)
+{
+    a_mM.m_data_p = nullptr;
+}
+
+
+QuCoreNetReplyArgV02& QuCoreNetReplyArgV02::operator=(const QuCoreNetReplyArgV02& a_cM) noexcept
+{
+    if(m_data_p!=(a_cM.m_data_p)){
+        if(m_data_p){
+            if(m_data_p->Reset()){
+                delete m_data_p;
+            }  //  if(m_data_p->Reset()){
+        }  //  if(m_data_p){
+
+        m_data_p = a_cM.m_data_p;
+        if(m_data_p){
+            ++(m_data_p->m_count);
+        }
+    }  //  if(m_data_p!=(a_cM.m_data_p)){
+
+    return *this;
+}
+
+
+QuCoreNetReplyArgV02& QuCoreNetReplyArgV02::operator=(QuCoreNetReplyArgV02&& a_mM) noexcept
+{
+    ::qtutils::core::network::QuCoreNetReplyArgV02_p* const pThis = m_data_p;
+    m_data_p = a_mM.m_data_p;
+    a_mM.m_data_p = pThis;
+    return *this;
+}
+
+
+::qtutils::core::network::Reply* QuCoreNetReplyArgV02::get()const noexcept
+{
+    if(m_data_p){
+        return m_data_p->m_pReply;
+    }
+    return nullptr;
+}

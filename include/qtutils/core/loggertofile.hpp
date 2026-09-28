@@ -48,4 +48,5 @@ private:
     LoggerToFile_p*const   m_logger_data_p;
 };
 
+
 }}}  //  namespace qtutils { namespace core{ namespace logger{

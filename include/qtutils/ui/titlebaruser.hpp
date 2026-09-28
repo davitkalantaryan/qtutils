@@ -17,6 +17,7 @@
 
 namespace qtutils { namespace ui{
 
+
 template <typename WidgetType>
 class TitlebarUser : public SizeApplyWindow<WidgetType>
 {
@@ -55,7 +56,7 @@ protected:
 
 
 #ifndef QTUTILS_INCLUDE_QTUTILS_UI_TITLEBARUSER_IMPL_HPP
-#include "titlebaruser.impl.hpp"
+#include <qtutils/ui/impl/qtutils_ui_titlebaruser.impl.hpp>
 #endif
 
 

@@ -16,7 +16,7 @@
 #include <qtutils/core/initdeinit.hpp>
 #endif
 
-namespace qtutils{
+namespace qtutils{ namespace core{
 
 #ifdef CPPUTILS_MULTITHREADED
 typedef ThreadLS  ThreadOrInitdeinit;
@@ -24,4 +24,4 @@ typedef ThreadLS  ThreadOrInitdeinit;
 typedef InitDeinit  ThreadOrInitdeinit;
 #endif
 
-}  // namespace qtutils{
+}}  //  namespace qtutils{ namespace core{

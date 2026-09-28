@@ -11,14 +11,13 @@
 #include <qtutils/export_symbols.h>
 #include <cinternal/disable_compiler_warnings.h>
 #include <functional>
-#include <memory>
 #include <qtutils/disable_utils_warnings.h>
 #include <QByteArray>
 #include <QNetworkRequest>
 #include <QNetworkReply>
 #include <QNetworkAccessManager>
-#ifdef QTUTILS_EXTRA_REST_CALLS
-#include <QHttpMultiPart>
+#ifdef QTUTILS_HTTP_SERVER_TOOLS
+#include <QHttpServerRequest>
 #endif
 #include <cinternal/undisable_compiler_warnings.h>
 
@@ -32,6 +31,7 @@ namespace qtutils { namespace core{ namespace network{
 class QTUTILS_EXPORT Reply;
 class CPPUTILS_DLL_PRIVATE Reply_p;
 class CPPUTILS_DLL_PRIVATE AccessManager_p;
+class CPPUTILS_DLL_PRIVATE QuCoreNetReplyArgV02_p;
 typedef ::std::function<QNetworkReply*(QNetworkAccessManager*)>    TypeRestCall;
 
 
@@ -43,7 +43,8 @@ public:
 
     Reply* AnyRestCall(const TypeRestCall& a_restCallFnc);
     Reply* AnyRestCall(int a_timeoutMs, const TypeRestCall& a_restCallFnc);
-    void RestartNetAccessManaget();
+    void RestartNetAccessManager();
+    void StopAndCleanNetAccessManager();
     QNetworkAccessManager* pQtNetAccessMngr()const noexcept;
     int exitTimeoutMs()const noexcept;
     void SetExitTimeoutMs(int a_exitTimeoutMs)noexcept;
@@ -76,7 +77,7 @@ signals:
 public:
     ~Reply() override;  // don't panic it is deleted automatically :)
 private:
-    Reply(int a_timeoutMs);
+    Reply(AccessManager_p* CPPUTILS_ARG_NN a_pAccsMngr, QNetworkReply* CPPUTILS_ARG_NN a_pQtNetReply, int a_timeoutMs);
 
 private:
     Reply_p* const      m_data_p;
@@ -87,6 +88,7 @@ private:
     Reply& operator=(const Reply&) = delete;
     Reply& operator=(Reply&&) = delete;
     friend class AccessManager;
+    friend class QuCoreNetReplyArgV02_p;
 };
 
 
@@ -105,11 +107,18 @@ QTUTILS_EXPORT QByteArray HttpRequestMethodToByteArray(const QHttpServerRequest:
 
 }}}  //  namespace qtutils { namespace core{ namespace network{
 
-
-class QTUTILS_EXPORT QuCoreNetReplyArgV02 final : public ::std::shared_ptr<::qtutils::core::network::Reply>
+class QTUTILS_EXPORT QuCoreNetReplyArgV02 final
 {
+public:
+    ~QuCoreNetReplyArgV02() noexcept;
+    QuCoreNetReplyArgV02(::qtutils::core::network::Reply* CPPUTILS_ARG_NN a_pReply);
+    QuCoreNetReplyArgV02(const QuCoreNetReplyArgV02& a_cM) noexcept;
+    QuCoreNetReplyArgV02(QuCoreNetReplyArgV02&& a_mM) noexcept;
+    QuCoreNetReplyArgV02& operator=(const QuCoreNetReplyArgV02& a_cM) noexcept;
+    QuCoreNetReplyArgV02& operator=(QuCoreNetReplyArgV02&& a_mM) noexcept;
+    ::qtutils::core::network::Reply* get()const noexcept;
 private:
-    using ::std::shared_ptr<::qtutils::core::network::Reply>::shared_ptr;
+    ::qtutils::core::network::QuCoreNetReplyArgV02_p*   m_data_p;
     friend class ::qtutils::core::network::Reply_p;
 };
 Q_DECLARE_METATYPE(QuCoreNetReplyArgV02)

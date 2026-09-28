@@ -5,7 +5,7 @@
 // created by:		Davit Kalantaryan (davit.kalantaryan@gmail.com)
 //
 
-#include <qtutils/export_symbols.h>
+#include <qtutils/internal_header.h>
 
 #ifdef CPPUTILS_HASH_VHASH_DEFINED
 

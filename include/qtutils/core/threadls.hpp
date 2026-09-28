@@ -7,13 +7,14 @@
 
 #pragma once
 
-#include <qtutils/export_symbols.h>
+#include <qtutils/internal_header.h>
 
 #ifndef QTUTILS_NOT_USE_THREADLS
 
+#include <qtutils/export_symbols.h>
+#include <cinternal/threading.h>
 #include <cinternal/disable_compiler_warnings.h>
 #include <functional>
-#include <thread>
 #include <qtutils/disable_utils_warnings.h>
 #include <QThread>
 #include <cinternal/undisable_compiler_warnings.h>
@@ -46,8 +47,8 @@ public:
     bool hasExceptionHandling()const noexcept;
     bool loopFinished() const noexcept;
     bool loopNotFinished() const noexcept;
-    ::std::thread::native_handle_type getNativeHandle()const noexcept;
-    ::std::thread::native_handle_type GetAndResetNativeHandle() noexcept;
+    cinternal_thread_t getNativeHandle()const noexcept;
+    cinternal_thread_t GetAndReleaseNativeHandle() noexcept;
     bool StopThreadWithSignalAndProperWait(void* a_sigNo, int a_timeoutMs=-1);
 
 private:

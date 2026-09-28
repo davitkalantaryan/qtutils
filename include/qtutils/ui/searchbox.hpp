@@ -13,9 +13,11 @@
 
 #include <qtutils/export_symbols.h>
 #include <qtutils/ui/wgtwithwgtinleft.hpp>
+#include <cinternal/disable_compiler_warnings.h>
 #include <qtutils/disable_utils_warnings.h>
 #include <QLineEdit>
 #include <QLabel>
+#include <cinternal/undisable_compiler_warnings.h>
 
 
 namespace qtutils { namespace ui{
@@ -48,7 +50,7 @@ private:
 
 
 #ifndef QTUTILS_INCLUDE_QTUTILS_UI_SEARCHBOX_IMPL_HPP
-#include "searchbox.impl.hpp"
+#include <qtutils/ui/impl/qtutils_ui_searchbox.impl.hpp>
 #endif
 
 

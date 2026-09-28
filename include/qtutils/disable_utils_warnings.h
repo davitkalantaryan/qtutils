@@ -8,7 +8,8 @@
 #ifndef QTUTILS_INCLUDE_QTUTILS_CORE_DISABLE_UTILS_WARNINGS_H
 #define QTUTILS_INCLUDE_QTUTILS_CORE_DISABLE_UTILS_WARNINGS_H
 
-#include <qtutils/export_symbols.h>
+
+#include <qtutils/internal_header.h>
 #ifdef CINTERNAL_INCLUDE_CINTERNAL_DISABLE_COMPILER_WARNINGS_H
 #include <cinternal/undisable_compiler_warnings.h>
 #define CINTERNAL_INCLUDE_CINTERNAL_DISABLE_COMPILER_WARNINGS_H_SHOULD_BE_DEFINED
