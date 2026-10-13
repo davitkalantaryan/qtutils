@@ -39,10 +39,10 @@ isEmpty(qtutilsFlagsAndSysCommonIncluded){
     INCLUDEPATH += $${qtutilsRepoRoot}/include
 
     exists($${qtutilsRepoRoot}/sys/$${CODENAME}/$$CONFIGURATION/lib) {
-        LIBS += -L$${cinternalRepoRoot}/sys/$${CODENAME}/$$CONFIGURATION/lib
+        LIBS += -L$${qtutilsRepoRoot}/sys/$${CODENAME}/$$CONFIGURATION/lib
     }
     exists($${qtutilsRepoRoot}/sys/$${CODENAME}/$$CONFIGURATION/tlib) {
-        LIBS += -L$${cinternalRepoRoot}/sys/$${CODENAME}/$$CONFIGURATION/tlib
+        LIBS += -L$${qtutilsRepoRoot}/sys/$${CODENAME}/$$CONFIGURATION/tlib
     }
 
     OTHER_FILES += $$files($${PWD}/../common_mkfl/*.Makefile,true)
