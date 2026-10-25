@@ -423,6 +423,17 @@ void HttpServer::AddAnyMatcherRoute(const TypeHasMatch& a_hasMatch, void* a_ud, 
 }
 
 
+void HttpServer::CleanAllRoutes()
+{
+    m_server_data->straightRoutes.clear();
+    m_server_data->dirRoutes.clear();
+    m_server_data->globRegExpRoutes.clear();
+    m_server_data->wildcardRegExpRoutes.clear();
+    m_server_data->anyAppearanceRoutes.clear();
+    m_server_data->anyMatcherRoutes.clear();
+}
+
+
 void HttpServer::SetAllowedHeaders(const ByteArrayList& a_allowedHeaders)
 {
     QSettings aSettings;

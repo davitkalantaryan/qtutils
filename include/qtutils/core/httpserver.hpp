@@ -78,6 +78,7 @@ public:
     void AddWildcardRegExpRoute(const QString& a_pattern, const TypeClbkRE& a_clbk);
     void AddAnyAppearanceRoute(const QString& a_pattern, const TypeClbkAA& a_clbk);
     void AddAnyMatcherRoute(const TypeHasMatch& a_hasMatch, void* a_ud, const TypeClbkAnM& a_clbk);
+    void CleanAllRoutes();
     void SetAllowedHeaders(const ByteArrayList& a_allowedHeaders);
     const ByteArrayList& getAllowedHeaders() const;
     void SetAllowedOrigins(const ByteArrayList& a_allowedOrigins);
