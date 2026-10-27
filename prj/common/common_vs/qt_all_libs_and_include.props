@@ -1,0 +1,53 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LocalDebuggerEnvironment>Path=$(MSBuildThisFileDirectory)..\..\..\sys\win_$(PlatformTarget)\$(Configuration)\dll;$(MSBuildThisFileDirectory)..\..\..\sys\win_$(PlatformTarget)\$(Configuration)\tdll;%Path%
+$(LocalDebuggerEnvironment)</LocalDebuggerEnvironment>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LocalDebuggerEnvironment>Path=$(MSBuildThisFileDirectory)..\..\..\sys\win_$(PlatformTarget)\$(Configuration)\dll;$(MSBuildThisFileDirectory)..\..\..\sys\win_$(PlatformTarget)\$(Configuration)\tdll;%Path%
+$(LocalDebuggerEnvironment)</LocalDebuggerEnvironment>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LocalDebuggerEnvironment>Path=$(MSBuildThisFileDirectory)..\..\..\sys\win_$(PlatformTarget)\$(Configuration)\dll;$(MSBuildThisFileDirectory)..\..\..\sys\win_$(PlatformTarget)\$(Configuration)\tdll;%Path%
+$(LocalDebuggerEnvironment)</LocalDebuggerEnvironment>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LocalDebuggerEnvironment>Path=$(MSBuildThisFileDirectory)..\..\..\sys\win_$(PlatformTarget)\$(Configuration)\dll;$(MSBuildThisFileDirectory)..\..\..\sys\win_$(PlatformTarget)\$(Configuration)\tdll;%Path%
+$(LocalDebuggerEnvironment)</LocalDebuggerEnvironment>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OutDir>$(MSBuildThisFileDirectory)..\..\..\sys\win_$(PlatformTarget)\$(Configuration)\bin\</OutDir>
+    <IntDir>$(MSBuildThisFileDirectory)..\..\..\sys\win_$(PlatformTarget)\$(Configuration)\.other\objects\$(ProjectName)\</IntDir>
+  </PropertyGroup>
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="UserMacros">
+    <cinternalRepoRoot>$(MSBuildThisFileDirectory)..\..\..</cinternalRepoRoot>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <PreBuildEvent>
+      <Command>
+      </Command>
+    </PreBuildEvent>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(QTUTILS_QT_ROOT_DIR)\include;$(QTUTILS_QT_ROOT_DIR)\include\QtCore;$(QTUTILS_QT_ROOT_DIR)\include\QtGui;$(QTUTILS_QT_ROOT_DIR)\include\QtWidgets;$(QTUTILS_QT_ROOT_DIR)\include\QtNetwork;$(QTUTILS_QT_ROOT_DIR)\include\QtWebSockets;$(QTUTILS_QT_ROOT_DIR)\include\QtSql;$(QTUTILS_QT_ROOT_DIR)\include\QtHttpServer;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ForcedIncludeFiles>
+      </ForcedIncludeFiles>
+    </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>$(QTUTILS_QT_ROOT_DIR)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <BuildMacro Include="cinternalRepoRoot">
+      <Value>$(cinternalRepoRoot)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+  </ItemGroup>
+</Project>
