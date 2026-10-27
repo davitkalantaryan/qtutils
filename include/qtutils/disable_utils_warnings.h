@@ -36,6 +36,8 @@
 #pragma warning (disable:5246)
 #pragma warning (disable:5249)
 #pragma warning (disable:4365)
+#pragma warning (disable:4686)  //  'QTypedArrayData<T>::reallocateUnaligned': possible change in behavior, change in UDT return calling convention
+#pragma warning (disable:4244)  //  'initializing': conversion from 'qint64' to 'qreal', possible loss of data
 #endif
 
 #if defined(__GNUC__) || defined(__clang__)
