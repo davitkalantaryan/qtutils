@@ -250,7 +250,7 @@ HttpServer::~HttpServer()
 }
 
 
-HttpServer::HttpServer()
+HttpServer::HttpServer(bool a_bAdministrativeRootsNeeded)
     :
       m_server_data(new HttpServer_p())
 {
@@ -258,23 +258,9 @@ HttpServer::HttpServer()
     m_server_data->allowedHeaders = GetByteArrayListFromSettingsInline(QTUTILS_CORE_HTTPSERVER_ALLOWED_HEADERS_KEY,aSettings);
     m_server_data->allowedOrigins = GetByteArrayListFromSettingsInline(QTUTILS_CORE_HTTPSERVER_ALLOWED_ORIGINS_KEY,aSettings);
 
-    this->AddStraightRoute("/qtutils_get_allowed_headers",[this](QTcpServer* a_cnctSrv, const QHttpServerRequest& a_request, QHttpServerResponder& a_responder){
-        static_cast<void>(a_cnctSrv);
-        handleAllowedHeadersRequest(a_request,a_responder);
-        return true;
-    });
-
-    this->AddStraightRoute("/qtutils_get_allowed_origins",[this](QTcpServer* a_cnctSrv, const QHttpServerRequest& a_request, QHttpServerResponder& a_responder){
-        static_cast<void>(a_cnctSrv);
-        handleAllowedOriginsRequest(a_request,a_responder);
-        return true;
-    });
-
-    this->AddStraightRoute("/qtutils_get_all_urls",[this](QTcpServer* a_cnctSrv, const QHttpServerRequest& a_request, QHttpServerResponder& a_responder){
-        static_cast<void>(a_cnctSrv);
-        handleAllUrlsRequest(a_request,a_responder);
-        return true;
-    });
+    if(a_bAdministrativeRootsNeeded){
+        AddAllAdministrativeRoutes();
+    }
 }
 
 
@@ -420,6 +406,28 @@ void HttpServer::AddAnyAppearanceRoute(const QString& a_pattern, const TypeClbkA
 void HttpServer::AddAnyMatcherRoute(const TypeHasMatch& a_hasMatch, void* a_ud, const TypeClbkAnM& a_clbk)
 {
     m_server_data->anyMatcherRoutes.push_back(::std::tuple<TypeHasMatch,void*,TypeClbkAnM>(a_hasMatch,a_ud,a_clbk));
+}
+
+
+void HttpServer::AddAllAdministrativeRoutes()
+{
+    this->AddStraightRoute("/qtutils_get_allowed_headers",[this](QTcpServer* a_cnctSrv, const QHttpServerRequest& a_request, QHttpServerResponder& a_responder){
+        static_cast<void>(a_cnctSrv);
+        handleAllowedHeadersRequest(a_request,a_responder);
+        return true;
+    });
+
+    this->AddStraightRoute("/qtutils_get_allowed_origins",[this](QTcpServer* a_cnctSrv, const QHttpServerRequest& a_request, QHttpServerResponder& a_responder){
+        static_cast<void>(a_cnctSrv);
+        handleAllowedOriginsRequest(a_request,a_responder);
+        return true;
+    });
+
+    this->AddStraightRoute("/qtutils_get_all_urls",[this](QTcpServer* a_cnctSrv, const QHttpServerRequest& a_request, QHttpServerResponder& a_responder){
+        static_cast<void>(a_cnctSrv);
+        handleAllUrlsRequest(a_request,a_responder);
+        return true;
+    });
 }
 
 

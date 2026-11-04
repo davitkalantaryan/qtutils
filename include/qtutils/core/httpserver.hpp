@@ -60,7 +60,7 @@ public:
     
 public:
     virtual ~HttpServer() override;
-    HttpServer();
+    HttpServer(bool a_bAdministrativeRootsNeeded = true);
     HttpServer(const HttpServer&)=delete;
     HttpServer(HttpServer&)=delete;
     HttpServer& operator=(const HttpServer&)=delete;
@@ -78,6 +78,7 @@ public:
     void AddWildcardRegExpRoute(const QString& a_pattern, const TypeClbkRE& a_clbk);
     void AddAnyAppearanceRoute(const QString& a_pattern, const TypeClbkAA& a_clbk);
     void AddAnyMatcherRoute(const TypeHasMatch& a_hasMatch, void* a_ud, const TypeClbkAnM& a_clbk);
+    void AddAllAdministrativeRoutes();
     void CleanAllRoutes();
     void SetAllowedHeaders(const ByteArrayList& a_allowedHeaders);
     const ByteArrayList& getAllowedHeaders() const;
